@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vp check*)",
+      "Bash(vp test*)",
+      "Bash(vp run *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(.claude/scripts/gh-bot pr view*)",
+      "Bash(.claude/scripts/gh-bot pr checks*)",
+      "Bash(.claude/scripts/gh-bot pr diff*)",
+      "Bash(.claude/scripts/gh-bot run view*)"
+    ],
+    "deny": [
+      "Read(~/.config/appligator-bot/**)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git push origin main*)",
+      "Bash(git push origin master*)",
+      "Bash(git push * HEAD:main*)",
+      "Bash(git push * HEAD:master*)",
+      "Bash(gh pr merge*)",
+      "Bash(.claude/scripts/gh-bot pr merge*)",
+      "Bash(gh repo delete*)",
+      "Bash(.claude/scripts/gh-bot repo delete*)"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Runs the GitHub CLI as the appligator Claude bot (GitHub App installation token).
+set -euo pipefail
+GH_TOKEN="$(node "$(dirname "$0")/github-app-token.mjs")"
+export GH_TOKEN
+exec gh "$@"
