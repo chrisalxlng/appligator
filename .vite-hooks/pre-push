@@ -1,0 +1,18 @@
+# Enforces the branch naming convention from CLAUDE.md for every pushed branch.
+zero=0000000000000000000000000000000000000000
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Branch deletions and tags are not checked.
+  [ "$local_sha" = "$zero" ] && continue
+  branch=${remote_ref#refs/heads/}
+  [ "$branch" = "$remote_ref" ] && continue
+  [ "$branch" = master ] && continue
+
+  if ! echo "$branch" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)+$' || [ ${#branch} -gt 50 ]; then
+    echo "✖ Invalid branch name: \"$branch\""
+    echo "  Use a short kebab-case description of at least two words (max. 50 characters)."
+    echo "  Example: \"add-login-form\""
+    exit 1
+  fi
+done
+exit 0
