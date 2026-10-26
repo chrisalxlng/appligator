@@ -7,6 +7,13 @@
 3. When the result is complete and all checks pass, push and open a pull request — no separate go needed.
 4. The user reviews, approves and merges.
 
+# Tools
+
+- **Dev server:** `vp run dev` serves the website at http://localhost:5173 (strict port; if it is taken, a dev server is already running).
+- **Playwright MCP:** drive the app in a browser to verify features and take screenshots (saved to `.playwright-mcp/`, gitignored).
+- **Chrome DevTools MCP:** inspect console errors, network requests and performance.
+- **Figma MCP:** designs live in the Figma file "Appligator" (file key `p87iDADBZ2aALpClaG2UPd`, https://www.figma.com/design/p87iDADBZ2aALpClaG2UPd/Appligator). Check the relevant frames before implementing UI.
+
 # Code Style
 
 - Code must be readable and understandable on its own: clear names, small focused functions, obvious control flow.
