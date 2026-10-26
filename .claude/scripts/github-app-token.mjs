@@ -23,13 +23,12 @@ if (!APPLIGATOR_BOT_APP_ID || !APPLIGATOR_BOT_INSTALLATION_ID || !APPLIGATOR_BOT
 
 const cacheDir = join(homedir(), ".cache", "appligator-bot");
 const cacheFile = join(cacheDir, "token.json");
-// Refresh tokens that expire within the next 5 minutes.
-const minValidityMs = 5 * 60 * 1000;
+const refreshBeforeExpiryMs = 5 * 60 * 1000;
 
 function readCachedToken() {
   try {
     const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
-    if (new Date(cached.expires_at).getTime() - Date.now() > minValidityMs) {
+    if (new Date(cached.expires_at).getTime() - Date.now() > refreshBeforeExpiryMs) {
       return cached.token;
     }
   } catch {}

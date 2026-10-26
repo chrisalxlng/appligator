@@ -7,6 +7,12 @@
 3. When the result is complete and all checks pass, push and open a pull request — no separate go needed.
 4. The user reviews, approves and merges.
 
+# Code Style
+
+- Code must be readable and understandable on its own: clear names, small focused functions, obvious control flow.
+- Comments are the last resort. Only add one when the code cannot be made self-explanatory, e.g. to explain a non-obvious "why" (external constraints, workarounds). Never comment what the code already says.
+- Indentation is 2 spaces everywhere (see `.editorconfig`).
+
 # Git Workflow
 
 ## Branches
@@ -30,7 +36,7 @@
 ## Pull Requests
 
 - The PR title follows the commit message convention (it becomes the squash commit message).
-- Assign the user: `--assignee chrisalxlng`. Review is requested automatically via `.github/CODEOWNERS`.
+- Assign the user and request their review: `--assignee chrisalxlng --reviewer chrisalxlng` (`.github/CODEOWNERS` requests it as well).
 - Add a fitting label: `enhancement`, `bug`, `documentation`, `refactor`, `test`, `chore`, `ci`, `dependencies`.
 - Add the milestone of the targeted version, if one exists (`gh-bot api repos/chrisalxlng/appligator/milestones`).
 
