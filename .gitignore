@@ -37,3 +37,6 @@ dist-ssr
 
 # Claude Code local settings (contains bot credentials config)
 .claude/settings.local.json
+
+# Playwright MCP screenshots and traces
+.playwright-mcp/
