@@ -27,6 +27,10 @@
       background: var(--active-surface-hover);
     }
   }
+
+  &:has(.link[data-status="active"]:active) .indicator {
+    background: var(--active-surface-press);
+  }
 }
 
 .indicator {
@@ -48,8 +52,12 @@
 
   @media (hover: hover) {
     &:hover:not([data-status="active"]) {
-      background: var(--fill);
+      background: var(--surface-hover);
     }
+  }
+
+  &:active:not([data-status="active"]) {
+    background: var(--surface-press);
   }
 
   &:focus-visible {

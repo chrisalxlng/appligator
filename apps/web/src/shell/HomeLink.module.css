@@ -12,8 +12,12 @@
 
   @media (hover: hover) {
     &:hover {
-      background: var(--fill);
+      background: var(--surface-hover);
     }
+  }
+
+  &:active {
+    background: var(--surface-press);
   }
 
   &:focus-visible {

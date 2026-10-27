@@ -31,8 +31,12 @@
 
   @media (hover: hover) {
     &:hover:not([data-disabled]) {
-      background: var(--color-deep-teal-700);
+      background: var(--interactive-fill-hover);
     }
+  }
+
+  &:active:not([data-disabled]) {
+    background: var(--interactive-fill-press);
   }
 }
 
@@ -42,7 +46,11 @@
 
   @media (hover: hover) {
     &:hover:not([data-disabled]) {
-      background: var(--color-teal-gray-300);
+      background: var(--fill-hover);
     }
+  }
+
+  &:active:not([data-disabled]) {
+    background: var(--fill-press);
   }
 }
