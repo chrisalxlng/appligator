@@ -5,7 +5,7 @@ import { Button } from "./Button.tsx";
 const meta = {
   title: "Components/Button",
   component: Button,
-  args: { children: "Hinzufügen" },
+  args: { children: "Add" },
 } satisfies Meta<typeof Button>;
 
 export default meta;
@@ -17,7 +17,7 @@ export const Primary: Story = {
 };
 
 export const Secondary: Story = {
-  args: { variant: "secondary", children: "Abmelden" },
+  args: { variant: "secondary", children: "Sign out" },
 };
 
 export const WithIcon: Story = {
@@ -25,7 +25,7 @@ export const WithIcon: Story = {
     children: (
       <>
         <IconPlus size={20} stroke={2.4} aria-hidden />
-        Hinzufügen
+        Add
       </>
     ),
   },

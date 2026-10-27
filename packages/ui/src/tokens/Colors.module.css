@@ -30,7 +30,7 @@
 
 .color {
   height: 48px;
-  border: 1px solid var(--separator);
+  border: var(--border-width-s) solid var(--separator);
   border-radius: var(--radius-m);
 }
 

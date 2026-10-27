@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  border: 1.5px solid var(--active-separator);
+  border: var(--border-width-m) solid var(--active-separator);
   background: var(--active-surface);
   box-shadow: var(--shadow-s);
   pointer-events: none;

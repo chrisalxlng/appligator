@@ -35,6 +35,12 @@
   --spacing-72: 288px;
   --spacing-96: 384px;
 
+  --border-width-s: 1px;
+  --border-width-m: 1.5px;
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
   --radius-m: 8px;
   --radius-full: 9999px;
 

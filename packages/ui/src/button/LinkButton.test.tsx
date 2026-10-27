@@ -3,9 +3,9 @@ import { expect, test } from "vite-plus/test";
 import { LinkButton } from "./LinkButton.tsx";
 
 test("renders a link with button styling", () => {
-  render(<LinkButton href="/jobs">Stellen</LinkButton>);
+  render(<LinkButton href="/jobs">Jobs</LinkButton>);
 
-  expect(screen.getByRole("link", { name: "Stellen" })).toHaveAttribute("href", "/jobs");
+  expect(screen.getByRole("link", { name: "Jobs" })).toHaveAttribute("href", "/jobs");
 });
 
 test("renders the element passed via render", () => {
@@ -18,9 +18,9 @@ test("renders the element passed via render", () => {
         </a>
       )}
     >
-      Weiter
+      Continue
     </LinkButton>,
   );
 
-  expect(screen.getByRole("link", { name: "Weiter" })).toHaveAttribute("data-custom");
+  expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute("data-custom");
 });

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./HomeLink.module.css";
 
 interface HomeLinkProps {
@@ -8,10 +9,12 @@ interface HomeLinkProps {
 }
 
 export function HomeLink({ children, className }: HomeLinkProps) {
+  const { t } = useTranslation();
+
   return (
     <Link
       to="/"
-      aria-label="Appligator Startseite"
+      aria-label={t("brand.homeLink")}
       className={`${styles.homeLink} ${className ?? ""}`}
     >
       {children}

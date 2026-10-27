@@ -11,7 +11,7 @@
     width: var(--spacing-72);
     height: 100dvh;
     padding: var(--spacing-6);
-    border-right: 1px solid var(--separator);
+    border-right: var(--border-width-s) solid var(--separator);
     background: var(--background);
   }
 }
@@ -30,7 +30,6 @@
 }
 
 .indicator {
-  composes: indicator from "./ActiveIndicator.module.css";
   border-radius: var(--radius-m);
 }
 
@@ -40,7 +39,7 @@
   align-items: center;
   gap: var(--spacing-2-5);
   padding: var(--spacing-2-5) var(--spacing-3-5);
-  border: 1.5px solid transparent;
+  border: var(--border-width-m) solid transparent;
   border-radius: var(--radius-m);
   color: var(--text-primary);
   font: var(--font-label-m);
@@ -54,8 +53,8 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--active-separator);
-    outline-offset: 2px;
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
   }
 
   &[data-status="active"] {

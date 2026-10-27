@@ -10,7 +10,7 @@ const meta = {
     children: (
       <>
         <IconArrowRight size={20} stroke={2.4} aria-hidden />
-        Startseite öffnen
+        Open home page
       </>
     ),
   },

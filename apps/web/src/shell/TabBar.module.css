@@ -13,7 +13,7 @@
   position: relative;
   display: flex;
   padding: var(--spacing-0-5);
-  border: 1px solid var(--separator);
+  border: var(--border-width-s) solid var(--separator);
   border-radius: var(--radius-full);
   background: var(--surface);
   box-shadow: var(--shadow-m);
@@ -26,7 +26,6 @@
 }
 
 .indicator {
-  composes: indicator from "./ActiveIndicator.module.css";
   border-radius: var(--radius-full);
 }
 
@@ -37,7 +36,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-4) var(--spacing-3);
-  border: 1.5px solid transparent;
+  border: var(--border-width-m) solid transparent;
   border-radius: var(--radius-full);
   color: var(--text-primary);
 
@@ -48,8 +47,8 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--active-separator);
-    outline-offset: -2px;
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: calc(-1 * var(--focus-ring-offset));
   }
 
   &[data-status="active"] {

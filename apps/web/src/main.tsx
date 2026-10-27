@@ -1,4 +1,5 @@
 import "@appligator/ui/styles.css";
+import "./i18n/i18n.ts";
 import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

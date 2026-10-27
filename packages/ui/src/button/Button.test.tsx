@@ -5,9 +5,9 @@ import { Button } from "./Button.tsx";
 
 test("calls onClick when clicked", async () => {
   const onClick = vi.fn();
-  render(<Button onClick={onClick}>Speichern</Button>);
+  render(<Button onClick={onClick}>Save</Button>);
 
-  await userEvent.click(screen.getByRole("button", { name: "Speichern" }));
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
   expect(onClick).toHaveBeenCalledOnce();
 });
@@ -16,11 +16,11 @@ test("ignores clicks when disabled", async () => {
   const onClick = vi.fn();
   render(
     <Button onClick={onClick} disabled>
-      Speichern
+      Save
     </Button>,
   );
 
-  await userEvent.click(screen.getByRole("button", { name: "Speichern" }));
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
   expect(onClick).not.toHaveBeenCalled();
 });

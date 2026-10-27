@@ -15,8 +15,8 @@
   cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid var(--active-separator);
-    outline-offset: 2px;
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
   }
 
   &[data-disabled] {

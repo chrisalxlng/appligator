@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { Page } from "./Page.tsx";
 
 export function JobsPage() {
-  return <Page title="Stellen" />;
+  const { t } = useTranslation();
+
+  return <Page title={t("navigation.jobs")} />;
 }

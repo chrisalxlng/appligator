@@ -1,3 +1,4 @@
+import styles from "./ActiveIndicator.module.css";
 import type { LinkRect } from "./useActiveLinkRect.ts";
 
 interface ActiveIndicatorProps {
@@ -11,7 +12,7 @@ export function ActiveIndicator({ rect, className }: ActiveIndicatorProps) {
   return (
     <span
       aria-hidden
-      className={className}
+      className={`${styles.indicator} ${className}`}
       style={{
         width: rect.width,
         height: rect.height,
