@@ -1,0 +1,29 @@
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  max-width: 552px;
+  padding: var(--spacing-4);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-m);
+  background: var(--fill);
+}
+
+.user {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.name {
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+}
+
+.email {
+  color: var(--text-secondary);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+}

@@ -13,6 +13,8 @@ Monorepo built with [Vite+](https://viteplus.dev).
 
 ## Development
 
+The app requires a login via Keycloak. Locally, the Keycloak of the [cl-dev](https://github.com/chrisalxlng/cl-dev) setup must run at http://localhost:8080 with the `appligator-app` client in the `apps` realm. The web app reads its Keycloak settings from `apps/web/.env.development`; the API reads `KEYCLOAK_ISSUER` and `KEYCLOAK_CLIENT_ID` and defaults to the local Keycloak.
+
 - Install dependencies:
 
 ```bash

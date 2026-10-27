@@ -1,8 +1,8 @@
 import { expect, test } from "vite-plus/test";
-import { buildApp } from "../app.ts";
+import { buildTestApp } from "../testAuth.ts";
 
-test("GET /health reports ok", async () => {
-  const app = buildApp();
+test("GET /health reports ok without authentication", async () => {
+  const app = buildTestApp();
 
   const response = await app.inject({ method: "GET", url: "/health" });
 

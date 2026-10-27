@@ -11,6 +11,10 @@ export const de: Translations = {
     applications: "Bewerbungen",
     profile: "Profil",
   },
+  profile: {
+    account: "Konto",
+    logout: "Abmelden",
+  },
   notFound: {
     title: "Seite nicht gefunden",
     description: "Die gesuchte Seite existiert nicht mehr oder wurde verschoben.",

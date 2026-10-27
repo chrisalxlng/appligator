@@ -54,3 +54,23 @@
     background: var(--fill-press);
   }
 }
+
+.surface {
+  background: var(--surface);
+  color: var(--text-primary);
+
+  @media (hover: hover) {
+    &:hover:not([data-disabled]) {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active:not([data-disabled]) {
+    background: var(--surface-press);
+  }
+}
+
+.iconOnly {
+  width: 40px;
+  padding: 0;
+}

@@ -1,7 +1,10 @@
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import i18n from "i18next";
-import { afterEach, expect, test } from "vite-plus/test";
+import { afterEach, expect, test, vi } from "vite-plus/test";
+import type { Auth } from "./auth/authenticate.ts";
+import { AuthContext } from "./auth/AuthContext.ts";
 import { createAppRouter } from "./router.tsx";
 
 afterEach(async () => {
@@ -9,8 +12,17 @@ afterEach(async () => {
 });
 
 function renderAt(path: string) {
+  const auth: Auth = {
+    user: { name: "Jane Doe", email: "jane@example.com" },
+    logout: vi.fn(),
+  };
   const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
-  render(<RouterProvider router={router} />);
+  render(
+    <AuthContext value={auth}>
+      <RouterProvider router={router} />
+    </AuthContext>,
+  );
+  return auth;
 }
 
 test("renders the page for the current route", async () => {
@@ -49,4 +61,21 @@ test("renders German texts when the language is German", async () => {
   renderAt("/jobs");
 
   expect(await screen.findByRole("heading", { name: "Stellen" })).toBeInTheDocument();
+});
+
+test("shows the logged in user on the profile page", async () => {
+  renderAt("/profile");
+
+  const account = await screen.findByRole("region", { name: "Account" });
+
+  expect(account).toHaveTextContent("Jane Doe");
+  expect(account).toHaveTextContent("jane@example.com");
+});
+
+test("signs the user out from the profile page", async () => {
+  const { logout } = renderAt("/profile");
+
+  await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+
+  expect(logout).toHaveBeenCalledOnce();
 });

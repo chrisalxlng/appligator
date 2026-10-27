@@ -1,12 +1,14 @@
 import { LogoMark } from "@appligator/ui";
+import type { ReactNode } from "react";
 import { HomeLink } from "../shell/HomeLink.tsx";
 import styles from "./Page.module.css";
 
 interface PageProps {
   title: string;
+  children?: ReactNode;
 }
 
-export function Page({ title }: PageProps) {
+export function Page({ title, children }: PageProps) {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -15,6 +17,7 @@ export function Page({ title }: PageProps) {
         </HomeLink>
         <h1 className={styles.title}>{title}</h1>
       </header>
+      {children}
     </div>
   );
 }
