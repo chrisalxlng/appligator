@@ -29,8 +29,10 @@
   background: var(--interactive-fill);
   color: var(--interactive-text-primary);
 
-  &:hover:not([data-disabled]) {
-    background: var(--color-deep-teal-700);
+  @media (hover: hover) {
+    &:hover:not([data-disabled]) {
+      background: var(--color-deep-teal-700);
+    }
   }
 }
 
@@ -38,7 +40,9 @@
   background: var(--fill);
   color: var(--text-primary);
 
-  &:hover:not([data-disabled]) {
-    background: var(--color-teal-gray-300);
+  @media (hover: hover) {
+    &:hover:not([data-disabled]) {
+      background: var(--color-teal-gray-300);
+    }
   }
 }

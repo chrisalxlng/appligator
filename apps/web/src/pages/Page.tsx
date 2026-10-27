@@ -1,4 +1,5 @@
 import { LogoMark } from "@appligator/ui";
+import { HomeLink } from "../shell/HomeLink.tsx";
 import styles from "./Page.module.css";
 
 interface PageProps {
@@ -9,7 +10,9 @@ export function Page({ title }: PageProps) {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <LogoMark className={styles.logo} />
+        <HomeLink className={styles.homeLink}>
+          <LogoMark />
+        </HomeLink>
         <h1 className={styles.title}>{title}</h1>
       </header>
     </div>

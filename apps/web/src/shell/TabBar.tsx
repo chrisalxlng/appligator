@@ -1,11 +1,18 @@
 import { Link } from "@tanstack/react-router";
+import { useRef } from "react";
+import { ActiveIndicator } from "./ActiveIndicator.tsx";
 import { navigationItems } from "./navigation.ts";
 import styles from "./TabBar.module.css";
+import { useActiveLinkRect } from "./useActiveLinkRect.ts";
 
 export function TabBar() {
+  const navRef = useRef<HTMLElement>(null);
+  const activeLinkRect = useActiveLinkRect(navRef);
+
   return (
     <div className={styles.container}>
-      <nav aria-label="Hauptnavigation" className={styles.tabBar}>
+      <nav ref={navRef} aria-label="Hauptnavigation" className={styles.tabBar}>
+        <ActiveIndicator rect={activeLinkRect} className={styles.indicator} />
         {navigationItems.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}

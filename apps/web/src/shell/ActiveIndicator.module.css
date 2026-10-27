@@ -1,0 +1,18 @@
+.indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 1.5px solid var(--active-separator);
+  background: var(--active-surface);
+  box-shadow: var(--shadow-s);
+  pointer-events: none;
+  transition:
+    transform 250ms ease,
+    width 250ms ease,
+    height 250ms ease,
+    background-color 150ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

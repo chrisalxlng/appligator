@@ -10,15 +10,28 @@
 }
 
 .tabBar {
+  position: relative;
   display: flex;
   padding: var(--spacing-0-5);
   border: 1px solid var(--separator);
   border-radius: var(--radius-full);
   background: var(--surface);
   box-shadow: var(--shadow-m);
+
+  @media (hover: hover) {
+    &:has(.tab[data-status="active"]:hover) .indicator {
+      background: var(--active-surface-hover);
+    }
+  }
+}
+
+.indicator {
+  composes: indicator from "./ActiveIndicator.module.css";
+  border-radius: var(--radius-full);
 }
 
 .tab {
+  position: relative;
   display: flex;
   flex: 1;
   align-items: center;
@@ -28,15 +41,18 @@
   border-radius: var(--radius-full);
   color: var(--text-primary);
 
+  @media (hover: hover) {
+    &:hover:not([data-status="active"]) {
+      background: var(--fill);
+    }
+  }
+
   &:focus-visible {
     outline: 2px solid var(--active-separator);
     outline-offset: -2px;
   }
 
   &[data-status="active"] {
-    border-color: var(--active-separator);
-    background: var(--active-surface);
-    box-shadow: var(--shadow-s);
     color: var(--active-text-primary);
   }
 }

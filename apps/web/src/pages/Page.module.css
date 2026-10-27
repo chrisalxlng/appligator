@@ -16,7 +16,7 @@
   gap: var(--spacing-3);
 }
 
-.logo {
+.homeLink {
   flex-shrink: 0;
 
   @media (width >= 768px) {

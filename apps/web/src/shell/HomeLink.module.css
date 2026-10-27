@@ -1,0 +1,23 @@
+.homeLink {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: fit-content;
+  margin: calc(-1 * var(--spacing-1));
+  padding: var(--spacing-1);
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--fill);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--active-separator);
+    outline-offset: 2px;
+  }
+}

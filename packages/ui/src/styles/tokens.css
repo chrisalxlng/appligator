@@ -9,6 +9,7 @@
   --interactive-fill: var(--color-deep-teal-600);
   --interactive-text-primary: var(--color-deep-teal-50);
   --active-surface: var(--color-deep-teal-50);
+  --active-surface-hover: var(--color-deep-teal-100);
   --active-separator: var(--color-deep-teal-500);
   --active-text-primary: var(--color-deep-teal-900);
   --active-text-secondary: var(--color-deep-teal-600);

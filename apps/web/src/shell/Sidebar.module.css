@@ -17,12 +17,25 @@
 }
 
 .nav {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
+
+  @media (hover: hover) {
+    &:has(.link[data-status="active"]:hover) .indicator {
+      background: var(--active-surface-hover);
+    }
+  }
+}
+
+.indicator {
+  composes: indicator from "./ActiveIndicator.module.css";
+  border-radius: var(--radius-m);
 }
 
 .link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-2-5);
@@ -34,8 +47,10 @@
   letter-spacing: var(--tracking-label-m);
   text-decoration: none;
 
-  &:hover {
-    background: var(--fill);
+  @media (hover: hover) {
+    &:hover:not([data-status="active"]) {
+      background: var(--fill);
+    }
   }
 
   &:focus-visible {
@@ -44,9 +59,6 @@
   }
 
   &[data-status="active"] {
-    border-color: var(--active-separator);
-    background: var(--active-surface);
-    box-shadow: var(--shadow-s);
     color: var(--active-text-primary);
   }
 }

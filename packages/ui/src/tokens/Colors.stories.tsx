@@ -22,6 +22,7 @@ const semanticTokens = [
   "interactive-fill",
   "interactive-text-primary",
   "active-surface",
+  "active-surface-hover",
   "active-separator",
   "active-text-primary",
   "active-text-secondary",

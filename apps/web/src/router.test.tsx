@@ -30,3 +30,11 @@ test("renders the not found page for unknown routes", async () => {
   expect(await screen.findByRole("heading", { name: "Seite nicht gefunden" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Startseite öffnen" })).toHaveAttribute("href", "/");
 });
+
+test("links the app logo to the home page", async () => {
+  renderAt("/profile");
+
+  const [logoLink] = await screen.findAllByRole("link", { name: "Appligator Startseite" });
+
+  expect(logoLink).toHaveAttribute("href", "/");
+});
