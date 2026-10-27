@@ -4,25 +4,27 @@ import userEvent from "@testing-library/user-event";
 import i18n from "i18next";
 import { afterEach, expect, test, vi } from "vite-plus/test";
 import type { Auth } from "./auth/authenticate.ts";
-import { AuthContext } from "./auth/AuthContext.ts";
+import { JobsPage } from "./pages/JobsPage.tsx";
 import { createAppRouter } from "./router.tsx";
+
+vi.mock("./pages/JobsPage.tsx", async (importOriginal) => {
+  const { JobsPage } = await importOriginal<typeof import("./pages/JobsPage.tsx")>();
+  return { JobsPage: vi.fn(JobsPage) };
+});
 
 afterEach(async () => {
   await i18n.changeLanguage("en");
+  vi.restoreAllMocks();
 });
 
-function renderAt(path: string) {
-  const auth: Auth = {
-    user: { name: "Jane Doe", email: "jane@example.com" },
-    logout: vi.fn(),
-  };
-  const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
-  render(
-    <AuthContext value={auth}>
-      <RouterProvider router={router} />
-    </AuthContext>,
-  );
-  return auth;
+const auth: Auth = {
+  user: { name: "Jane Doe", email: "jane@example.com" },
+  logout: vi.fn(),
+};
+
+function renderAt(path: string, authentication = Promise.resolve(auth)) {
+  const router = createAppRouter(authentication, createMemoryHistory({ initialEntries: [path] }));
+  render(<RouterProvider router={router} />);
 }
 
 test("renders the page for the current route", async () => {
@@ -73,9 +75,39 @@ test("shows the logged in user on the profile page", async () => {
 });
 
 test("signs the user out from the profile page", async () => {
-  const { logout } = renderAt("/profile");
+  renderAt("/profile");
 
   await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
 
-  expect(logout).toHaveBeenCalledOnce();
+  expect(auth.logout).toHaveBeenCalledOnce();
+});
+
+test("shows the error page when the authentication fails", async () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  renderAt("/jobs", Promise.reject(new Error("Keycloak unavailable")));
+
+  expect(await screen.findByRole("heading", { name: "Something went wrong" })).toBeInTheDocument();
+  expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+});
+
+test("shows the error page when a page fails to render", async () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.mocked(JobsPage).mockImplementation(() => {
+    throw new Error("Render failed");
+  });
+  renderAt("/jobs");
+
+  expect(await screen.findByRole("heading", { name: "Something went wrong" })).toBeInTheDocument();
+  expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+});
+
+test("reloads the app from the error page", async () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  const reload = vi.fn();
+  vi.spyOn(window, "location", "get").mockReturnValue({ reload } as unknown as Location);
+  renderAt("/jobs", Promise.reject(new Error("Keycloak unavailable")));
+
+  await userEvent.click(await screen.findByRole("button", { name: "Reload page" }));
+
+  expect(reload).toHaveBeenCalledOnce();
 });

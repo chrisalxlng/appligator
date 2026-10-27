@@ -13,6 +13,11 @@ export const en = {
     account: "Account",
     logout: "Sign out",
   },
+  error: {
+    title: "Something went wrong",
+    description: "An unexpected error occurred. Please reload the page or try again later.",
+    reload: "Reload page",
+  },
   notFound: {
     title: "Page not found",
     description: "The page you are looking for no longer exists or has been moved.",

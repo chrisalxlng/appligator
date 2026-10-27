@@ -15,3 +15,15 @@ test("is named by its label", async () => {
 
   expect(onClick).toHaveBeenCalledOnce();
 });
+
+test("shows its label as a tooltip", async () => {
+  render(
+    <IconButton label="Sign out">
+      <svg aria-hidden />
+    </IconButton>,
+  );
+
+  await userEvent.hover(screen.getByRole("button", { name: "Sign out" }));
+
+  expect(await screen.findByText("Sign out")).toBeInTheDocument();
+});

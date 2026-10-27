@@ -15,6 +15,12 @@ export const de: Translations = {
     account: "Konto",
     logout: "Abmelden",
   },
+  error: {
+    title: "Etwas ist schiefgelaufen",
+    description:
+      "Ein unerwarteter Fehler ist aufgetreten. Lade die Seite neu oder versuche es später erneut.",
+    reload: "Seite neu laden",
+  },
   notFound: {
     title: "Seite nicht gefunden",
     description: "Die gesuchte Seite existiert nicht mehr oder wurde verschoben.",

@@ -1,7 +1,7 @@
 import { IconButton } from "@appligator/ui";
 import { IconLogout } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../auth/AuthContext.ts";
+import { useAuth } from "../auth/useAuth.ts";
 import { Page } from "./Page.tsx";
 import styles from "./ProfilePage.module.css";
 

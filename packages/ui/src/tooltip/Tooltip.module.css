@@ -1,0 +1,15 @@
+.tooltip {
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-m);
+  background: var(--text-primary);
+  box-shadow: var(--shadow-s);
+  color: var(--background);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+  transition: opacity 150ms ease;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+}
