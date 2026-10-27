@@ -3,9 +3,25 @@
 # Development Workflow
 
 1. The user provides the requirements; we agree on a rough plan together before coding.
-2. Implement on a new branch, write tests and verify visually in the browser.
-3. When the result is complete and all checks pass, push and open a pull request — no separate go needed.
-4. The user reviews, approves and merges.
+2. Implement on a new branch, write tests and verify visually in the browser. Afterwards close the browser and stop the dev server by port (`lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill`).
+3. Self-review the whole branch (see below) and fix every finding right away.
+4. When the result is complete and all checks pass, push and open a pull request — no separate go needed.
+5. The user reviews, approves and merges.
+
+## Self-Review
+
+Review the full branch diff (`git diff master...HEAD`) as if it were someone else's PR:
+
+- **Scope:** Does every change serve the feature? Remove unrelated edits, debug output and leftovers.
+- **Unused code:** No dead code, unused exports, imports, dependencies, files or CSS.
+- **Consistency:** Is the implementation coherent in itself and with the existing codebase (naming, structure, patterns)? No duplicated logic.
+- **Correctness:** Edge cases, error and empty states, loading states.
+- **Tests:** Do the tests cover the new behavior, including edge cases? Do they fail without the change?
+- **UI:** Does it match the Figma design on desktop and mobile? No console errors.
+- **Code style:** Readable without comments; remaining comments explain only a non-obvious "why".
+- **Docs:** Are `CLAUDE.md`, READMEs and the PR description still accurate?
+
+Summarize the self-review findings and what was fixed in the PR description.
 
 # Tools
 
@@ -46,6 +62,7 @@
 - Assign the user and request their review: `--assignee chrisalxlng --reviewer chrisalxlng` (`.github/CODEOWNERS` requests it as well).
 - Add a fitting label: `enhancement`, `bug`, `documentation`, `refactor`, `test`, `chore`, `ci`, `dependencies`.
 - Add the milestone of the targeted version, if one exists (`gh-bot api repos/chrisalxlng/appligator/milestones`).
+- The description contains a summary, a test plan and a "Self-review" section.
 
 ## Hooks
 
