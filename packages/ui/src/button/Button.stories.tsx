@@ -20,6 +20,10 @@ export const Secondary: Story = {
   args: { variant: "secondary", children: "Sign out" },
 };
 
+export const Surface: Story = {
+  args: { variant: "surface" },
+};
+
 export const WithIcon: Story = {
   args: {
     children: (
