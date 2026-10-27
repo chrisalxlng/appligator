@@ -38,6 +38,8 @@
 
 - Use `.claude/scripts/gh-bot` instead of `gh`; it authenticates as the `appligator-claude-bot` GitHub App.
 - `git push` authenticates as the bot automatically via the credential helper in `.claude/settings.local.json`.
+- CI (`.github/workflows/`) checks, tests and builds every PR and validates the PR title. After opening a PR, wait for `gh-bot pr checks <number> --watch` and fix failures.
+- The bot cannot push changes under `.github/workflows/` (by design). Commit them and ask the user to push the branch; then open the PR.
 - Never merge; the user reviews and merges.
 
 ## Pull Requests
