@@ -1,0 +1,73 @@
+:root {
+  --color-deep-teal-50: #edfafa;
+  --color-deep-teal-100: #d9f9fa;
+  --color-deep-teal-200: #c0eff0;
+  --color-deep-teal-300: #8dd9d9;
+  --color-deep-teal-400: #57adad;
+  --color-deep-teal-500: #2f8080;
+  --color-deep-teal-600: #206b6b;
+  --color-deep-teal-700: #135757;
+  --color-deep-teal-800: #0a4040;
+  --color-deep-teal-900: #042929;
+
+  --color-burgundy-red-100: #fae1e1;
+  --color-burgundy-red-200: #f0c0c0;
+  --color-burgundy-red-300: #d98d8d;
+  --color-burgundy-red-400: #ad5757;
+  --color-burgundy-red-500: #802f2f;
+  --color-burgundy-red-600: #6b2020;
+  --color-burgundy-red-700: #571313;
+  --color-burgundy-red-800: #400a0a;
+  --color-burgundy-red-900: #290404;
+
+  --color-ochre-yellow-100: #faf2e1;
+  --color-ochre-yellow-200: #f0e1c0;
+  --color-ochre-yellow-300: #d9c28d;
+  --color-ochre-yellow-400: #ad9357;
+  --color-ochre-yellow-500: #80672f;
+  --color-ochre-yellow-600: #6b5520;
+  --color-ochre-yellow-700: #574213;
+  --color-ochre-yellow-800: #402f0a;
+  --color-ochre-yellow-900: #291e04;
+
+  --color-forest-green-100: #e5fae1;
+  --color-forest-green-200: #c8f0c0;
+  --color-forest-green-300: #9ad98d;
+  --color-forest-green-400: #65ad57;
+  --color-forest-green-500: #3d802f;
+  --color-forest-green-600: #2d6b20;
+  --color-forest-green-700: #1e5713;
+  --color-forest-green-800: #13400a;
+  --color-forest-green-900: #0a2904;
+
+  --color-navy-blue-100: #e1e8fa;
+  --color-navy-blue-200: #c0cef0;
+  --color-navy-blue-300: #8da4d9;
+  --color-navy-blue-400: #5771ad;
+  --color-navy-blue-500: #2f4780;
+  --color-navy-blue-600: #20376b;
+  --color-navy-blue-700: #132757;
+  --color-navy-blue-800: #0a1a40;
+  --color-navy-blue-900: #040f29;
+
+  --color-royal-purple-100: #fae1f8;
+  --color-royal-purple-200: #f0c0ed;
+  --color-royal-purple-300: #d98dd5;
+  --color-royal-purple-400: #ad57a9;
+  --color-royal-purple-500: #802f7c;
+  --color-royal-purple-600: #6b2067;
+  --color-royal-purple-700: #571354;
+  --color-royal-purple-800: #400a3d;
+  --color-royal-purple-900: #290427;
+
+  --color-teal-gray-50: #fafcfc;
+  --color-teal-gray-100: #f2f8fa;
+  --color-teal-gray-200: #e6eef0;
+  --color-teal-gray-300: #d5dee0;
+  --color-teal-gray-400: #c4ced1;
+  --color-teal-gray-500: #858d8f;
+  --color-teal-gray-600: #64696b;
+  --color-teal-gray-700: #414647;
+  --color-teal-gray-800: #2a2d2e;
+  --color-teal-gray-900: #131414;
+}

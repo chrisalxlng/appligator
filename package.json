@@ -1,11 +1,12 @@
 {
   "name": "appligator",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "ready": "vp check && vp run -r test && vp run -r build",
-    "dev": "vp run website#dev",
+    "dev": "vp run --filter @appligator/web --filter @appligator/api --parallel dev",
+    "storybook": "vp run @appligator/ui#storybook",
     "prepare": "vp config"
   },
   "devDependencies": {

@@ -1,0 +1,30 @@
+.page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding: var(--spacing-4);
+
+  @media (width >= 768px) {
+    padding: var(--spacing-6);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.homeLink {
+  flex-shrink: 0;
+
+  @media (width >= 768px) {
+    display: none;
+  }
+}
+
+.title {
+  font: var(--font-heading-m);
+  letter-spacing: var(--tracking-heading-m);
+}

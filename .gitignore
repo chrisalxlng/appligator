@@ -40,3 +40,6 @@ dist-ssr
 
 # Playwright MCP screenshots and traces
 .playwright-mcp/
+
+# Storybook build output
+storybook-static/

@@ -1,0 +1,65 @@
+.container {
+  position: sticky;
+  bottom: 0;
+  padding: var(--spacing-4);
+  background: linear-gradient(to bottom, transparent, var(--surface));
+
+  @media (width >= 768px) {
+    display: none;
+  }
+}
+
+.tabBar {
+  position: relative;
+  display: flex;
+  padding: var(--spacing-0-5);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  box-shadow: var(--shadow-m);
+
+  @media (hover: hover) {
+    &:has(.tab[data-status="active"]:hover) .indicator {
+      background: var(--active-surface-hover);
+    }
+  }
+
+  &:has(.tab[data-status="active"]:active) .indicator {
+    background: var(--active-surface-press);
+  }
+}
+
+.indicator {
+  border-radius: var(--radius-full);
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4) var(--spacing-3);
+  border: var(--border-width-m) solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+
+  @media (hover: hover) {
+    &:hover:not([data-status="active"]) {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active:not([data-status="active"]) {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: calc(-1 * var(--focus-ring-offset));
+  }
+
+  &[data-status="active"] {
+    color: var(--active-text-primary);
+  }
+}

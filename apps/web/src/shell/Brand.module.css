@@ -1,0 +1,5 @@
+.name {
+  padding-right: var(--spacing-2);
+  font: var(--font-heading-m);
+  letter-spacing: var(--tracking-heading-m);
+}

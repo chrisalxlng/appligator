@@ -3,7 +3,7 @@
 # Development Workflow
 
 1. The user provides the requirements; we agree on a rough plan together before coding.
-2. Implement on a new branch, write tests and verify visually in the browser. Afterwards close the browser and stop the dev server by port (`lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill`).
+2. Implement on a new branch, write tests and verify visually in the browser. Afterwards close the browser and stop the dev servers by port (`lsof -tiTCP:5173,3000,6006 -sTCP:LISTEN | xargs kill`).
 3. Self-review the whole branch (see below) and fix every finding right away.
 4. When the result is complete and all checks pass, push and open a pull request — no separate go needed.
 5. The user reviews, approves and merges.
@@ -25,7 +25,8 @@ Summarize the self-review findings and what was fixed in the PR description.
 
 # Tools
 
-- **Dev server:** `vp run dev` serves the website at http://localhost:5173 (strict port; if it is taken, a dev server is already running).
+- **Dev server:** `vp run dev` starts the web app at http://localhost:5173 (strict port; if it is taken, a dev server is already running) and the API at http://localhost:3000.
+- **Storybook:** `vp run storybook` serves the UI components at http://localhost:6006.
 - **Playwright MCP:** drive the app in a browser to verify features and take screenshots (saved to `.playwright-mcp/`, gitignored).
 - **Chrome DevTools MCP:** inspect console errors, network requests and performance.
 - **Figma MCP:** designs live in the Figma file "Appligator" (file key `p87iDADBZ2aALpClaG2UPd`, https://www.figma.com/design/p87iDADBZ2aALpClaG2UPd/Appligator). Check the relevant frames before implementing UI.
