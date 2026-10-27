@@ -1,0 +1,44 @@
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 160px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.heading {
+  font: var(--font-heading-s);
+  letter-spacing: var(--tracking-heading-s);
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.color {
+  height: 48px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-m);
+}
+
+.label {
+  font: var(--font-label-m);
+}
+
+.variable {
+  color: var(--text-secondary);
+  font: var(--font-caption);
+}

@@ -1,0 +1,42 @@
+.container {
+  position: sticky;
+  bottom: 0;
+  padding: var(--spacing-4);
+  background: linear-gradient(to bottom, transparent, var(--surface));
+
+  @media (width >= 768px) {
+    display: none;
+  }
+}
+
+.tabBar {
+  display: flex;
+  padding: var(--spacing-0-5);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  box-shadow: var(--shadow-m);
+}
+
+.tab {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4) var(--spacing-3);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+
+  &:focus-visible {
+    outline: 2px solid var(--active-separator);
+    outline-offset: -2px;
+  }
+
+  &[data-status="active"] {
+    border-color: var(--active-separator);
+    background: var(--active-surface);
+    box-shadow: var(--shadow-s);
+    color: var(--active-text-primary);
+  }
+}
