@@ -1,11 +1,14 @@
 import type { Job } from "@appligator/shared";
-import { Button, ConfirmDialog, IconButton, Menu, MenuItem } from "@appligator/ui";
+import { Button, ConfirmDialog, IconButton, Menu, MenuItem, useSuccessToast } from "@appligator/ui";
 import { IconDots, IconPencil, IconTrash } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FloatingActions } from "../shell/FloatingActions.tsx";
 import { useIsDesktop } from "../shell/useMediaQuery.ts";
+import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
+import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
+import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { JobFormDrawer } from "./JobFormDrawer.tsx";
 import styles from "./JobActions.module.css";
 import { useDeleteJob } from "./jobQueries.ts";
@@ -17,11 +20,15 @@ export function JobActions({ job }: { job: Job }) {
   const deleteJob = useDeleteJob(job.id);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const showSuccess = useSuccessToast();
+  const shortcutHints = useShortcutHints();
+  useAltShortcut("E", () => setIsEditing(true));
 
   function confirmDelete() {
     deleteJob.mutate(undefined, {
       onSuccess: () => {
         setIsConfirmingDelete(false);
+        showSuccess(t("jobs.toast.deleted"));
         void navigate({ to: "/jobs" });
       },
     });
@@ -48,10 +55,12 @@ export function JobActions({ job }: { job: Job }) {
     </Menu>
   );
   const editButton = (
-    <Button onClick={() => setIsEditing(true)}>
-      <IconPencil size={20} stroke={2.4} aria-hidden />
-      {t("jobs.edit")}
-    </Button>
+    <ShortcutTooltip hint={shortcutHints?.alt("E")}>
+      <Button onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
+        <IconPencil size={20} stroke={2.4} aria-hidden />
+        {t("jobs.edit")}
+      </Button>
+    </ShortcutTooltip>
   );
 
   return (
@@ -81,6 +90,7 @@ export function JobActions({ job }: { job: Job }) {
         onConfirm={confirmDelete}
         pending={deleteJob.isPending}
         error={deleteJob.isError ? t("jobs.delete.error") : undefined}
+        confirmShortcutHint={shortcutHints?.submit}
       />
     </>
   );

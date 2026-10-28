@@ -100,6 +100,11 @@ export const en = {
       remove: "Remove {{location}}",
       required: "Please enter a location.",
     },
+    toast: {
+      added: "Job added",
+      updated: "Job updated",
+      deleted: "Job deleted",
+    },
     delete: {
       action: "Delete",
       title: "Delete job?",
@@ -115,6 +120,9 @@ export const en = {
       bulletList: "Bulleted list",
       orderedList: "Numbered list",
     },
+  },
+  shortcuts: {
+    submit: "Ctrl+Enter",
   },
   profile: {
     account: "Account",

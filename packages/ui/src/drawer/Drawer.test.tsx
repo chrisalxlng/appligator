@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useRef } from "react";
-import { expect, test } from "vite-plus/test";
+import { useRef, type ReactNode } from "react";
+import { expect, test, vi } from "vite-plus/test";
 import { Button } from "../button/Button.tsx";
 import { TextInput } from "../field/TextInput.tsx";
 import { Drawer } from "./Drawer.tsx";
@@ -75,4 +75,65 @@ test("focuses the given element when it opens", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Add" }));
 
   await waitFor(() => expect(screen.getByRole("textbox", { name: "Location" })).toHaveFocus());
+});
+
+function FormDrawer({
+  onSubmit,
+  children,
+}: {
+  onSubmit: (form: string) => void;
+  children?: ReactNode;
+}) {
+  return (
+    <Drawer title="Edit job" closeLabel="Close" open>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onSubmit(event.currentTarget.name);
+        }}
+        name="job"
+      >
+        <TextInput aria-label="Position" />
+        <Button type="submit">Update</Button>
+      </form>
+      {children}
+    </Drawer>
+  );
+}
+
+test("submits its form with the submit shortcut", async () => {
+  const onSubmit = vi.fn();
+  render(<FormDrawer onSubmit={onSubmit} />);
+
+  await userEvent.click(await screen.findByRole("textbox", { name: "Position" }));
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  expect(onSubmit).toHaveBeenCalledWith("job");
+});
+
+test("submits only the form of the topmost drawer", async () => {
+  const onSubmit = vi.fn();
+  render(
+    <FormDrawer onSubmit={onSubmit}>
+      <Drawer title="Edit location" closeLabel="Close location" open>
+        <form
+          name="location"
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onSubmit(event.currentTarget.name);
+          }}
+        >
+          <TextInput aria-label="Location" />
+          <Button type="submit">Add</Button>
+        </form>
+      </Drawer>
+    </FormDrawer>,
+  );
+
+  await userEvent.click(await screen.findByRole("textbox", { name: "Location" }));
+  await userEvent.keyboard("{Meta>}{Enter}{/Meta}");
+
+  expect(onSubmit.mock.calls).toEqual([["location"]]);
 });

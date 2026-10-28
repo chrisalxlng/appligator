@@ -4,11 +4,13 @@ import {
   createContext,
   useContext,
   useRef,
+  type KeyboardEvent,
   type ReactElement,
   type ReactNode,
   type RefObject,
 } from "react";
 import { IconButton } from "../button/IconButton.tsx";
+import { isSubmitShortcut } from "../shortcut/submitShortcut.ts";
 import styles from "./Drawer.module.css";
 
 const IsNestedContext = createContext(false);
@@ -21,6 +23,15 @@ export interface DrawerProps {
   trigger?: ReactElement;
   initialFocus?: RefObject<HTMLElement | null>;
   children: ReactNode;
+}
+
+function submitOnShortcut(event: KeyboardEvent<HTMLDivElement>) {
+  if (!isSubmitShortcut(event)) return;
+
+  // React bubbles events through portals, so a parent drawer would submit as well.
+  event.stopPropagation();
+  event.preventDefault();
+  event.currentTarget.querySelector<HTMLButtonElement>('form button[type="submit"]')?.click();
 }
 
 export function Drawer({
@@ -46,6 +57,7 @@ export function Drawer({
               ref={popupRef}
               initialFocus={initialFocus ?? popupRef}
               className={styles.popup}
+              onKeyDown={submitOnShortcut}
             >
               <div className={styles.header}>
                 <BaseDrawer.Title className={styles.title}>{title}</BaseDrawer.Title>

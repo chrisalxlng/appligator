@@ -1,0 +1,127 @@
+.viewport {
+  position: fixed;
+  top: max(var(--spacing-4), env(safe-area-inset-top));
+  left: 50%;
+  z-index: 2;
+  width: min(360px, calc(100vw - 2 * var(--spacing-4)));
+  translate: -50% 0;
+}
+
+.toast {
+  --gap: var(--spacing-2);
+  --peek: var(--spacing-2);
+  --scale: calc(max(0, 1 - (var(--toast-index) * 0.1)));
+  --shrink: calc(1 - var(--scale));
+  --height: var(--toast-frontmost-height, var(--toast-height));
+  --offset-y: calc(
+    var(--toast-offset-y) + (var(--toast-index) * var(--gap)) + var(--toast-swipe-movement-y)
+  );
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: calc(1000 - var(--toast-index));
+  width: fit-content;
+  max-width: 100%;
+  height: var(--height);
+  margin-inline: auto;
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  box-shadow: var(--shadow-m);
+  transform: translateX(var(--toast-swipe-movement-x))
+    translateY(
+      calc(
+        var(--toast-swipe-movement-y) + (var(--toast-index) * var(--peek)) +
+          (var(--shrink) * var(--height))
+      )
+    )
+    scale(var(--scale));
+  transform-origin: top center;
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 500ms,
+    height 150ms;
+  user-select: none;
+
+  &[data-expanded] {
+    height: var(--toast-height);
+    transform: translateX(var(--toast-swipe-movement-x)) translateY(var(--offset-y));
+  }
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    transform: translateY(-150%);
+  }
+
+  &[data-limited] {
+    opacity: 0;
+  }
+
+  &[data-ending-style] {
+    opacity: 0;
+
+    &[data-swipe-direction="up"] {
+      transform: translateY(calc(var(--toast-swipe-movement-y) - 150%));
+    }
+
+    &[data-swipe-direction="left"] {
+      transform: translateX(calc(var(--toast-swipe-movement-x) - 150%)) translateY(var(--offset-y));
+    }
+
+    &[data-swipe-direction="right"] {
+      transform: translateX(calc(var(--toast-swipe-movement-x) + 150%)) translateY(var(--offset-y));
+    }
+  }
+
+  /* Bridges the gap between expanded toasts, so moving the pointer across it keeps them expanded. */
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: calc(var(--gap) + 1px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: opacity;
+  }
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-2);
+  overflow: hidden;
+  transition: opacity 250ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  &[data-behind] {
+    opacity: 0;
+  }
+
+  &[data-expanded] {
+    opacity: 1;
+  }
+}
+
+.icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-6);
+  height: var(--spacing-6);
+  border-radius: var(--radius-full);
+  background: var(--interactive-fill);
+  color: var(--interactive-text-primary);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+}

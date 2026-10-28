@@ -12,6 +12,9 @@ import { PageSpinner } from "../loading/PageSpinner.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { FloatingActions } from "../shell/FloatingActions.tsx";
 import { useIsDesktop } from "../shell/useMediaQuery.ts";
+import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
+import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
+import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { Page } from "./Page.tsx";
 import styles from "./JobsPage.module.css";
 
@@ -23,13 +26,17 @@ export function JobsPage() {
   const showSpinner = useDelayedSpinner(jobs.isPending);
   const { jobId } = useParams({ strict: false });
   const [isAdding, setIsAdding] = useState(false);
+  const shortcutHints = useShortcutHints();
+  useAltShortcut("N", () => setIsAdding(true));
 
   const title = t("navigation.jobs");
   const addButton = (
-    <Button onClick={() => setIsAdding(true)}>
-      <IconPlus size={20} stroke={2.4} aria-hidden />
-      {t("jobs.add")}
-    </Button>
+    <ShortcutTooltip hint={shortcutHints?.alt("N")}>
+      <Button onClick={() => setIsAdding(true)} aria-keyshortcuts="Alt+N">
+        <IconPlus size={20} stroke={2.4} aria-hidden />
+        {t("jobs.add")}
+      </Button>
+    </ShortcutTooltip>
   );
   const floatingAddButton = !isDesktop && <FloatingActions>{addButton}</FloatingActions>;
   const addDrawer = (

@@ -40,6 +40,12 @@
   opacity: 0;
 }
 
+.shortcutHint {
+  font: inherit;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
 .spinner {
   --spinner-indicator: currentColor;
   --spinner-track: color-mix(in srgb, currentColor 30%, transparent);

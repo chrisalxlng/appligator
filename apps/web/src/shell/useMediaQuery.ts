@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 
 const desktopQuery = "(width >= 768px)";
 const wideQuery = "(width >= 1200px)";
+const finePointerQuery = "(hover: hover) and (pointer: fine)";
 
 function useMediaQuery(query: string) {
   return useSyncExternalStore(
@@ -20,4 +21,8 @@ export function useIsDesktop() {
 
 export function useIsWide() {
   return useMediaQuery(wideQuery);
+}
+
+export function useHasFinePointer() {
+  return useMediaQuery(finePointerQuery);
 }

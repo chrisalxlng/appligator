@@ -1,7 +1,16 @@
-import { Button, Drawer, Field, Fieldset, IconButton, TextInput } from "@appligator/ui";
+import {
+  Button,
+  Drawer,
+  Field,
+  Fieldset,
+  IconButton,
+  submitKeyShortcuts,
+  TextInput,
+} from "@appligator/ui";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
+import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import styles from "./LocationList.module.css";
 
 interface LocationListProps {
@@ -89,6 +98,7 @@ function LocationForm({ inputRef, initialValue, isEditing, onSave }: LocationFor
   const { t } = useTranslation();
   const [value, setValue] = useState(initialValue);
   const [showError, setShowError] = useState(false);
+  const shortcutHints = useShortcutHints();
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -107,7 +117,11 @@ function LocationForm({ inputRef, initialValue, isEditing, onSave }: LocationFor
       >
         <TextInput ref={inputRef} value={value} onValueChange={setValue} />
       </Field>
-      <Button type="submit">
+      <Button
+        type="submit"
+        shortcutHint={shortcutHints?.submit}
+        aria-keyshortcuts={submitKeyShortcuts}
+      >
         {isEditing ? (
           <IconPencil size={20} stroke={2.4} aria-hidden />
         ) : (

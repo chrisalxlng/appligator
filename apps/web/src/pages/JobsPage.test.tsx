@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, test, vi } from "vite-plus/test";
+import { expect, onTestFinished, test, vi } from "vite-plus/test";
 import { createFakeJobsApi, jobFixture, jobWith } from "../testing/fakeJobsApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
 
@@ -175,7 +175,10 @@ test("adds a job and opens it", async () => {
     salary: null,
   });
   expect(router.state.location.pathname).toMatch(/^\/jobs\/[\w-]+$/);
-  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog", { name: "Add job" })).not.toBeInTheDocument(),
+  );
+  expect(screen.getByText("Job added")).toBeInTheDocument();
 });
 
 test("enters a salary range", async () => {
@@ -302,6 +305,7 @@ test("edits a job", async () => {
   ).toBeInTheDocument();
   const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...input } = jobFixture;
   expect(api.requestsWith("PUT")[0]?.body).toEqual({ ...input, position: "Staff Engineer" });
+  expect(screen.getByText("Job updated")).toBeInTheDocument();
 });
 
 test("shows the update as pending and saves only once", async () => {
@@ -320,7 +324,9 @@ test("shows the update as pending and saves only once", async () => {
   );
   expect(api.requestsWith("PUT")).toHaveLength(1);
   releaseUpdate();
-  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog", { name: "Edit job" })).not.toBeInTheDocument(),
+  );
 });
 
 test("deletes a job after confirmation", async () => {
@@ -340,6 +346,7 @@ test("deletes a job after confirmation", async () => {
     { method: "DELETE", path: `/jobs/${jobFixture.id}`, body: undefined },
   ]);
   expect(screen.queryByRole("link", { name: /Lead Developer Frontend/ })).not.toBeInTheDocument();
+  expect(screen.getByText("Job deleted")).toBeInTheDocument();
 });
 
 test("keeps the job when deleting is cancelled", async () => {
@@ -369,4 +376,62 @@ test("shows an error when deleting fails", async () => {
   expect(await within(dialog).findByRole("alert")).toHaveTextContent(
     "The job could not be deleted. Please try again.",
   );
+});
+
+test("opens the add drawer with Alt+N and shows the shortcut", async () => {
+  createFakeJobsApi([jobFixture]);
+  renderApp("/jobs");
+
+  const addButton = await screen.findByRole("button", { name: "Add" });
+  await userEvent.hover(addButton);
+  expect(await screen.findByText("Alt+N")).toBeInTheDocument();
+  await userEvent.keyboard("{Alt>}n{/Alt}");
+
+  const drawer = await screen.findByRole("dialog", { name: "Add job" });
+  expect(within(drawer).getByRole("button", { name: "Add" })).toHaveTextContent("Ctrl+Enter");
+});
+
+test("edits a job with Alt+E and saves it with Ctrl+Enter", async () => {
+  const api = createFakeJobsApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  await screen.findByRole("button", { name: "Edit" });
+
+  await userEvent.keyboard("{Alt>}e{/Alt}");
+  const drawer = await screen.findByRole("dialog", { name: "Edit job" });
+  await userEvent.keyboard("{Alt>}n{/Alt}");
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  await waitFor(() => expect(api.requestsWith("PUT")).toHaveLength(1));
+  expect(drawer).not.toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: "Add job" })).not.toBeInTheDocument();
+});
+
+test("confirms deleting with Ctrl+Enter", async () => {
+  const api = createFakeJobsApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+
+  await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
+  await screen.findByRole("alertdialog", { name: "Delete job?" });
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  await waitFor(() => expect(api.requestsWith("DELETE")).toHaveLength(1));
+});
+
+test("hides shortcut hints on touch devices", async () => {
+  const matchMedia = window.matchMedia;
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: !query.includes("pointer") && matchMedia(query).matches,
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+  onTestFinished(() => {
+    vi.stubGlobal("matchMedia", matchMedia);
+  });
+  createFakeJobsApi();
+  renderApp("/jobs");
+
+  const drawer = await openAddDrawer();
+
+  expect(within(drawer).getByRole("button", { name: "Add" }).textContent).toBe("Add");
 });
