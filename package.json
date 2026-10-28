@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "ready": "vp check && vp run -r test && vp run -r build",
+    "ready": "vp check && vp test && vp run -r build",
     "dev": "vp run --filter @appligator/web --filter @appligator/api --parallel dev",
     "storybook": "vp run @appligator/ui#storybook",
     "prepare": "vp config"
