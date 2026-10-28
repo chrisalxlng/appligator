@@ -1,4 +1,12 @@
+import { Extension } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+
+// Mod-Enter would insert a hard break, but it is the shortcut to submit the surrounding form.
+const keepSubmitShortcut = Extension.create({
+  name: "keepSubmitShortcut",
+  priority: 1000,
+  addKeyboardShortcuts: () => ({ "Mod-Enter": () => true }),
+});
 
 export const richTextExtensions = [
   StarterKit.configure({
@@ -13,6 +21,7 @@ export const richTextExtensions = [
     trailingNode: false,
     underline: false,
   }),
+  keepSubmitShortcut,
 ];
 
 export function normalizeHeadings(html: string) {

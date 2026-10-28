@@ -40,6 +40,17 @@
   opacity: 0;
 }
 
+.shortcutHint {
+  display: inline-flex;
+  align-items: center;
+  height: var(--spacing-6);
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  font: var(--font-label-s);
+  font-weight: 500;
+}
+
 .spinner {
   --spinner-indicator: currentColor;
   --spinner-track: color-mix(in srgb, currentColor 30%, transparent);

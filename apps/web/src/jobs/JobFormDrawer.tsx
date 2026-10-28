@@ -14,11 +14,14 @@ import {
   NumberInput,
   RichTextEditor,
   Select,
+  submitKeyShortcuts,
   TextInput,
+  useSuccessToast,
 } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
+import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { useSaveJob } from "./jobQueries.ts";
 import {
   toFormValues,
@@ -39,9 +42,11 @@ interface JobFormDrawerProps {
 export function JobFormDrawer({ job, open, onOpenChange, onSaved }: JobFormDrawerProps) {
   const { t } = useTranslation();
   const firstFieldRef = useRef<HTMLInputElement>(null);
+  const showSuccess = useSuccessToast();
 
   function handleSaved(savedJob: Job) {
     onOpenChange(false);
+    showSuccess(t(job ? "jobs.toast.updated" : "jobs.toast.added"));
     onSaved?.(savedJob);
   }
 
@@ -81,6 +86,7 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
   const save = useSaveJob(job?.id);
   const [values, setValues] = useState(() => toFormValues(job));
   const [errors, setErrors] = useState<JobFormErrors>({});
+  const shortcutHints = useShortcutHints();
 
   function setValue<Key extends keyof JobFormValues>(key: Key) {
     return (value: JobFormValues[Key]) => setValues((current) => ({ ...current, [key]: value }));
@@ -211,7 +217,12 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           {t("jobs.form.saveError")}
         </p>
       )}
-      <Button type="submit" pending={save.isPending}>
+      <Button
+        type="submit"
+        pending={save.isPending}
+        shortcutHint={shortcutHints?.submit}
+        aria-keyshortcuts={submitKeyShortcuts}
+      >
         {job ? (
           <IconPencil size={20} stroke={2.4} aria-hidden />
         ) : (

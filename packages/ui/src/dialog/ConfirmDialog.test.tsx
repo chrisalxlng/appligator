@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vite-plus/test";
 import { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog.tsx";
@@ -57,4 +57,34 @@ test("shows an error", () => {
   renderDialog({ error: "The job could not be deleted." });
 
   expect(screen.getByRole("alert")).toHaveTextContent("The job could not be deleted.");
+});
+
+test("confirms with the submit shortcut", async () => {
+  const { onConfirm } = renderDialog();
+  await waitFor(() =>
+    expect(screen.getByRole("alertdialog")).toContainElement(document.activeElement as HTMLElement),
+  );
+
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  expect(onConfirm).toHaveBeenCalledOnce();
+});
+
+test("ignores the submit shortcut while the action is pending", async () => {
+  const { onConfirm } = renderDialog({ pending: true });
+  await waitFor(() =>
+    expect(screen.getByRole("alertdialog")).toContainElement(document.activeElement as HTMLElement),
+  );
+
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  expect(onConfirm).not.toHaveBeenCalled();
+});
+
+test("shows the confirm shortcut as a tooltip", async () => {
+  renderDialog({ confirmShortcutHint: "⌘ ↵" });
+
+  await userEvent.hover(screen.getByRole("button", { name: "Delete" }));
+
+  expect(await screen.findByText("⌘ ↵")).toBeInTheDocument();
 });

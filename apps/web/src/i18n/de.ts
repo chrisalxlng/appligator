@@ -102,6 +102,11 @@ export const de: Translations = {
       remove: "{{location}} entfernen",
       required: "Bitte gib einen Standort an.",
     },
+    toast: {
+      added: "Stelle hinzugefügt",
+      updated: "Stelle aktualisiert",
+      deleted: "Stelle gelöscht",
+    },
     delete: {
       action: "Löschen",
       title: "Stelle löschen?",
@@ -117,6 +122,9 @@ export const de: Translations = {
       bulletList: "Aufzählung",
       orderedList: "Nummerierte Liste",
     },
+  },
+  shortcuts: {
+    submit: "Strg+Enter",
   },
   profile: {
     account: "Konto",

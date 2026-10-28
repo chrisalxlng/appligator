@@ -39,3 +39,9 @@ test("keeps its name but ignores clicks while pending", async () => {
   expect(button).toHaveAttribute("aria-busy", "true");
   expect(onClick).not.toHaveBeenCalled();
 });
+
+test("shows a shortcut hint without adding it to its name", () => {
+  render(<Button shortcutHint="⌘ ↵">Save</Button>);
+
+  expect(screen.getByRole("button", { name: "Save" })).toHaveTextContent("Save⌘ ↵");
+});

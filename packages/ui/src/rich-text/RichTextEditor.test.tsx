@@ -123,3 +123,27 @@ test("closes the format bar with Escape from one of its buttons", async () => {
   expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
   expect(screen.getByRole("textbox", { name: "Description" })).toHaveFocus();
 });
+
+test("leaves the submit shortcut to the surrounding drawer form", async () => {
+  const onValueChange = vi.fn();
+  const onSubmit = vi.fn((event: SubmitEvent) => event.preventDefault());
+  render(
+    <Drawer title="Edit job" closeLabel="Close" open>
+      <form onSubmit={(event) => onSubmit(event.nativeEvent as SubmitEvent)}>
+        <RichTextEditor
+          aria-label="Description"
+          value="<p>Text</p>"
+          onValueChange={onValueChange}
+          formatLabels={formatLabels}
+        />
+        <Button type="submit">Update</Button>
+      </form>
+    </Drawer>,
+  );
+
+  (await screen.findByRole("textbox", { name: "Description" })).focus();
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  expect(onSubmit).toHaveBeenCalledOnce();
+  expect(onValueChange).not.toHaveBeenCalled();
+});

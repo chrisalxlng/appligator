@@ -6,18 +6,30 @@ import styles from "./Button.module.css";
 export interface ButtonProps extends Omit<BaseButton.Props, "className"> {
   variant?: ButtonVariant;
   pending?: boolean;
+  shortcutHint?: string;
   className?: string;
 }
 
 export function Button({
   variant = "primary",
   pending = false,
+  shortcutHint,
   disabled,
   className,
   children,
   ...props
 }: ButtonProps) {
   const classNames = [buttonClassName(variant), className].filter(Boolean).join(" ");
+  const content = (
+    <>
+      {children}
+      {shortcutHint && (
+        <kbd className={styles.shortcutHint} aria-hidden>
+          {shortcutHint}
+        </kbd>
+      )}
+    </>
+  );
 
   return (
     <BaseButton
@@ -29,11 +41,11 @@ export function Button({
     >
       {pending ? (
         <>
-          <span className={styles.pendingContent}>{children}</span>
+          <span className={styles.pendingContent}>{content}</span>
           <SpinnerCircle size={20} className={styles.spinner} />
         </>
       ) : (
-        children
+        content
       )}
     </BaseButton>
   );

@@ -1,3 +1,4 @@
+import { ToastProvider } from "@appligator/ui";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
@@ -94,7 +95,9 @@ export function createAppRouter(
     history,
     context: { authentication },
     Wrap: ({ children }) => (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>{children}</ToastProvider>
+      </QueryClientProvider>
     ),
   });
 }
