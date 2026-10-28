@@ -8,7 +8,7 @@ Monorepo built with [Vite+](https://viteplus.dev).
 | ----------------- | --------------------------------------------------------------- |
 | `apps/web`        | Web client: client-side rendered React app with TanStack Router |
 | `apps/api`        | Backend: Fastify app with PostgreSQL via Drizzle ORM            |
-| `packages/ui`     | UI components based on Base UI, design tokens and Storybook     |
+| `packages/ui`     | UI components based on Base UI and Tiptap, tokens and Storybook |
 | `packages/shared` | Schemas and types shared between web and API                    |
 
 ## Development

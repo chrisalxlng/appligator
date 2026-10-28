@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+::selection {
+  background: var(--selection);
+  color: var(--text-primary);
+}
+
 body {
   margin: 0;
   background: var(--background);

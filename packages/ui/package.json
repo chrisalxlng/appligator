@@ -15,11 +15,16 @@
   "dependencies": {
     "@base-ui/react": "catalog:",
     "@fontsource-variable/geist": "catalog:",
-    "@fontsource-variable/inter": "catalog:"
+    "@fontsource-variable/inter": "catalog:",
+    "@tabler/icons-react": "catalog:",
+    "@tiptap/extension-bubble-menu": "catalog:",
+    "@tiptap/pm": "catalog:",
+    "@tiptap/react": "catalog:",
+    "@tiptap/starter-kit": "catalog:",
+    "@tiptap/static-renderer": "catalog:"
   },
   "devDependencies": {
     "@storybook/react-vite": "catalog:",
-    "@tabler/icons-react": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@testing-library/user-event": "catalog:",
