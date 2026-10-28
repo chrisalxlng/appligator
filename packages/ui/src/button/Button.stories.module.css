@@ -1,0 +1,9 @@
+.activeSurface {
+  padding: var(--spacing-4);
+  background: var(--active-surface);
+}
+
+.destructiveSurface {
+  padding: var(--spacing-4);
+  background: var(--destructive-surface);
+}

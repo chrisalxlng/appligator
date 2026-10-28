@@ -14,8 +14,8 @@
 
   &[data-status="failed"] {
     border-color: var(--destructive-text);
-    background: var(--fill);
-    color: var(--text-primary);
+    background: var(--destructive-surface);
+    color: var(--destructive-surface-text-primary);
   }
 }
 
@@ -47,7 +47,7 @@
   letter-spacing: var(--tracking-label-s);
 
   [data-status="failed"] & {
-    color: var(--text-secondary);
+    color: var(--destructive-surface-text-secondary);
   }
 }
 

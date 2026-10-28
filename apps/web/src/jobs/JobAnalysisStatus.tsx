@@ -31,7 +31,7 @@ function StatusContent({ analysis, onRetry, onDismiss }: StatusContentProps) {
 
   const dismissButton = (
     <IconButton
-      variant="secondary"
+      variant={analysis.status === "failed" ? "destructiveSecondary" : "activeSecondary"}
       size="small"
       label={t("jobs.analysis.dismiss")}
       onClick={onDismiss}
@@ -59,7 +59,7 @@ function StatusContent({ analysis, onRetry, onDismiss }: StatusContentProps) {
         <span className={styles.text}>
           <span className={styles.title}>{t("jobs.analysis.failed")}</span>
           <span className={styles.description}>{t(`jobs.analysis.errors.${analysis.error}`)}</span>
-          <Button variant="secondary" className={styles.retry} onClick={onRetry}>
+          <Button variant="destructiveSecondary" className={styles.retry} onClick={onRetry}>
             <IconRefresh size={20} stroke={2.4} aria-hidden />
             {t("jobs.analysis.retry")}
           </Button>
