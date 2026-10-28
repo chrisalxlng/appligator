@@ -12,7 +12,7 @@ export interface NumberInputProps {
 export function NumberInput({ "aria-label": ariaLabel, ...props }: NumberInputProps) {
   return (
     <NumberField.Root format={{ maximumFractionDigits: 0 }} {...props}>
-      <NumberField.Input className={styles.control} aria-label={ariaLabel} />
+      <NumberField.Input className={styles.singleLine} aria-label={ariaLabel} />
     </NumberField.Root>
   );
 }

@@ -4,5 +4,5 @@ import styles from "./control.module.css";
 export type TextInputProps = Omit<Input.Props, "className">;
 
 export function TextInput(props: TextInputProps) {
-  return <Input className={styles.control} {...props} />;
+  return <Input className={styles.singleLine} {...props} />;
 }

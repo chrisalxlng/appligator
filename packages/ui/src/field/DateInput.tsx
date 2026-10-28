@@ -17,7 +17,7 @@ export function DateInput(props: DateInputProps) {
     <Input
       ref={inputRef}
       type="date"
-      className={styles.control}
+      className={styles.singleLine}
       value={value}
       onValueChange={onValueChange}
       aria-label={ariaLabel}

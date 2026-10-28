@@ -1,5 +1,5 @@
 .trigger {
-  composes: control from "../field/control.module.css";
+  composes: singleLine from "../field/control.module.css";
   display: flex;
   align-items: center;
   gap: var(--spacing-2);

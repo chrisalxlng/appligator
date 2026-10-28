@@ -1,7 +1,6 @@
 .control {
   width: 100%;
   min-width: 0;
-  min-height: 40px;
   padding: var(--spacing-2-5) var(--control-end-padding, var(--spacing-3)) var(--spacing-2-5)
     var(--spacing-3);
   border: var(--border-width-s) solid var(--separator);
@@ -40,4 +39,10 @@
   @media (any-pointer: coarse) {
     font-size: 16px;
   }
+}
+
+.singleLine {
+  composes: control;
+  height: 40px;
+  padding-block: 0;
 }
