@@ -1,8 +1,9 @@
-import { IconButton } from "@appligator/ui";
-import { IconX } from "@tabler/icons-react";
+import { EmptyState, IconButton, LinkButton } from "@appligator/ui";
+import { IconArrowLeft, IconX } from "@tabler/icons-react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../api/apiClient.ts";
+import notFoundIllustration from "../assets/not-found.svg";
 import { JobDetail } from "../jobs/JobDetail.tsx";
 import { useJob } from "../jobs/jobQueries.ts";
 import { LoadError } from "../jobs/LoadError.tsx";
@@ -53,11 +54,17 @@ function JobDetailContent({ job }: { job: ReturnType<typeof useJob> }) {
   if (job.error instanceof ApiError && job.error.status === 404) {
     return (
       <div className={styles.notFound}>
-        <h2 className={styles.notFoundTitle}>{t("jobs.notFound.title")}</h2>
-        <p className={styles.notFoundDescription}>{t("jobs.notFound.description")}</p>
-        <Link to="/jobs" className={styles.backLink}>
-          {t("jobs.notFound.back")}
-        </Link>
+        <EmptyState
+          illustration={<img src={notFoundIllustration} alt="" width={225} height={224} />}
+          title={t("jobs.notFound.title")}
+          description={t("jobs.notFound.description")}
+          action={
+            <LinkButton render={<Link to="/jobs" />}>
+              <IconArrowLeft size={20} stroke={2.4} aria-hidden />
+              {t("jobs.notFound.back")}
+            </LinkButton>
+          }
+        />
       </div>
     );
   }
