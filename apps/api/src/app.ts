@@ -7,6 +7,7 @@ import {
 import { requireAuthentication, type AuthOptions } from "./auth.ts";
 import type { Database } from "./db/database.ts";
 import { healthRoutes } from "./routes/health.ts";
+import { jobRoutes } from "./routes/jobs.ts";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -30,6 +31,7 @@ export function buildApp({ auth, db }: AppOptions) {
   requireAuthentication(app, auth);
 
   app.register(healthRoutes);
+  app.register(jobRoutes);
 
   return app;
 }
