@@ -74,13 +74,13 @@
   --tracking-heading-m: -0.01em;
   --font-heading-s: 600 16px / 24px var(--font-family-heading);
   --tracking-heading-s: -0.01em;
-  --font-label-m: 600 13px / 20px var(--font-family-body);
+  --font-label-m: 600 15px / 22px var(--font-family-body);
   --tracking-label-m: 0.01em;
-  --font-label-s: 400 11px / 16px var(--font-family-body);
+  --font-label-s: 400 13px / 18px var(--font-family-body);
   --tracking-label-s: 0.02em;
-  --font-body-m: 400 13px / 20px var(--font-family-body);
-  --font-body-s: 400 11px / 16px var(--font-family-body);
-  --font-caption: 400 10px / 14px var(--font-family-body);
+  --font-body-m: 400 15px / 22px var(--font-family-body);
+  --font-body-s: 400 13px / 18px var(--font-family-body);
+  --font-caption: 400 11px / 16px var(--font-family-body);
   --tracking-caption: 0.02em;
 }
 
@@ -94,5 +94,6 @@
     --font-label-s: 400 12px / 16px var(--font-family-body);
     --font-body-m: 400 14px / 20px var(--font-family-body);
     --font-body-s: 400 12px / 16px var(--font-family-body);
+    --font-caption: 400 10px / 14px var(--font-family-body);
   }
 }
