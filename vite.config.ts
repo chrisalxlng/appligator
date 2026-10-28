@@ -18,6 +18,9 @@ export default defineConfig({
       },
     ],
   },
+  test: {
+    projects: ["apps/*/vite.config.ts", "packages/*/vite.config.ts", "tools/*/vite.config.ts"],
+  },
   run: {
     cache: true,
   },
