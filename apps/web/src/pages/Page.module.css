@@ -18,6 +18,12 @@
   min-height: var(--spacing-12);
 }
 
+.actions {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-left: auto;
+}
+
 .homeLink {
   flex-shrink: 0;
 

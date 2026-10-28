@@ -1,0 +1,26 @@
+.circle {
+  flex-shrink: 0;
+  fill: none;
+  stroke-width: 2.5;
+  animation: spin 800ms linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 2400ms;
+  }
+}
+
+.track {
+  stroke: var(--spinner-track, var(--separator));
+}
+
+.indicator {
+  stroke: var(--spinner-indicator, var(--interactive-fill));
+  stroke-dasharray: 16 47;
+  stroke-linecap: round;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

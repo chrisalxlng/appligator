@@ -7,7 +7,12 @@ export {
   jobSchema,
   salaryPeriods,
   workModels,
+  type Currency,
+  type EmploymentType,
   type Job,
   type JobInput,
   type JobListItem,
+  type Salary,
+  type SalaryPeriod,
+  type WorkModel,
 } from "./job.ts";

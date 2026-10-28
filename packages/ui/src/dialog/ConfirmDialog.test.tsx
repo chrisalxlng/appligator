@@ -44,8 +44,17 @@ test("closes without confirming when cancelled", async () => {
   expect(onConfirm).not.toHaveBeenCalled();
 });
 
-test("disables confirming while the action is pending", () => {
-  renderDialog({ pending: true });
+test("disables confirming while the action is pending", async () => {
+  const { onConfirm } = renderDialog({ pending: true });
 
-  expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+  await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+  expect(screen.getByRole("button", { name: "Delete" })).toHaveAttribute("aria-busy", "true");
+  expect(onConfirm).not.toHaveBeenCalled();
+});
+
+test("shows an error", () => {
+  renderDialog({ error: "The job could not be deleted." });
+
+  expect(screen.getByRole("alert")).toHaveTextContent("The job could not be deleted.");
 });

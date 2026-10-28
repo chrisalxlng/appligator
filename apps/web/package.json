@@ -10,8 +10,10 @@
     "test": "vp test"
   },
   "dependencies": {
+    "@appligator/shared": "workspace:*",
     "@appligator/ui": "workspace:*",
     "@tabler/icons-react": "catalog:",
+    "@tanstack/react-query": "catalog:",
     "@tanstack/react-router": "catalog:",
     "i18next": "catalog:",
     "keycloak-js": "catalog:",

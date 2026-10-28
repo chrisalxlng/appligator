@@ -1,0 +1,29 @@
+.page {
+  @media (width >= 1200px) {
+    flex: 1;
+    padding: var(--spacing-16);
+    background: linear-gradient(to bottom, var(--background-accent), var(--background) 240px) local;
+    overflow-y: auto;
+  }
+}
+
+.notFoundDescription {
+  color: var(--text-secondary);
+}
+
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.notFoundTitle {
+  font: var(--font-heading-m);
+  letter-spacing: var(--tracking-heading-m);
+}
+
+.backLink {
+  color: var(--active-text-secondary);
+  font: var(--font-label-m);
+}

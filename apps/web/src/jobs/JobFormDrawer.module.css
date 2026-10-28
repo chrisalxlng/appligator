@@ -1,0 +1,17 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.salaryRange {
+  display: grid;
+  grid-template-columns: minmax(0, 120px) minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-3);
+  font: var(--font-body-m);
+}
+
+.saveError {
+  color: var(--destructive-text);
+}

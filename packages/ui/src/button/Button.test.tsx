@@ -24,3 +24,18 @@ test("ignores clicks when disabled", async () => {
 
   expect(onClick).not.toHaveBeenCalled();
 });
+
+test("keeps its name but ignores clicks while pending", async () => {
+  const onClick = vi.fn();
+  render(
+    <Button onClick={onClick} pending>
+      Save
+    </Button>,
+  );
+
+  const button = screen.getByRole("button", { name: "Save" });
+  await userEvent.click(button);
+
+  expect(button).toHaveAttribute("aria-busy", "true");
+  expect(onClick).not.toHaveBeenCalled();
+});

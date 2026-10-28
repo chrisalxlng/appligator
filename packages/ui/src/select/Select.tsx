@@ -1,5 +1,7 @@
 import { Select as BaseSelect } from "@base-ui/react/select";
 import { IconCaretDownFilled, IconCheck } from "@tabler/icons-react";
+import { useRef } from "react";
+import { ClearableControl, type ClearableProps } from "../field/ClearableControl.tsx";
 import styles from "./Select.module.css";
 
 export interface SelectItem<Value extends string> {
@@ -7,24 +9,21 @@ export interface SelectItem<Value extends string> {
   label: string;
 }
 
-export interface SelectProps<Value extends string> {
+export type SelectProps<Value extends string> = {
   items: SelectItem<Value>[];
   value: Value | null;
   onValueChange: (value: Value | null) => void;
   placeholder: string;
   "aria-label"?: string;
-}
+} & ClearableProps;
 
-export function Select<Value extends string>({
-  items,
-  value,
-  onValueChange,
-  placeholder,
-  "aria-label": ariaLabel,
-}: SelectProps<Value>) {
-  return (
+export function Select<Value extends string>(props: SelectProps<Value>) {
+  const { items, value, onValueChange, placeholder, "aria-label": ariaLabel } = props;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const select = (
     <BaseSelect.Root items={items} value={value} onValueChange={onValueChange}>
-      <BaseSelect.Trigger className={styles.trigger} aria-label={ariaLabel}>
+      <BaseSelect.Trigger ref={triggerRef} className={styles.trigger} aria-label={ariaLabel}>
         <BaseSelect.Value className={styles.value} placeholder={placeholder} />
         <BaseSelect.Icon className={styles.icon}>
           <IconCaretDownFilled size={16} aria-hidden />
@@ -47,5 +46,20 @@ export function Select<Value extends string>({
         </BaseSelect.Positioner>
       </BaseSelect.Portal>
     </BaseSelect.Root>
+  );
+
+  if (!props.clearable) return select;
+
+  return (
+    <ClearableControl
+      canClear={value !== null}
+      clearLabel={props.clearLabel}
+      onClear={() => {
+        onValueChange(null);
+        triggerRef.current?.focus();
+      }}
+    >
+      {select}
+    </ClearableControl>
   );
 }

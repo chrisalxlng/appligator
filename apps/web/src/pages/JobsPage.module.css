@@ -1,0 +1,38 @@
+.empty {
+  justify-content: center;
+
+  @media (width < 768px) {
+    justify-content: flex-start;
+
+    & > :last-child {
+      margin-block: auto;
+    }
+  }
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  @media (width >= 1200px) {
+    flex: none;
+    flex-direction: row;
+    height: 100dvh;
+  }
+}
+
+.list {
+  @media (width < 1200px) {
+    [data-detail-open] > & {
+      display: none;
+    }
+  }
+
+  @media (width >= 1200px) {
+    flex: none;
+    width: var(--spacing-96);
+    border-right: var(--border-width-s) solid var(--separator);
+    overflow-y: auto;
+  }
+}
