@@ -161,8 +161,10 @@ export const en = {
     description:
       "Connect your own API key to use Appligator's AI features. You keep full control over your data, models and costs. Your key is stored securely encrypted.",
     loading: "Loading AI settings …",
-    loadError: "The AI settings could not be loaded.",
-    retry: "Try again",
+    loadError: {
+      title: "The AI settings could not be loaded",
+      description: "Check your connection and try again.",
+    },
     close: "Close",
     selectPlaceholder: "Please select",
     access: {
