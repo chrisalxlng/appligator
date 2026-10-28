@@ -1,14 +1,13 @@
 .page {
-  @media (width >= 768px) {
+  @media (width >= 1200px) {
     flex: 1;
     padding: var(--spacing-16);
-    background: linear-gradient(to bottom, var(--background-accent), var(--background) 240px);
+    background: linear-gradient(to bottom, var(--background-accent), var(--background) 240px) local;
     overflow-y: auto;
   }
 }
 
-.status {
-  display: block;
+.notFoundDescription {
   color: var(--text-secondary);
 }
 

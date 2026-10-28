@@ -1,0 +1,40 @@
+.spinner {
+  display: inline-flex;
+}
+
+.circle {
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  fill: none;
+  stroke-width: 2.5;
+  animation: spin 800ms linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 2400ms;
+  }
+}
+
+.track {
+  stroke: var(--separator);
+}
+
+.indicator {
+  stroke: var(--interactive-fill);
+  stroke-dasharray: 16 47;
+  stroke-linecap: round;
+}
+
+.label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

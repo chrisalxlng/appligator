@@ -1,4 +1,5 @@
 .detail {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
@@ -27,17 +28,17 @@
   gap: var(--spacing-5);
   margin: 0;
 
-  @media (width >= 768px) {
+  @container (width >= 600px) {
     margin-top: var(--spacing-4);
   }
 }
 
 .property {
   display: grid;
-  grid-template-columns: minmax(0, 170px) minmax(0, 1fr);
+  grid-template-columns: 154px minmax(0, 1fr);
   gap: var(--spacing-4);
 
-  @media (width >= 768px) {
+  @container (width >= 600px) {
     grid-template-columns: 234px minmax(0, 1fr);
   }
 }

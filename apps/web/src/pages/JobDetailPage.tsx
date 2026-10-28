@@ -6,14 +6,16 @@ import { ApiError } from "../api/apiClient.ts";
 import { JobDetail } from "../jobs/JobDetail.tsx";
 import { useJob } from "../jobs/jobQueries.ts";
 import { LoadError } from "../jobs/LoadError.tsx";
-import { useIsDesktop } from "../shell/useIsDesktop.ts";
+import { PageSpinner } from "../loading/PageSpinner.tsx";
+import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
+import { useIsWide } from "../shell/useMediaQuery.ts";
 import styles from "./JobDetailPage.module.css";
 import { Page } from "./Page.tsx";
 
 export function JobDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
+  const isWide = useIsWide();
   const { jobId } = useParams({ from: "/shell/jobs/$jobId" });
   const job = useJob(jobId);
 
@@ -31,8 +33,8 @@ export function JobDetailPage() {
   return (
     <Page
       title={t("navigation.jobs")}
-      actions={!isDesktop && closeButton}
-      headerOnMobileOnly
+      actions={closeButton}
+      hideHeader={isWide}
       className={styles.page}
     >
       <JobDetailContent job={job} />
@@ -42,16 +44,17 @@ export function JobDetailPage() {
 
 function JobDetailContent({ job }: { job: ReturnType<typeof useJob> }) {
   const { t } = useTranslation();
+  const showSpinner = useDelayedSpinner(job.isPending);
 
-  if (job.isPending) {
-    return <output className={styles.status}>{t("jobs.loading")}</output>;
+  if (job.isPending || showSpinner) {
+    return showSpinner && <PageSpinner label={t("jobs.loadingJob")} />;
   }
 
   if (job.error instanceof ApiError && job.error.status === 404) {
     return (
       <div className={styles.notFound}>
         <h2 className={styles.notFoundTitle}>{t("jobs.notFound.title")}</h2>
-        <p className={styles.status}>{t("jobs.notFound.description")}</p>
+        <p className={styles.notFoundDescription}>{t("jobs.notFound.description")}</p>
         <Link to="/jobs" className={styles.backLink}>
           {t("jobs.notFound.back")}
         </Link>

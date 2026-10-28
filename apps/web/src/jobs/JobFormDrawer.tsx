@@ -16,7 +16,7 @@ import {
   TextInput,
 } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useSaveJob } from "./jobQueries.ts";
 import {
@@ -37,6 +37,7 @@ interface JobFormDrawerProps {
 
 export function JobFormDrawer({ job, open, onOpenChange, onSaved }: JobFormDrawerProps) {
   const { t } = useTranslation();
+  const firstFieldRef = useRef<HTMLInputElement>(null);
 
   function handleSaved(savedJob: Job) {
     onOpenChange(false);
@@ -49,8 +50,9 @@ export function JobFormDrawer({ job, open, onOpenChange, onSaved }: JobFormDrawe
       closeLabel={t("jobs.close")}
       open={open}
       onOpenChange={onOpenChange}
+      initialFocus={job ? undefined : firstFieldRef}
     >
-      <JobForm job={job} onSaved={handleSaved} />
+      <JobForm job={job} firstFieldRef={firstFieldRef} onSaved={handleSaved} />
     </Drawer>
   );
 }
@@ -66,7 +68,13 @@ function useFormatLabels() {
   };
 }
 
-function JobForm({ job, onSaved }: { job?: Job; onSaved: (job: Job) => void }) {
+interface JobFormProps {
+  job?: Job;
+  firstFieldRef: RefObject<HTMLInputElement | null>;
+  onSaved: (job: Job) => void;
+}
+
+function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
   const { t, i18n } = useTranslation();
   const formatLabels = useFormatLabels();
   const save = useSaveJob(job?.id);
@@ -94,7 +102,12 @@ function JobForm({ job, onSaved }: { job?: Job; onSaved: (job: Job) => void }) {
   return (
     <form className={styles.form} onSubmit={submit} noValidate>
       <Field label={t("jobs.form.link")} error={errorFor("link")}>
-        <TextInput type="url" value={values.link} onValueChange={setValue("link")} />
+        <TextInput
+          ref={firstFieldRef}
+          type="url"
+          value={values.link}
+          onValueChange={setValue("link")}
+        />
       </Field>
       <Field label={t("jobs.form.description")}>
         <RichTextEditor

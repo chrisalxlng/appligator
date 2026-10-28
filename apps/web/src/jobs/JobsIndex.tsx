@@ -1,11 +1,11 @@
 import { Navigate } from "@tanstack/react-router";
-import { useIsDesktop } from "../shell/useIsDesktop.ts";
+import { useIsWide } from "../shell/useMediaQuery.ts";
 import { useJobs } from "./jobQueries.ts";
 
 export function JobsIndex() {
-  const isDesktop = useIsDesktop();
+  const isWide = useIsWide();
   const firstJobId = useJobs().data?.[0]?.id;
 
-  if (!isDesktop || !firstJobId) return null;
+  if (!isWide || !firstJobId) return null;
   return <Navigate to="/jobs/$jobId" params={{ jobId: firstJobId }} replace />;
 }

@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, test } from "vite-plus/test";
+import { expect, test, vi } from "vite-plus/test";
 import { createFakeJobsApi, jobFixture, jobWith } from "../testing/fakeJobsApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
 
@@ -61,6 +61,26 @@ test("opens the first job on desktop", async () => {
     "data-status",
     "active",
   );
+});
+
+test("shows the list and an opened job one at a time on medium screens", async () => {
+  createFakeJobsApi([jobFixture]);
+  const router = renderApp("/jobs", { viewport: "tablet" });
+
+  await userEvent.click(await screen.findByRole("link", { name: /Lead Developer Frontend/ }));
+
+  expect(await screen.findByRole("article")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Close" }));
+  await waitFor(() => expect(router.state.location.pathname).toBe("/jobs"));
+});
+
+test("shows a spinner while the jobs take long to load", async () => {
+  vi.stubGlobal("fetch", () => new Promise(() => {}));
+  renderApp("/jobs");
+
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(await screen.findByRole("status")).toHaveTextContent("Loading jobs …");
 });
 
 test("shows the details of a job", async () => {
@@ -183,6 +203,22 @@ test("enters a salary range", async () => {
   );
 });
 
+test("focuses the first field when adding a job", async () => {
+  createFakeJobsApi();
+  renderApp("/jobs");
+  const drawer = await openAddDrawer();
+
+  await waitFor(() => expect(within(drawer).getByRole("textbox", { name: "Link" })).toHaveFocus());
+});
+
+test("focuses the drawer instead of a field when editing a job", async () => {
+  createFakeJobsApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  const drawer = await openEditDrawer();
+
+  await waitFor(() => expect(drawer).toHaveFocus());
+});
+
 test("validates the job before saving it", async () => {
   const api = createFakeJobsApi();
   renderApp("/jobs");
@@ -221,6 +257,9 @@ test("adds, edits and removes locations in a nested drawer", async () => {
 
   await userEvent.click(within(drawer).getByRole("button", { name: "Add location" }));
   const addLocation = await screen.findByRole("dialog", { name: "Add location" });
+  await waitFor(() =>
+    expect(within(addLocation).getByRole("textbox", { name: "Location" })).toHaveFocus(),
+  );
   await userEvent.click(within(addLocation).getByRole("button", { name: "Add" }));
   expect(within(addLocation).getByText("Please enter a location.")).toBeInTheDocument();
   await userEvent.type(within(addLocation).getByRole("textbox", { name: "Location" }), "Bonn");
@@ -230,6 +269,7 @@ test("adds, edits and removes locations in a nested drawer", async () => {
   const editLocation = await screen.findByRole("dialog", { name: "Edit location" });
   const input = within(editLocation).getByRole("textbox", { name: "Location" });
   expect(input).toHaveValue("Bonn");
+  await waitFor(() => expect(input).toHaveFocus());
   await userEvent.clear(input);
   await userEvent.type(input, "Köln");
   await userEvent.click(within(editLocation).getByRole("button", { name: "Update" }));

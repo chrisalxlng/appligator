@@ -17,6 +17,7 @@ export const en = {
     today: "Today",
     yesterday: "Yesterday",
     loading: "Loading jobs …",
+    loadingJob: "Loading job …",
     loadError: "The jobs could not be loaded.",
     retry: "Try again",
     empty: {

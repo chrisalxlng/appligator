@@ -16,12 +16,6 @@
   align-items: center;
   gap: var(--spacing-3);
   min-height: var(--spacing-12);
-
-  &[data-mobile-only] {
-    @media (width >= 768px) {
-      display: none;
-    }
-  }
 }
 
 .actions {

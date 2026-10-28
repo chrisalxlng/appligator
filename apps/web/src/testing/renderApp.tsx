@@ -11,7 +11,7 @@ export const testAuth: Auth = {
   logout: vi.fn(),
 };
 
-const viewportWidths = { mobile: 402, desktop: 1280 };
+const viewportWidths = { mobile: 402, tablet: 1040, desktop: 1280 };
 
 interface RenderAppOptions {
   viewport?: keyof typeof viewportWidths;

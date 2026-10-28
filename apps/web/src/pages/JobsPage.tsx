@@ -8,8 +8,10 @@ import { JobFormDrawer } from "../jobs/JobFormDrawer.tsx";
 import { JobList } from "../jobs/JobList.tsx";
 import { useJobs } from "../jobs/jobQueries.ts";
 import { LoadError } from "../jobs/LoadError.tsx";
+import { PageSpinner } from "../loading/PageSpinner.tsx";
+import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { FloatingActions } from "../shell/FloatingActions.tsx";
-import { useIsDesktop } from "../shell/useIsDesktop.ts";
+import { useIsDesktop } from "../shell/useMediaQuery.ts";
 import { Page } from "./Page.tsx";
 import styles from "./JobsPage.module.css";
 
@@ -18,6 +20,7 @@ export function JobsPage() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const jobs = useJobs();
+  const showSpinner = useDelayedSpinner(jobs.isPending);
   const { jobId } = useParams({ strict: false });
   const [isAdding, setIsAdding] = useState(false);
 
@@ -37,12 +40,8 @@ export function JobsPage() {
     />
   );
 
-  if (jobs.isPending) {
-    return (
-      <Page title={title}>
-        <output className={styles.status}>{t("jobs.loading")}</output>
-      </Page>
-    );
+  if (jobs.isPending || showSpinner) {
+    return <Page title={title}>{showSpinner && <PageSpinner label={t("jobs.loading")} />}</Page>;
   }
 
   if (jobs.isError) {
@@ -55,7 +54,7 @@ export function JobsPage() {
 
   if (jobs.data.length === 0 && !jobId) {
     return (
-      <Page title={title} headerOnMobileOnly className={styles.empty}>
+      <Page title={title} hideHeader={isDesktop} className={styles.empty}>
         <EmptyState
           illustration={<img src={emptyIllustration} alt="" width={210} height={281} />}
           title={t("jobs.empty.title")}

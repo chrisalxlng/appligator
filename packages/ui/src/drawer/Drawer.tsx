@@ -1,6 +1,13 @@
 import { Drawer as BaseDrawer } from "@base-ui/react/drawer";
 import { IconX } from "@tabler/icons-react";
-import { createContext, useContext, useRef, type ReactElement, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  type ReactElement,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { IconButton } from "../button/IconButton.tsx";
 import styles from "./Drawer.module.css";
 
@@ -12,10 +19,19 @@ export interface DrawerProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   trigger?: ReactElement;
+  initialFocus?: RefObject<HTMLElement | null>;
   children: ReactNode;
 }
 
-export function Drawer({ title, closeLabel, open, onOpenChange, trigger, children }: DrawerProps) {
+export function Drawer({
+  title,
+  closeLabel,
+  open,
+  onOpenChange,
+  trigger,
+  initialFocus,
+  children,
+}: DrawerProps) {
   const isNested = useContext(IsNestedContext);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +42,11 @@ export function Drawer({ title, closeLabel, open, onOpenChange, trigger, childre
         <BaseDrawer.Portal>
           {!isNested && <BaseDrawer.Backdrop className={styles.backdrop} />}
           <BaseDrawer.Viewport className={styles.viewport}>
-            <BaseDrawer.Popup ref={popupRef} initialFocus={popupRef} className={styles.popup}>
+            <BaseDrawer.Popup
+              ref={popupRef}
+              initialFocus={initialFocus ?? popupRef}
+              className={styles.popup}
+            >
               <div className={styles.header}>
                 <BaseDrawer.Title className={styles.title}>{title}</BaseDrawer.Title>
                 <BaseDrawer.Close

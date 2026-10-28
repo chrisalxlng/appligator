@@ -19,6 +19,7 @@ export const de: Translations = {
     today: "Heute",
     yesterday: "Gestern",
     loading: "Stellen werden geladen …",
+    loadingJob: "Stelle wird geladen …",
     loadError: "Die Stellen konnten nicht geladen werden.",
     retry: "Erneut versuchen",
     empty: {

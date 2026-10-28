@@ -5,7 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FloatingActions } from "../shell/FloatingActions.tsx";
-import { useIsDesktop } from "../shell/useIsDesktop.ts";
+import { useIsDesktop } from "../shell/useMediaQuery.ts";
 import { JobFormDrawer } from "./JobFormDrawer.tsx";
 import styles from "./JobActions.module.css";
 import { useDeleteJob } from "./jobQueries.ts";

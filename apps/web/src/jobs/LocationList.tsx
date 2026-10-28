@@ -1,6 +1,6 @@
 import { Button, Drawer, Field, Fieldset, IconButton, TextInput } from "@appligator/ui";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import styles from "./LocationList.module.css";
 
@@ -15,6 +15,7 @@ export function LocationList({ locations, onChange }: LocationListProps) {
     open: false,
     index: null,
   });
+  const inputRef = useRef<HTMLInputElement>(null);
   const editedLocation = drawer.index === null ? "" : locations[drawer.index];
 
   function save(location: string) {
@@ -64,8 +65,10 @@ export function LocationList({ locations, onChange }: LocationListProps) {
         closeLabel={t("jobs.close")}
         open={drawer.open}
         onOpenChange={(open) => setDrawer((current) => ({ ...current, open }))}
+        initialFocus={inputRef}
       >
         <LocationForm
+          inputRef={inputRef}
           initialValue={editedLocation ?? ""}
           isEditing={drawer.index !== null}
           onSave={save}
@@ -76,12 +79,13 @@ export function LocationList({ locations, onChange }: LocationListProps) {
 }
 
 interface LocationFormProps {
+  inputRef: RefObject<HTMLInputElement | null>;
   initialValue: string;
   isEditing: boolean;
   onSave: (location: string) => void;
 }
 
-function LocationForm({ initialValue, isEditing, onSave }: LocationFormProps) {
+function LocationForm({ inputRef, initialValue, isEditing, onSave }: LocationFormProps) {
   const { t } = useTranslation();
   const [value, setValue] = useState(initialValue);
   const [showError, setShowError] = useState(false);
@@ -101,7 +105,7 @@ function LocationForm({ initialValue, isEditing, onSave }: LocationFormProps) {
         label={t("jobs.location.label")}
         error={showError ? t("jobs.location.required") : undefined}
       >
-        <TextInput value={value} onValueChange={setValue} />
+        <TextInput ref={inputRef} value={value} onValueChange={setValue} />
       </Field>
       <Button type="submit">
         {isEditing ? (

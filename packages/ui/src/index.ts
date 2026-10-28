@@ -18,3 +18,4 @@ export {
   type RichTextEditorProps,
 } from "./rich-text/RichTextEditor.tsx";
 export { Select, type SelectItem, type SelectProps } from "./select/Select.tsx";
+export { Spinner, type SpinnerProps } from "./spinner/Spinner.tsx";
