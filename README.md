@@ -19,6 +19,8 @@ The web app calls the API under `/api` on its own origin. `vp run dev` proxies t
 
 The API stores its data in PostgreSQL. Locally, the `appligator-db` database of the cl-dev setup must run at `localhost:5433`. The API requires `DATABASE_URL`; `vp run dev` and the database tasks load it from `apps/api/.env.development`, and a `DATABASE_URL` set in the environment takes precedence. Tests run against an in-memory PostgreSQL ([PGlite](https://pglite.dev)) and need no database.
 
+Users connect their own AI API key (OpenAI, Anthropic, Google or Mistral) on the profile page. The API encrypts these keys with AES-256-GCM and requires `AI_API_KEY_ENCRYPTION_KEY`, a base64-encoded 32-byte key (`openssl rand -base64 32`); `vp run dev` loads a development key from `apps/api/.env.development`. Production needs its own key, which must stay stable: changing it makes stored API keys unreadable. The selectable models come from the [models.dev](https://models.dev) catalog, which the API caches for a day.
+
 - Install dependencies:
 
 ```bash

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import i18n from "i18next";
 import { afterEach, beforeEach, expect, test, vi } from "vite-plus/test";
 import { JobsPage } from "./pages/JobsPage.tsx";
+import { createFakeAiApi } from "./testing/fakeAiApi.ts";
 import { createFakeJobsApi } from "./testing/fakeJobsApi.ts";
 import { renderApp, testAuth } from "./testing/renderApp.tsx";
 
@@ -13,6 +14,7 @@ vi.mock("./pages/JobsPage.tsx", async (importOriginal) => {
 
 beforeEach(() => {
   createFakeJobsApi();
+  createFakeAiApi();
 });
 
 afterEach(async () => {

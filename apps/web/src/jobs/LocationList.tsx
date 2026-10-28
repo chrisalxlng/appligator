@@ -1,4 +1,5 @@
 import {
+  AddButton,
   Button,
   Drawer,
   Field,
@@ -60,15 +61,12 @@ export function LocationList({ locations, onChange }: LocationListProps) {
           ))}
         </ul>
       )}
-      <button
-        type="button"
-        className={styles.addButton}
+      <AddButton
         aria-label={t("jobs.location.addTitle")}
         onClick={() => setDrawer({ open: true, index: null })}
       >
-        <IconPlus size={20} stroke={2.4} aria-hidden />
         {t("jobs.location.add")}
-      </button>
+      </AddButton>
       <Drawer
         title={t(drawer.index === null ? "jobs.location.addTitle" : "jobs.location.editTitle")}
         closeLabel={t("jobs.close")}

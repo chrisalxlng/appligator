@@ -8,6 +8,13 @@
       "when": 1793190875477,
       "tag": "0000_create_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793212542499,
+      "tag": "0001_create_ai_settings",
+      "breakpoints": true
     }
   ]
 }

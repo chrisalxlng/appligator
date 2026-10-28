@@ -6,6 +6,10 @@ packages:
 catalogMode: prefer
 
 catalog:
+  "@ai-sdk/anthropic": ^4.0.89
+  "@ai-sdk/google": ^4.0.106
+  "@ai-sdk/mistral": ^4.0.73
+  "@ai-sdk/openai": ^4.0.103
   "@base-ui/react": ^1.9.0
   "@electric-sql/pglite": ^0.5.12
   "@fontsource-variable/geist": ^5.3.0
@@ -27,6 +31,7 @@ catalog:
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
   "@vitejs/plugin-react": ^6.1.2
+  ai: ^7.0.154
   drizzle-kit: ^0.31.11
   drizzle-orm: ^0.45.4
   fastify: ^5.12.7

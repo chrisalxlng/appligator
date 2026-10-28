@@ -51,3 +51,13 @@ test("throws an API error for failed requests", async () => {
     new ApiError(404),
   );
 });
+
+test("passes the error code of a failed request", async () => {
+  fetchMock.mockResolvedValue(Response.json({ error: "accessRejected" }, { status: 422 }));
+  const api = createApiClient(async () => "token");
+
+  await expect(api.request("/ai/settings", identity)).rejects.toMatchObject({
+    status: 422,
+    code: "accessRejected",
+  });
+});

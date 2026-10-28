@@ -1,6 +1,7 @@
 import { IconButton } from "@appligator/ui";
 import { IconLogout } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
+import { AiSettingsSection } from "../ai/AiSettingsSection.tsx";
 import { useAuth } from "../auth/useAuth.ts";
 import { Page } from "./Page.tsx";
 import styles from "./ProfilePage.module.css";
@@ -20,6 +21,7 @@ export function ProfilePage() {
           <IconLogout size={20} stroke={2.4} aria-hidden />
         </IconButton>
       </section>
+      <AiSettingsSection />
     </Page>
   );
 }
