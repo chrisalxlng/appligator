@@ -48,5 +48,5 @@ export const Pending: Story = {
 };
 
 export const WithShortcutHint: Story = {
-  args: { shortcutHint: "⌘↵", children: "Save" },
+  args: { shortcutHint: "⌘ ↵", children: "Save" },
 };

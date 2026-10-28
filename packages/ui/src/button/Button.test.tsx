@@ -41,7 +41,7 @@ test("keeps its name but ignores clicks while pending", async () => {
 });
 
 test("shows a shortcut hint without adding it to its name", () => {
-  render(<Button shortcutHint="⌘↵">Save</Button>);
+  render(<Button shortcutHint="⌘ ↵">Save</Button>);
 
-  expect(screen.getByRole("button", { name: "Save" })).toHaveTextContent("Save⌘↵");
+  expect(screen.getByRole("button", { name: "Save" })).toHaveTextContent("Save⌘ ↵");
 });

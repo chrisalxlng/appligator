@@ -82,9 +82,9 @@ test("ignores the submit shortcut while the action is pending", async () => {
 });
 
 test("shows the confirm shortcut as a tooltip", async () => {
-  renderDialog({ confirmShortcutHint: "⌘↵" });
+  renderDialog({ confirmShortcutHint: "⌘ ↵" });
 
   await userEvent.hover(screen.getByRole("button", { name: "Delete" }));
 
-  expect(await screen.findByText("⌘↵")).toBeInTheDocument();
+  expect(await screen.findByText("⌘ ↵")).toBeInTheDocument();
 });

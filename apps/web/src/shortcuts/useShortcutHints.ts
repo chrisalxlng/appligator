@@ -10,7 +10,7 @@ export function useShortcutHints() {
   if (!hasFinePointer) return undefined;
 
   return {
-    submit: isApple ? "⌘↵" : t("shortcuts.submit"),
+    submit: isApple ? "⌘ ↵" : t("shortcuts.submit"),
     alt: (letter: ShortcutLetter) => (isApple ? `⌥${letter}` : `Alt+${letter}`),
   };
 }

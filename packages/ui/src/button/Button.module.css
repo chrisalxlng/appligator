@@ -41,9 +41,14 @@
 }
 
 .shortcutHint {
-  font: inherit;
-  font-weight: 400;
-  opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+  height: var(--spacing-6);
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  font: var(--font-label-s);
+  font-weight: 500;
 }
 
 .spinner {
