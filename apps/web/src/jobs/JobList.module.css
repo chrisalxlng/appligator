@@ -38,6 +38,16 @@
     background: var(--active-surface);
     box-shadow: var(--shadow-s);
     color: var(--active-text-primary);
+
+    @media (hover: hover) {
+      &:hover {
+        background: var(--active-surface-hover);
+      }
+    }
+
+    &:active {
+      background: var(--active-surface-press);
+    }
   }
 }
 
