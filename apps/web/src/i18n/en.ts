@@ -206,7 +206,7 @@ export const en = {
       saveError: "The AI language could not be saved. Please try again.",
     },
     languageName: {
-      de: "Deutsch",
+      de: "German",
       en: "English",
     },
     toast: {

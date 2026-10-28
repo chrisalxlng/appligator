@@ -40,10 +40,8 @@
   color: var(--text-primary);
 }
 
-.cardButton,
-.languageCard {
-  border-radius: var(--radius-m);
-  text-align: left;
+.languageCard,
+.accessCard {
   cursor: pointer;
 
   @media (hover: hover) {
@@ -55,8 +53,27 @@
   &:active {
     background: var(--fill-press);
   }
+}
+
+.languageCard {
+  width: 100%;
+  padding: var(--spacing-4);
+  text-align: left;
 
   &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.accessCard {
+  position: relative;
+
+  &:active:has(.deleteButton:active) {
+    background: var(--fill-hover);
+  }
+
+  &:has(.cardButton:focus-visible) {
     outline: var(--focus-ring-width) solid var(--active-separator);
     outline-offset: var(--focus-ring-offset);
   }
@@ -71,11 +88,23 @@
   border: none;
   background: none;
   color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-m);
+  }
 }
 
-.languageCard {
-  width: 100%;
-  padding: var(--spacing-4);
+.deleteButton {
+  position: relative;
 }
 
 .cardContent {

@@ -41,7 +41,7 @@ test("offers to add an AI access when none is configured", async () => {
 
   expect(section).toHaveTextContent("Connect your own API key");
   expect(await within(section).findByRole("button", { name: "Add AI access" })).toBeVisible();
-  expect(within(section).queryByRole("button", { name: /Deutsch|English/ })).toBeNull();
+  expect(within(section).queryByRole("button", { name: /German|English/ })).toBeNull();
 });
 
 test("shows the configured AI access and language", async () => {
@@ -53,7 +53,7 @@ test("shows the configured AI access and language", async () => {
   expect(await within(section).findByRole("button", { name: /^OpenAI/ })).toHaveTextContent(
     "OpenAIgpt-6-astraUpdated 1 month ago",
   );
-  expect(within(section).getByRole("button", { name: /^Deutsch/ })).toBeVisible();
+  expect(within(section).getByRole("button", { name: /^German/ })).toBeVisible();
   expect(within(section).queryByRole("button", { name: "Add AI access" })).toBeNull();
 });
 
@@ -161,7 +161,7 @@ test("changes the AI language", async () => {
   const api = createFakeAiApi(aiSettingsFixture);
   renderApp("/profile");
 
-  await userEvent.click(await screen.findByRole("button", { name: /^Deutsch/ }));
+  await userEvent.click(await screen.findByRole("button", { name: /^German/ }));
   const drawer = await screen.findByRole("dialog", { name: "Edit AI language" });
   await choose(drawer, "Language", "English");
   await userEvent.click(within(drawer).getByRole("button", { name: "Update" }));
@@ -187,7 +187,7 @@ test("deletes the AI access after confirmation", async () => {
 
   expect(await screen.findByText("AI access deleted")).toBeInTheDocument();
   expect(await screen.findByRole("button", { name: "Add AI access" })).toBeVisible();
-  expect(screen.queryByRole("button", { name: /^Deutsch/ })).toBeNull();
+  expect(screen.queryByRole("button", { name: /^German/ })).toBeNull();
 });
 
 test("offers to retry when the AI settings cannot be loaded", async () => {
@@ -204,6 +204,19 @@ test("offers to retry when the AI settings cannot be loaded", async () => {
   await userEvent.click(within(section).getByRole("button", { name: "Try again" }));
 
   expect(await within(section).findByRole("button", { name: /^OpenAI/ })).toBeVisible();
+});
+
+test("names the AI languages in the UI language", async () => {
+  await i18n.changeLanguage("de");
+  createFakeAiApi(aiSettingsFixture);
+  renderApp("/profile");
+
+  await userEvent.click(await screen.findByRole("button", { name: /^Deutsch/ }));
+  const drawer = await screen.findByRole("dialog", { name: "KI-Sprache bearbeiten" });
+  await userEvent.click(within(drawer).getByRole("combobox", { name: "Sprache" }));
+
+  const options = await screen.findAllByRole("option");
+  expect(options.map((option) => option.textContent)).toEqual(["Deutsch", "Englisch"]);
 });
 
 test("shows the AI section in German", async () => {
