@@ -63,7 +63,13 @@ function JobDetailContent({ job }: { job: ReturnType<typeof useJob> }) {
   }
 
   if (job.isError) {
-    return <LoadError message={t("jobs.detailLoadError")} onRetry={() => void job.refetch()} />;
+    return (
+      <LoadError
+        title={t("jobs.detailLoadError.title")}
+        description={t("jobs.detailLoadError.description")}
+        onRetry={() => void job.refetch()}
+      />
+    );
   }
 
   return <JobDetail job={job.data} />;

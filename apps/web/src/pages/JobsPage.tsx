@@ -53,8 +53,12 @@ export function JobsPage() {
 
   if (jobs.isError) {
     return (
-      <Page title={title}>
-        <LoadError message={t("jobs.loadError")} onRetry={() => void jobs.refetch()} />
+      <Page title={title} hideHeader={isDesktop}>
+        <LoadError
+          title={t("jobs.loadError.title")}
+          description={t("jobs.loadError.description")}
+          onRetry={() => void jobs.refetch()}
+        />
       </Page>
     );
   }
