@@ -1,5 +1,5 @@
 import { BubbleMenu } from "@tiptap/react/menus";
-import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
+import { EditorContent, posToDOMRect, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import {
   IconBold,
   IconHeading,
@@ -69,7 +69,30 @@ export function RichTextEditor({
   );
 }
 
+const formatMenuKey = "formatMenu";
+
+function selectionReference(editor: Editor) {
+  const { from, to } = editor.state.selection;
+  const rect = posToDOMRect(editor.view, from, to);
+  const { node } = editor.view.domAtPos(from);
+
+  // The context element lets Floating UI hide the menu once the selection is scrolled out of view.
+  return {
+    getBoundingClientRect: () => rect,
+    getClientRects: () => [rect],
+    contextElement: node instanceof Element ? node : (node.parentElement ?? undefined),
+  };
+}
+
 function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditorLabels }) {
+  useEffect(() => {
+    // The bubble menu only follows window scrolling, but the editor and the drawer scroll on their own.
+    const updatePosition = () =>
+      editor.view.dispatch(editor.state.tr.setMeta(formatMenuKey, "updatePosition"));
+    document.addEventListener("scroll", updatePosition, { capture: true });
+    return () => document.removeEventListener("scroll", updatePosition, { capture: true });
+  }, [editor]);
+
   const active = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -104,9 +127,11 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
   return (
     <BubbleMenu
       editor={editor}
+      pluginKey={formatMenuKey}
+      getReferencedVirtualElement={() => selectionReference(editor)}
       className={styles.menu}
       role="toolbar"
-      options={{ placement: "top", offset: 8 }}
+      options={{ placement: "top", offset: 8, hide: true }}
     >
       {formats.map(({ key, icon: FormatIcon, toggle }) => (
         <Tooltip key={key} label={labels[key]}>
