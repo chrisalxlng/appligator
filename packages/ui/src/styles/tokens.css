@@ -20,9 +20,13 @@
   --active-separator: var(--color-deep-teal-500);
   --active-text-primary: var(--color-deep-teal-900);
   --active-text-secondary: var(--color-deep-teal-600);
-  --active-fill: var(--color-deep-teal-100);
-  --active-fill-hover: var(--color-deep-teal-200);
-  --active-fill-press: var(--color-deep-teal-300);
+  --highlight-surface: var(--color-royal-purple-100);
+  --highlight-separator: var(--color-royal-purple-500);
+  --highlight-text-primary: var(--color-royal-purple-900);
+  --highlight-text-secondary: var(--color-royal-purple-600);
+  --highlight-fill: var(--color-royal-purple-200);
+  --highlight-fill-hover: var(--color-royal-purple-300);
+  --highlight-fill-press: var(--color-royal-purple-400);
   --destructive-fill: var(--color-burgundy-red-500);
   --destructive-fill-hover: var(--color-burgundy-red-600);
   --destructive-fill-press: var(--color-burgundy-red-700);

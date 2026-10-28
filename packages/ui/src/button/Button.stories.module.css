@@ -1,6 +1,6 @@
-.activeSurface {
+.highlightSurface {
   padding: var(--spacing-4);
-  background: var(--active-surface);
+  background: var(--highlight-surface);
 }
 
 .destructiveSurface {

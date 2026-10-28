@@ -3,10 +3,12 @@
   align-items: flex-start;
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-3) var(--spacing-3) var(--spacing-4);
-  border: var(--border-width-s) solid var(--active-separator);
+  border: var(--border-width-s) solid var(--highlight-separator);
   border-radius: var(--radius-m);
-  background: var(--active-surface);
-  color: var(--active-text-primary);
+  background: var(--highlight-surface);
+  color: var(--highlight-text-primary);
+  --spinner-indicator: var(--highlight-separator);
+  --spinner-track: var(--highlight-fill);
 
   &[data-status="idle"] {
     display: none;
@@ -42,7 +44,7 @@
 }
 
 .description {
-  color: var(--active-text-secondary);
+  color: var(--highlight-text-secondary);
   font: var(--font-label-s);
   letter-spacing: var(--tracking-label-s);
 

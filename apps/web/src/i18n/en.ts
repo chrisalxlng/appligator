@@ -105,7 +105,7 @@ export const en = {
       filledFields: "{{fields}}. Please check the information.",
       nothingFilled: "AI did not fill in any fields",
       nothingFilledHint:
-        "Your entries are never overwritten. Clear fields and paste the job ad again to have them filled in.",
+        "Fields that are already filled in are never overwritten. To have them filled in again, clear them and paste the job ad again.",
       failed: "AI could not analyze the job ad",
       retry: "Try again",
       dismiss: "Dismiss",

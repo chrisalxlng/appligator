@@ -29,11 +29,11 @@ export const Destructive: Story = {
   args: { variant: "destructive", children: "Delete" },
 };
 
-export const ActiveSecondary: Story = {
-  args: { variant: "activeSecondary", children: "Dismiss" },
+export const HighlightSecondary: Story = {
+  args: { variant: "highlightSecondary", children: "Dismiss" },
   decorators: [
     (Story) => (
-      <div className={styles.activeSurface}>
+      <div className={styles.highlightSurface}>
         <Story />
       </div>
     ),

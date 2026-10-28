@@ -31,7 +31,7 @@ function StatusContent({ analysis, onRetry, onDismiss }: StatusContentProps) {
 
   const dismissButton = (
     <IconButton
-      variant={analysis.status === "failed" ? "destructiveSecondary" : "activeSecondary"}
+      variant={analysis.status === "failed" ? "destructiveSecondary" : "highlightSecondary"}
       size="small"
       label={t("jobs.analysis.dismiss")}
       onClick={onDismiss}

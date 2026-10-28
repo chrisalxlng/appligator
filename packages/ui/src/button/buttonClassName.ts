@@ -5,7 +5,7 @@ export type ButtonVariant =
   | "secondary"
   | "surface"
   | "destructive"
-  | "activeSecondary"
+  | "highlightSecondary"
   | "destructiveSecondary";
 
 export function buttonClassName(variant: ButtonVariant) {

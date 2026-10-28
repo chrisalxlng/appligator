@@ -120,18 +120,18 @@
   }
 }
 
-.activeSecondary {
-  background: var(--active-fill);
-  color: var(--active-text-primary);
+.highlightSecondary {
+  background: var(--highlight-fill);
+  color: var(--highlight-text-primary);
 
   @media (hover: hover) {
     &:hover:not([data-disabled]) {
-      background: var(--active-fill-hover);
+      background: var(--highlight-fill-hover);
     }
   }
 
   &:active:not([data-disabled]) {
-    background: var(--active-fill-press);
+    background: var(--highlight-fill-press);
   }
 }
 

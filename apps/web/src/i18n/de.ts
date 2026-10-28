@@ -108,7 +108,7 @@ export const de: Translations = {
       filledFields: "{{fields}}. Bitte prüfe die Angaben.",
       nothingFilled: "KI hat keine Felder ausgefüllt",
       nothingFilledHint:
-        "Deine Eingaben werden nie überschrieben. Leere Felder und füge die Stellenanzeige erneut ein, um sie ausfüllen zu lassen.",
+        "Bereits ausgefüllte Felder werden nie überschrieben. Um sie neu ausfüllen zu lassen, lösche ihren Inhalt und füge die Stellenanzeige erneut ein.",
       failed: "KI konnte die Stellenanzeige nicht analysieren",
       retry: "Erneut versuchen",
       dismiss: "Ausblenden",
