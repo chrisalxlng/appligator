@@ -22,3 +22,7 @@ vi.stubGlobal("matchMedia", (query: string) => {
     removeEventListener() {},
   };
 });
+
+// jsdom has no layout, but ProseMirror measures ranges to scroll the selection into view.
+Range.prototype.getClientRects = () => Object.assign([], { item: () => null }) as DOMRectList;
+Range.prototype.getBoundingClientRect = () => new DOMRect();

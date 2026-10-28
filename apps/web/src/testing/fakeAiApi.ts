@@ -1,10 +1,17 @@
-import type { AiModelCatalog, AiSettings, AiSettingsInput } from "@appligator/shared";
+import type {
+  AiModelCatalog,
+  AiSettings,
+  AiSettingsInput,
+  JobExtraction,
+  JobExtractionInput,
+} from "@appligator/shared";
 import { vi } from "vite-plus/test";
 
 interface RecordedRequest {
   method: string;
   path: string;
-  body?: AiSettingsInput;
+  body?: AiSettingsInput | JobExtractionInput;
+  signal?: AbortSignal | null;
 }
 
 export const aiSettingsFixture: AiSettings = {
@@ -21,6 +28,17 @@ export const aiModelsFixture: AiModelCatalog = {
   mistral: ["mistral-large-4"],
 };
 
+export const jobExtractionFixture: JobExtraction = {
+  summary: "<p>Initech is looking for a frontend developer.</p>",
+  company: "Initech GmbH",
+  position: "Frontend Developer",
+  salary: { currency: "EUR", period: "year", min: 60_000, max: 70_000 },
+  locations: ["Munich"],
+  workModel: "remote",
+  employmentType: "fullTime",
+  applicationDeadline: null,
+};
+
 function json(data: unknown, status = 200) {
   return Response.json(data, { status });
 }
@@ -29,24 +47,26 @@ export function createFakeAiApi(initialSettings: AiSettings | null = null) {
   let settings = initialSettings;
   const requests: RecordedRequest[] = [];
   const failures = new Map<string, { status: number; error?: string }>();
+  const holds = new Map<string, Promise<void>>();
   const otherFetch = globalThis.fetch;
 
   async function handle(path: string, init?: RequestInit): Promise<Response> {
     const method = init?.method ?? "GET";
-    const body =
-      typeof init?.body === "string" ? (JSON.parse(init.body) as AiSettingsInput) : undefined;
-    requests.push({ method, path, body });
+    const body = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
+    requests.push({ method, path, body, signal: init?.signal });
+    await holds.get(`${method} ${path}`);
 
     const failure = failures.get(`${method} ${path}`);
     if (failure) return json(failure.error ? { error: failure.error } : null, failure.status);
 
     if (path === "/ai/models") return json(aiModelsFixture);
+    if (path === "/ai/job-extraction") return json(jobExtractionFixture);
     if (method === "GET") return json(settings);
     if (method === "PUT") {
-      const { apiKey: _apiKey, ...input } = body!;
+      const { apiKey, ...input } = body as AiSettingsInput;
       const changesAccess =
         !settings ||
-        body!.apiKey !== undefined ||
+        apiKey !== undefined ||
         input.provider !== settings.provider ||
         input.model !== settings.model;
       const accessUpdatedAt = changesAccess ? new Date().toISOString() : settings!.accessUpdatedAt;
@@ -72,5 +92,10 @@ export function createFakeAiApi(initialSettings: AiSettings | null = null) {
     failWith: (request: string, status: number, error?: string) =>
       failures.set(request, { status, error }),
     recover: () => failures.clear(),
+    holdResponses: (request: string) => {
+      let release = () => {};
+      holds.set(request, new Promise<void>((resolve) => (release = resolve)));
+      return release;
+    },
   };
 }

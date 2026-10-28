@@ -28,6 +28,7 @@ export interface RichTextEditorLabels {
 export interface RichTextEditorProps {
   value: string;
   onValueChange: (value: string) => void;
+  onValuePaste?: (value: string) => void;
   formatLabels: RichTextEditorLabels;
   "aria-label"?: string;
 }
@@ -39,6 +40,7 @@ function toValue(editor: Editor) {
 export function RichTextEditor({
   value,
   onValueChange,
+  onValuePaste,
   formatLabels,
   "aria-label": ariaLabel,
 }: RichTextEditorProps) {
@@ -55,7 +57,11 @@ export function RichTextEditor({
       },
       transformPastedHTML: normalizeHeadings,
     },
-    onUpdate: ({ editor }) => onValueChange(toValue(editor)),
+    onUpdate: ({ editor, transaction }) => {
+      const value = toValue(editor);
+      onValueChange(value);
+      if (transaction.getMeta("uiEvent") === "paste") onValuePaste?.(value);
+    },
   });
 
   useEffect(() => {

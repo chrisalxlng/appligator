@@ -31,3 +31,9 @@ export {
   type SalaryPeriod,
   type WorkModel,
 } from "./job.ts";
+export {
+  jobExtractionInputSchema,
+  jobExtractionSchema,
+  type JobExtraction,
+  type JobExtractionInput,
+} from "./jobExtraction.ts";

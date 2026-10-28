@@ -31,6 +31,16 @@ test("sends the body as JSON", async () => {
   expect(init?.body).toBe('{"company":"Initech"}');
 });
 
+test("passes the abort signal", async () => {
+  fetchMock.mockResolvedValue(Response.json({}));
+  const api = createApiClient(async () => "token");
+  const { signal } = new AbortController();
+
+  await api.request("/ai/job-extraction", identity, { method: "POST", signal });
+
+  expect(fetchMock.mock.calls[0]![1]?.signal).toBe(signal);
+});
+
 test("validates the response", async () => {
   fetchMock.mockResolvedValue(Response.json({ unexpected: true }));
   const api = createApiClient(async () => "token");

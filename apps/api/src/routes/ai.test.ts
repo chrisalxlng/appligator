@@ -26,7 +26,7 @@ beforeEach(async () => {
 });
 
 async function request(
-  method: "GET" | "PUT" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "DELETE",
   url: string,
   { body, userId = "user-id" }: { body?: unknown; userId?: string } = {},
 ) {
@@ -194,6 +194,75 @@ test.each([
   });
 
   expect(response.statusCode).toBe(400);
+});
+
+const extractionOutput = {
+  company: "Initech GmbH",
+  position: "Frontend Developer",
+  summary: "Initech sucht eine Frontend-Entwicklerin.",
+  salary: null,
+  locations: ["München"],
+  workModel: "remote",
+  employmentType: "fullTime",
+  applicationDeadline: null,
+};
+
+async function extractJob(description = "<p>Frontend Developer at Initech in Munich</p>") {
+  return request("POST", "/ai/job-extraction", { body: { description } });
+}
+
+test("POST /ai/job-extraction extracts the job with the stored access", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() => respondingModel(JSON.stringify(extractionOutput)));
+
+  const response = await extractJob();
+
+  expect(response.statusCode).toBe(200);
+  expect(response.json()).toEqual({
+    ...extractionOutput,
+    summary: "<p>Initech sucht eine Frontend-Entwicklerin.</p>",
+  });
+  expect(createLanguageModel).toHaveBeenCalledWith({
+    provider: "openai",
+    model: "gpt-6-astra",
+    apiKey: "sk-secret",
+  });
+});
+
+test("POST /ai/job-extraction responds with 409 without an AI access", async () => {
+  const response = await extractJob();
+
+  expect(response.statusCode).toBe(409);
+  expect(response.json()).toEqual({ error: "notConfigured" });
+  expect(createLanguageModel).not.toHaveBeenCalled();
+});
+
+test("POST /ai/job-extraction rejects an empty description", async () => {
+  await saveSettings();
+
+  const response = await extractJob("  ");
+
+  expect(response.statusCode).toBe(400);
+});
+
+test("POST /ai/job-extraction reports a rejected access", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() => failingModel(401));
+
+  const response = await extractJob();
+
+  expect(response.statusCode).toBe(422);
+  expect(response.json()).toEqual({ error: "accessRejected" });
+});
+
+test("POST /ai/job-extraction reports an invalid model output", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() => respondingModel("not json"));
+
+  const response = await extractJob();
+
+  expect(response.statusCode).toBe(502);
+  expect(response.json()).toEqual({ error: "extractionFailed" });
 });
 
 test("DELETE /ai/settings removes the settings", async () => {

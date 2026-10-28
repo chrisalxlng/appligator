@@ -26,12 +26,13 @@ interface Schema<T> {
 interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
+  signal?: AbortSignal;
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;
 
 export function createApiClient(getToken: () => Promise<string>) {
-  async function send(path: string, { method = "GET", body }: RequestOptions) {
+  async function send(path: string, { method = "GET", body, signal }: RequestOptions) {
     const headers = new Headers({ authorization: `Bearer ${await getToken()}` });
     if (body !== undefined) headers.set("content-type", "application/json");
 
@@ -39,6 +40,7 @@ export function createApiClient(getToken: () => Promise<string>) {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal,
     });
     if (!response.ok) throw new ApiError(response.status, await errorCode(response));
     return response;

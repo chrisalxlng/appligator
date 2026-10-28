@@ -2,6 +2,7 @@ import type {
   Currency,
   EmploymentType,
   Job,
+  JobExtraction,
   JobInput,
   Salary,
   SalaryPeriod,
@@ -116,4 +117,67 @@ export function validateJobForm(values: JobFormValues): ValidationResult {
       applicationDeadline: values.applicationDeadline || null,
     },
   };
+}
+
+export type ExtractedField = keyof JobExtraction;
+
+interface FieldFiller {
+  isEmpty: (values: JobFormValues) => boolean;
+  fill: (extraction: JobExtraction) => Partial<JobFormValues> | null;
+}
+
+const fieldFillers: Record<ExtractedField, FieldFiller> = {
+  summary: {
+    isEmpty: (values) => !values.summary,
+    fill: ({ summary }) => (summary ? { summary } : null),
+  },
+  company: {
+    isEmpty: (values) => !values.company.trim(),
+    fill: ({ company }) => (company ? { company } : null),
+  },
+  position: {
+    isEmpty: (values) => !values.position.trim(),
+    fill: ({ position }) => (position ? { position } : null),
+  },
+  salary: {
+    isEmpty: ({ salaryCurrency, salaryPeriod, salaryMin, salaryMax }) =>
+      [salaryCurrency, salaryPeriod, salaryMin, salaryMax].every((value) => value === null),
+    fill: ({ salary }) =>
+      salary && {
+        salaryCurrency: salary.currency,
+        salaryPeriod: salary.period,
+        salaryMin: salary.min,
+        salaryMax: salary.max,
+      },
+  },
+  locations: {
+    isEmpty: (values) => values.locations.length === 0,
+    fill: ({ locations }) => (locations.length > 0 ? { locations } : null),
+  },
+  workModel: {
+    isEmpty: (values) => values.workModel === null,
+    fill: ({ workModel }) => workModel && { workModel },
+  },
+  employmentType: {
+    isEmpty: (values) => values.employmentType === null,
+    fill: ({ employmentType }) => employmentType && { employmentType },
+  },
+  applicationDeadline: {
+    isEmpty: (values) => !values.applicationDeadline,
+    fill: ({ applicationDeadline }) => (applicationDeadline ? { applicationDeadline } : null),
+  },
+};
+
+export function fillEmptyFields(values: JobFormValues, extraction: JobExtraction) {
+  let filledValues = values;
+  const filledFields: ExtractedField[] = [];
+
+  for (const [field, { isEmpty, fill }] of Object.entries(fieldFillers)) {
+    const filled = isEmpty(values) ? fill(extraction) : null;
+    if (!filled) continue;
+    filledValues = { ...filledValues, ...filled };
+    filledFields.push(field as ExtractedField);
+  }
+
+  return { values: filledValues, filledFields };
 }
