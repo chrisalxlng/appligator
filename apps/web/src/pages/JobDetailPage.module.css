@@ -7,23 +7,6 @@
   }
 }
 
-.notFoundDescription {
-  color: var(--text-secondary);
-}
-
 .notFound {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-2);
-}
-
-.notFoundTitle {
-  font: var(--font-heading-m);
-  letter-spacing: var(--tracking-heading-m);
-}
-
-.backLink {
-  color: var(--active-text-secondary);
-  font: var(--font-label-m);
+  margin-block: auto;
 }

@@ -20,7 +20,10 @@ export const de: Translations = {
     yesterday: "Gestern",
     loading: "Stellen werden geladen …",
     loadingJob: "Stelle wird geladen …",
-    loadError: "Die Stellen konnten nicht geladen werden.",
+    loadError: {
+      title: "Stellen konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
     retry: "Erneut versuchen",
     empty: {
       title: "Noch keine Stellen",
@@ -31,7 +34,10 @@ export const de: Translations = {
       description: "Diese Stelle gibt es nicht oder sie wurde gelöscht.",
       back: "Zurück zu den Stellen",
     },
-    detailLoadError: "Die Stelle konnte nicht geladen werden.",
+    detailLoadError: {
+      title: "Stelle konnte nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
     properties: {
       salary: "Gehalt",
       locations: "Standorte",

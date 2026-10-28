@@ -128,7 +128,8 @@ test("retries loading the jobs after an error", async () => {
   api.failWith("GET", 500);
   renderApp("/jobs");
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("The jobs could not be loaded.");
+  const alert = await screen.findByRole("alert");
+  expect(within(alert).getByRole("heading", { name: "Jobs could not be loaded" })).toBeVisible();
 
   api.recover();
   await userEvent.click(screen.getByRole("button", { name: "Try again" }));

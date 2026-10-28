@@ -18,7 +18,10 @@ export const en = {
     yesterday: "Yesterday",
     loading: "Loading jobs …",
     loadingJob: "Loading job …",
-    loadError: "The jobs could not be loaded.",
+    loadError: {
+      title: "Jobs could not be loaded",
+      description: "Check your connection and try again.",
+    },
     retry: "Try again",
     empty: {
       title: "No jobs yet",
@@ -29,7 +32,10 @@ export const en = {
       description: "This job does not exist or has been deleted.",
       back: "Back to jobs",
     },
-    detailLoadError: "The job could not be loaded.",
+    detailLoadError: {
+      title: "Job could not be loaded",
+      description: "Check your connection and try again.",
+    },
     properties: {
       salary: "Salary",
       locations: "Locations",
