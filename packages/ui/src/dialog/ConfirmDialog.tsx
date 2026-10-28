@@ -11,6 +11,7 @@ export interface ConfirmDialogProps {
   cancelLabel: string;
   onConfirm: () => void;
   pending?: boolean;
+  error?: string;
 }
 
 export function ConfirmDialog({
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
   pending = false,
+  error,
 }: ConfirmDialogProps) {
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -33,6 +35,11 @@ export function ConfirmDialog({
             <AlertDialog.Description className={styles.description}>
               {description}
             </AlertDialog.Description>
+            {error && (
+              <p role="alert" className={styles.error}>
+                {error}
+              </p>
+            )}
             <div className={styles.actions}>
               <AlertDialog.Close render={<Button variant="secondary" />}>
                 {cancelLabel}

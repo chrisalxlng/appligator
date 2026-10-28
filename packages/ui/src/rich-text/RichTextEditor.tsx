@@ -158,8 +158,8 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
       event.stopPropagation();
       const { from, to } = editor.state.selection;
       dismissedSelectionRef.current = { from, to };
+      editor.view.focus();
       editor.view.dispatch(editor.state.tr.setMeta(formatMenuKey, "hide"));
-      editor.commands.focus();
     };
     window.addEventListener("keydown", hideOnEscape, { capture: true });
     return () => window.removeEventListener("keydown", hideOnEscape, { capture: true });

@@ -49,3 +49,9 @@ test("disables confirming while the action is pending", () => {
 
   expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
 });
+
+test("shows an error", () => {
+  renderDialog({ error: "The job could not be deleted." });
+
+  expect(screen.getByRole("alert")).toHaveTextContent("The job could not be deleted.");
+});

@@ -1,0 +1,67 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0-5);
+  padding: var(--spacing-4);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  color: var(--text-primary);
+  text-decoration: none;
+
+  @media (hover: hover) {
+    &:hover:not([data-status="active"]) {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active:not([data-status="active"]) {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  &[data-status="active"] {
+    border: var(--border-width-m) solid var(--active-separator);
+    background: var(--active-surface);
+    box-shadow: var(--shadow-s);
+    color: var(--active-text-primary);
+  }
+}
+
+.position {
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+}
+
+.company {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+
+  [data-status="active"] & {
+    color: var(--active-text-secondary);
+  }
+}
+
+.created {
+  margin-top: var(--spacing-3);
+  color: var(--text-secondary);
+  font: var(--font-caption);
+  letter-spacing: var(--tracking-caption);
+
+  [data-status="active"] & {
+    color: var(--active-text-secondary);
+  }
+}

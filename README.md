@@ -15,6 +15,8 @@ Monorepo built with [Vite+](https://viteplus.dev).
 
 The app requires a login via Keycloak. Locally, the Keycloak of the [cl-dev](https://github.com/chrisalxlng/cl-dev) setup must run at http://localhost:8080 with the `appligator-app` client in the `apps` realm. The web app reads its Keycloak settings from `apps/web/.env.development`; the API requires `KEYCLOAK_ISSUER` and `KEYCLOAK_CLIENT_ID`, which `vp run dev` loads from `apps/api/.env.development`. Like `DATABASE_URL`, values set in the environment take precedence and the API fails to start if one is missing.
 
+The web app calls the API under `/api` on its own origin. `vp run dev` proxies these requests to the API at http://localhost:3000; in production, a reverse proxy must forward `/api` to the API and strip the prefix.
+
 The API stores its data in PostgreSQL. Locally, the `appligator-db` database of the cl-dev setup must run at `localhost:5433`. The API requires `DATABASE_URL`; `vp run dev` and the database tasks load it from `apps/api/.env.development`, and a `DATABASE_URL` set in the environment takes precedence. Tests run against an in-memory PostgreSQL ([PGlite](https://pglite.dev)) and need no database.
 
 - Install dependencies:

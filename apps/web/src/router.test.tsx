@@ -1,15 +1,18 @@
-import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import i18n from "i18next";
-import { afterEach, expect, test, vi } from "vite-plus/test";
-import type { Auth } from "./auth/authenticate.ts";
+import { afterEach, beforeEach, expect, test, vi } from "vite-plus/test";
 import { JobsPage } from "./pages/JobsPage.tsx";
-import { createAppRouter } from "./router.tsx";
+import { createFakeJobsApi } from "./testing/fakeJobsApi.ts";
+import { renderApp, testAuth } from "./testing/renderApp.tsx";
 
 vi.mock("./pages/JobsPage.tsx", async (importOriginal) => {
   const { JobsPage } = await importOriginal<typeof import("./pages/JobsPage.tsx")>();
   return { JobsPage: vi.fn(JobsPage) };
+});
+
+beforeEach(() => {
+  createFakeJobsApi();
 });
 
 afterEach(async () => {
@@ -17,14 +20,8 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-const auth: Auth = {
-  user: { name: "Jane Doe", email: "jane@example.com" },
-  logout: vi.fn(),
-};
-
-function renderAt(path: string, authentication = Promise.resolve(auth)) {
-  const router = createAppRouter(authentication, createMemoryHistory({ initialEntries: [path] }));
-  render(<RouterProvider router={router} />);
+function renderAt(path: string, authentication = Promise.resolve(testAuth)) {
+  renderApp(path, { authentication });
 }
 
 test("renders the page for the current route", async () => {
@@ -79,7 +76,7 @@ test("signs the user out from the profile page", async () => {
 
   await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
 
-  expect(auth.logout).toHaveBeenCalledOnce();
+  expect(testAuth.logout).toHaveBeenCalledOnce();
 });
 
 test("shows the error page when the authentication fails", async () => {

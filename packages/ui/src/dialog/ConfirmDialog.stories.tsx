@@ -37,3 +37,7 @@ export const Default: Story = {};
 export const Pending: Story = {
   args: { pending: true },
 };
+
+export const WithError: Story = {
+  args: { error: "The job could not be deleted. Please try again." },
+};

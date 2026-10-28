@@ -7,8 +7,11 @@ export interface User {
 
 export interface Auth {
   user: User;
+  getToken: () => Promise<string>;
   logout: () => Promise<void>;
 }
+
+const minTokenValiditySeconds = 30;
 
 export async function authenticate(): Promise<Auth> {
   const keycloak = new Keycloak({
@@ -27,6 +30,14 @@ export async function authenticate(): Promise<Auth> {
     user: {
       name: keycloak.tokenParsed?.name ?? "",
       email: keycloak.tokenParsed?.email ?? "",
+    },
+    getToken: async () => {
+      try {
+        await keycloak.updateToken(minTokenValiditySeconds);
+      } catch {
+        await keycloak.login();
+      }
+      return keycloak.token ?? "";
     },
     logout: () => keycloak.logout({ redirectUri: window.location.origin }),
   };

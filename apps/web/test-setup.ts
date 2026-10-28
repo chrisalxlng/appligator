@@ -13,3 +13,12 @@ vi.stubGlobal(
     disconnect() {}
   },
 );
+
+vi.stubGlobal("matchMedia", (query: string) => {
+  const minWidth = Number(query.match(/width >= (\d+)px/)?.[1] ?? 0);
+  return {
+    matches: window.innerWidth >= minWidth,
+    addEventListener() {},
+    removeEventListener() {},
+  };
+});

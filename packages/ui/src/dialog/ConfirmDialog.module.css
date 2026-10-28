@@ -49,6 +49,10 @@
   color: var(--text-secondary);
 }
 
+.error {
+  color: var(--destructive-text);
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
