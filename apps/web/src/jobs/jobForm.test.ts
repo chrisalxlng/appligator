@@ -1,6 +1,6 @@
-import { jobInputSchema, type Job } from "@appligator/shared";
+import { jobInputSchema, type Job, type JobExtraction } from "@appligator/shared";
 import { expect, test } from "vite-plus/test";
-import { toFormValues, validateJobForm, type JobFormValues } from "./jobForm.ts";
+import { fillEmptyFields, toFormValues, validateJobForm, type JobFormValues } from "./jobForm.ts";
 
 const job: Job = {
   id: "8f9c1a52-7d1e-4b8a-9a43-1c2d3e4f5a6b",
@@ -88,4 +88,92 @@ test("rejects a minimum salary above the maximum", () => {
   });
 
   expect(validateJobForm(values).errors).toEqual({ salary: "salaryRange" });
+});
+
+const extraction: JobExtraction = {
+  summary: "<p>Initech is hiring.</p>",
+  company: "Initech GmbH",
+  position: "Frontend Developer",
+  salary: { currency: "EUR", period: "year", min: 60_000, max: 70_000 },
+  locations: ["München"],
+  workModel: "remote",
+  employmentType: "fullTime",
+  applicationDeadline: "2026-12-31",
+};
+
+test("fills all empty fields with the extracted job information", () => {
+  const { values, filledFields } = fillEmptyFields(toFormValues(), extraction);
+
+  expect(values).toEqual({
+    ...toFormValues(),
+    summary: "<p>Initech is hiring.</p>",
+    company: "Initech GmbH",
+    position: "Frontend Developer",
+    salaryCurrency: "EUR",
+    salaryPeriod: "year",
+    salaryMin: 60_000,
+    salaryMax: 70_000,
+    locations: ["München"],
+    workModel: "remote",
+    employmentType: "fullTime",
+    applicationDeadline: "2026-12-31",
+  });
+  expect(filledFields).toEqual([
+    "summary",
+    "company",
+    "position",
+    "salary",
+    "locations",
+    "workModel",
+    "employmentType",
+    "applicationDeadline",
+  ]);
+});
+
+test("keeps fields the user already filled in", () => {
+  const current = {
+    ...toFormValues(),
+    description: "<p>Ad</p>",
+    company: "Own company name",
+    salaryCurrency: "USD" as const,
+    locations: ["Berlin"],
+  };
+
+  const { values, filledFields } = fillEmptyFields(current, extraction);
+
+  expect(values).toMatchObject({
+    description: "<p>Ad</p>",
+    company: "Own company name",
+    salaryCurrency: "USD",
+    salaryMin: null,
+    locations: ["Berlin"],
+    position: "Frontend Developer",
+  });
+  expect(filledFields).not.toContain("company");
+  expect(filledFields).not.toContain("salary");
+  expect(filledFields).not.toContain("locations");
+});
+
+test("treats blank text as empty", () => {
+  const { values } = fillEmptyFields({ ...toFormValues(), company: "  " }, extraction);
+
+  expect(values.company).toBe("Initech GmbH");
+});
+
+test("leaves fields empty when nothing was extracted for them", () => {
+  const nothingFound: JobExtraction = {
+    summary: "",
+    company: null,
+    position: null,
+    salary: null,
+    locations: [],
+    workModel: null,
+    employmentType: null,
+    applicationDeadline: null,
+  };
+
+  expect(fillEmptyFields(toFormValues(), nothingFound)).toEqual({
+    values: toFormValues(),
+    filledFields: [],
+  });
 });

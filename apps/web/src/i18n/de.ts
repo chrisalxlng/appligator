@@ -99,6 +99,31 @@ export const de: Translations = {
         salaryRange: "Der Mindestbetrag darf den Höchstbetrag nicht übersteigen.",
       },
     },
+    analysis: {
+      analyzing: "KI analysiert die Stellenanzeige …",
+      analyzingHint:
+        "Leere Felder werden automatisch ausgefüllt. Du kannst währenddessen weiterarbeiten.",
+      filled_one: "KI hat {{count}} Feld ausgefüllt",
+      filled_other: "KI hat {{count}} Felder ausgefüllt",
+      filledFields: "{{fields}}. Bitte prüfe die Angaben.",
+      nothingFilled: "KI hat keine Felder ausgefüllt",
+      nothingFilledHint:
+        "Bereits ausgefüllte Felder werden nie überschrieben. Um sie neu ausfüllen zu lassen, lösche ihren Inhalt und füge die Stellenanzeige erneut ein.",
+      failed: "KI konnte die Stellenanzeige nicht analysieren",
+      retry: "Erneut versuchen",
+      dismiss: "Ausblenden",
+      errors: {
+        notConfigured: "Richte zuerst einen KI-Zugang in deinem Profil ein.",
+        accessRejected: "Der Anbieter hat deinen KI-Zugang abgelehnt. Prüfe ihn in deinem Profil.",
+        rateLimited:
+          "Dein Schlüssel hat sein Limit erreicht. Prüfe Guthaben und Limits beim Anbieter.",
+        providerUnavailable:
+          "Der Anbieter ist gerade nicht erreichbar. Bitte versuche es später erneut.",
+        extractionFailed:
+          "Die Antwort der KI konnte nicht verarbeitet werden. Bitte versuche es erneut.",
+        failed: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      },
+    },
     location: {
       addTitle: "Standort hinzufügen",
       editTitle: "Standort bearbeiten",

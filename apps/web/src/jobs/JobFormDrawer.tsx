@@ -4,6 +4,7 @@ import {
   salaryPeriods,
   workModels,
   type Job,
+  type JobExtraction,
 } from "@appligator/shared";
 import {
   Button,
@@ -19,11 +20,13 @@ import {
   useSuccessToast,
 } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
-import { useRef, useState, type FormEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { JobAnalysisStatus } from "./JobAnalysisStatus.tsx";
 import { useSaveJob } from "./jobQueries.ts";
 import {
+  fillEmptyFields,
   toFormValues,
   validateJobForm,
   type JobFormErrors,
@@ -31,6 +34,7 @@ import {
 } from "./jobForm.ts";
 import styles from "./JobFormDrawer.module.css";
 import { LocationList } from "./LocationList.tsx";
+import { useJobAnalysis } from "./useJobAnalysis.ts";
 
 interface JobFormDrawerProps {
   job?: Job;
@@ -87,6 +91,18 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
   const [values, setValues] = useState(() => toFormValues(job));
   const [errors, setErrors] = useState<JobFormErrors>({});
   const shortcutHints = useShortcutHints();
+  const valuesRef = useRef(values);
+  const { analysis, analyzePaste, retry, dismiss } = useJobAnalysis(applyExtraction);
+
+  useEffect(() => {
+    valuesRef.current = values;
+  }, [values]);
+
+  function applyExtraction(extraction: JobExtraction) {
+    const filled = fillEmptyFields(valuesRef.current, extraction);
+    setValues(filled.values);
+    return filled.filledFields;
+  }
 
   function setValue<Key extends keyof JobFormValues>(key: Key) {
     return (value: JobFormValues[Key]) => setValues((current) => ({ ...current, [key]: value }));
@@ -121,9 +137,15 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
         <RichTextEditor
           value={values.description}
           onValueChange={setValue("description")}
+          onValuePaste={(description) => analyzePaste(valuesRef.current.description, description)}
           formatLabels={formatLabels}
         />
       </Field>
+      <JobAnalysisStatus
+        analysis={analysis}
+        onRetry={() => retry(values.description)}
+        onDismiss={dismiss}
+      />
       <Field label={t("jobs.form.summary")}>
         <RichTextEditor
           value={values.summary}

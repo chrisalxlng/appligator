@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vite-plus/test";
 import { Button } from "../button/Button.tsx";
@@ -146,4 +146,27 @@ test("leaves the submit shortcut to the surrounding drawer form", async () => {
 
   expect(onSubmit).toHaveBeenCalledOnce();
   expect(onValueChange).not.toHaveBeenCalled();
+});
+
+test("reports the value after pasting", async () => {
+  const onValueChange = vi.fn();
+  const onValuePaste = vi.fn();
+  render(
+    <RichTextEditor
+      aria-label="Description"
+      value=""
+      onValueChange={onValueChange}
+      onValuePaste={onValuePaste}
+      formatLabels={formatLabels}
+    />,
+  );
+
+  act(() => screen.getByRole("textbox", { name: "Description" }).focus());
+  await userEvent.keyboard("Hi ");
+  expect(onValuePaste).not.toHaveBeenCalled();
+
+  await userEvent.paste("Pasted job ad");
+
+  expect(onValuePaste).toHaveBeenCalledExactlyOnceWith("<p>Hi Pasted job ad</p>");
+  expect(onValueChange).toHaveBeenLastCalledWith("<p>Hi Pasted job ad</p>");
 });

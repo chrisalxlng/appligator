@@ -10,7 +10,7 @@ const aiKeys = {
   settings: ["ai", "settings"] as const,
 };
 
-function useAiApi() {
+export function useAiApi() {
   const { getToken } = useAuth();
   return useMemo(() => createAiApi(createApiClient(getToken)), [getToken]);
 }

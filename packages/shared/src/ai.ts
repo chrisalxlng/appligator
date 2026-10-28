@@ -7,6 +7,8 @@ export const aiErrorCodes = [
   "accessRejected",
   "rateLimited",
   "providerUnavailable",
+  "notConfigured",
+  "extractionFailed",
 ] as const;
 
 export const aiSettingsInputSchema = z.object({

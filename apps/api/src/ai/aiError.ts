@@ -1,15 +1,28 @@
 import type { AiErrorCode } from "@appligator/shared";
-import { APICallError } from "ai";
+import { APICallError, NoObjectGeneratedError, NoOutputGeneratedError, RetryError } from "ai";
 
 const rejectedStatusCodes = new Set([400, 401, 403, 404]);
 
 export function toAiErrorCode(error: unknown): AiErrorCode {
-  if (!APICallError.isInstance(error)) return "providerUnavailable";
-  if (error.statusCode === 429) return "rateLimited";
-  if (error.statusCode && rejectedStatusCodes.has(error.statusCode)) return "accessRejected";
+  const cause = RetryError.isInstance(error) ? error.lastError : error;
+  if (NoObjectGeneratedError.isInstance(cause) || NoOutputGeneratedError.isInstance(cause)) {
+    return "extractionFailed";
+  }
+  if (!APICallError.isInstance(cause)) return "providerUnavailable";
+  if (cause.statusCode === 429) return "rateLimited";
+  if (cause.statusCode && rejectedStatusCodes.has(cause.statusCode)) return "accessRejected";
   return "providerUnavailable";
 }
 
+const errorStatus: Record<AiErrorCode, 409 | 422 | 502> = {
+  apiKeyRequired: 422,
+  accessRejected: 422,
+  rateLimited: 422,
+  notConfigured: 409,
+  providerUnavailable: 502,
+  extractionFailed: 502,
+};
+
 export function aiErrorStatus(code: AiErrorCode) {
-  return code === "providerUnavailable" ? 502 : 422;
+  return errorStatus[code];
 }

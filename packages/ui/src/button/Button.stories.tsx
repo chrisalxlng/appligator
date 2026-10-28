@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { IconPlus } from "@tabler/icons-react";
 import { Button } from "./Button.tsx";
+import styles from "./Button.stories.module.css";
 
 const meta = {
   title: "Components/Button",
@@ -26,6 +27,28 @@ export const Surface: Story = {
 
 export const Destructive: Story = {
   args: { variant: "destructive", children: "Delete" },
+};
+
+export const HighlightSecondary: Story = {
+  args: { variant: "highlightSecondary", children: "Dismiss" },
+  decorators: [
+    (Story) => (
+      <div className={styles.highlightSurface}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export const DestructiveSecondary: Story = {
+  args: { variant: "destructiveSecondary", children: "Try again" },
+  decorators: [
+    (Story) => (
+      <div className={styles.destructiveSurface}>
+        <Story />
+      </div>
+    ),
+  ],
 };
 
 export const WithIcon: Story = {

@@ -97,6 +97,28 @@ export const en = {
         salaryRange: "The minimum must not exceed the maximum.",
       },
     },
+    analysis: {
+      analyzing: "AI is analyzing the job ad …",
+      analyzingHint: "Empty fields are filled in automatically. You can keep editing.",
+      filled_one: "AI filled in {{count}} field",
+      filled_other: "AI filled in {{count}} fields",
+      filledFields: "{{fields}}. Please check the information.",
+      nothingFilled: "AI did not fill in any fields",
+      nothingFilledHint:
+        "Fields that are already filled in are never overwritten. To have them filled in again, clear them and paste the job ad again.",
+      failed: "AI could not analyze the job ad",
+      retry: "Try again",
+      dismiss: "Dismiss",
+      errors: {
+        notConfigured: "Set up AI access in your profile first.",
+        accessRejected: "The provider rejected your AI access. Check it in your profile.",
+        rateLimited:
+          "Your key has reached its limit. Check your balance and limits with the provider.",
+        providerUnavailable: "The provider is currently unavailable. Please try again later.",
+        extractionFailed: "The AI response could not be processed. Please try again.",
+        failed: "Something went wrong. Please try again.",
+      },
+    },
     location: {
       addTitle: "Add location",
       editTitle: "Edit location",

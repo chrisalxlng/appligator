@@ -1,0 +1,9 @@
+.highlightSurface {
+  padding: var(--spacing-4);
+  background: var(--highlight-surface);
+}
+
+.destructiveSurface {
+  padding: var(--spacing-4);
+  background: var(--destructive-surface);
+}
