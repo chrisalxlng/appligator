@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vite-plus/test";
+import { Button } from "../button/Button.tsx";
+import { Drawer } from "../drawer/Drawer.tsx";
 import { Field } from "../field/Field.tsx";
 import { normalizeHeadings } from "./extensions.ts";
 import { RichTextEditor } from "./RichTextEditor.tsx";
@@ -74,4 +76,50 @@ test("shows the format bar with tooltips when text is selected", async () => {
   await userEvent.hover(await screen.findByRole("button", { name: "Heading" }));
 
   expect(await screen.findByText("Heading")).toBeInTheDocument();
+});
+
+test("closes the format bar with Escape before closing a surrounding drawer", async () => {
+  render(
+    <Drawer title="Edit job" closeLabel="Close" trigger={<Button>Edit</Button>}>
+      <RichTextEditor
+        aria-label="Description"
+        value="<p>Text</p>"
+        onValueChange={() => {}}
+        formatLabels={formatLabels}
+      />
+    </Drawer>,
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+  (await screen.findByRole("textbox", { name: "Description" })).focus();
+  await userEvent.keyboard("{Control>}a{/Control}");
+  expect(await screen.findByRole("toolbar")).toBeInTheDocument();
+
+  await userEvent.keyboard("{Escape}");
+
+  expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
+  expect(screen.getByRole("dialog", { name: "Edit job" })).toBeInTheDocument();
+  expect(screen.getByRole("textbox", { name: "Description" })).toHaveFocus();
+
+  await userEvent.keyboard("{Escape}");
+
+  expect(screen.queryByRole("dialog", { name: "Edit job" })).not.toBeInTheDocument();
+});
+
+test("closes the format bar with Escape from one of its buttons", async () => {
+  render(
+    <RichTextEditor
+      aria-label="Description"
+      value="<p>Text</p>"
+      onValueChange={() => {}}
+      formatLabels={formatLabels}
+    />,
+  );
+  screen.getByRole("textbox", { name: "Description" }).focus();
+  await userEvent.keyboard("{Control>}a{/Control}");
+  (await screen.findByRole("button", { name: "Bold" })).focus();
+
+  await userEvent.keyboard("{Escape}");
+
+  expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
+  expect(screen.getByRole("textbox", { name: "Description" })).toHaveFocus();
 });

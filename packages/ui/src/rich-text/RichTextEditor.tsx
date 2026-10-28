@@ -1,3 +1,4 @@
+import type { BubbleMenuPluginProps } from "@tiptap/extension-bubble-menu";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { EditorContent, posToDOMRect, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import {
@@ -72,6 +73,7 @@ export function RichTextEditor({
 const formatMenuKey = "formatMenu";
 
 type MenuPlacement = "top" | "bottom";
+type ShouldShowMenu = NonNullable<BubbleMenuPluginProps["shouldShow"]>;
 
 function selectionRect(editor: Editor) {
   const { from, to } = editor.state.selection;
@@ -92,8 +94,23 @@ function selectionReference(editor: Editor) {
 
 function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditorLabels }) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const isMenuOpenRef = useRef(false);
+  const dismissedSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [lockedPlacement, setLockedPlacement] = useState<MenuPlacement | null>(null);
   const getReference = useCallback(() => selectionReference(editor), [editor]);
+
+  const shouldShow = useCallback<ShouldShowMenu>(
+    ({ view, state, from, to }) => {
+      const dismissed = dismissedSelectionRef.current;
+      if (dismissed?.from !== from || dismissed.to !== to) dismissedSelectionRef.current = null;
+
+      const hasFocus =
+        view.hasFocus() || Boolean(menuRef.current?.contains(document.activeElement));
+      const hasText = state.doc.textBetween(from, to).length > 0;
+      return hasFocus && hasText && editor.isEditable && !dismissedSelectionRef.current;
+    },
+    [editor],
+  );
 
   // Floating UI may flip the menu below the selection when it opens, but flipping while
   // scrolling makes the menu jump, so the side it opened on is kept until it closes.
@@ -111,7 +128,13 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
       offset: 8,
       hide: true,
       onUpdate: lockPlacement,
-      onHide: () => setLockedPlacement(null),
+      onShow: () => {
+        isMenuOpenRef.current = true;
+      },
+      onHide: () => {
+        isMenuOpenRef.current = false;
+        setLockedPlacement(null);
+      },
     };
   }, [editor, lockedPlacement]);
 
@@ -121,6 +144,25 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
       editor.view.dispatch(editor.state.tr.setMeta(formatMenuKey, "updatePosition"));
     document.addEventListener("scroll", updatePosition, { capture: true });
     return () => document.removeEventListener("scroll", updatePosition, { capture: true });
+  }, [editor]);
+
+  useEffect(() => {
+    // A surrounding drawer handles Escape on the document, so the window capture phase is the
+    // only place to close just the menu first.
+    const hideOnEscape = (event: KeyboardEvent) => {
+      const target = event.target as Node;
+      const isInEditorOrMenu =
+        editor.view.dom.contains(target) || menuRef.current?.contains(target);
+      if (event.key !== "Escape" || !isMenuOpenRef.current || !isInEditorOrMenu) return;
+
+      event.stopPropagation();
+      const { from, to } = editor.state.selection;
+      dismissedSelectionRef.current = { from, to };
+      editor.view.dispatch(editor.state.tr.setMeta(formatMenuKey, "hide"));
+      editor.commands.focus();
+    };
+    window.addEventListener("keydown", hideOnEscape, { capture: true });
+    return () => window.removeEventListener("keydown", hideOnEscape, { capture: true });
   }, [editor]);
 
   const active = useEditorState({
@@ -160,6 +202,7 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
       editor={editor}
       pluginKey={formatMenuKey}
       getReferencedVirtualElement={getReference}
+      shouldShow={shouldShow}
       className={styles.menu}
       role="toolbar"
       options={options}
