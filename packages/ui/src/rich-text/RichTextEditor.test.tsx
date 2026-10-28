@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vite-plus/test";
 import { Field } from "../field/Field.tsx";
 import { normalizeHeadings } from "./extensions.ts";
@@ -56,4 +57,21 @@ test("turns every heading level into the supported heading", () => {
   expect(normalizeHeadings('<h1 class="a">A</h1><H3>B</H3><h6>C</h6><p>h1</p>')).toBe(
     '<h2 class="a">A</h2><h2>B</h2><h2>C</h2><p>h1</p>',
   );
+});
+
+test("shows the format bar with tooltips when text is selected", async () => {
+  render(
+    <RichTextEditor
+      aria-label="Description"
+      value="<p>Text</p>"
+      onValueChange={() => {}}
+      formatLabels={formatLabels}
+    />,
+  );
+
+  screen.getByRole("textbox", { name: "Description" }).focus();
+  await userEvent.keyboard("{Control>}a{/Control}");
+  await userEvent.hover(await screen.findByRole("button", { name: "Heading" }));
+
+  expect(await screen.findByText("Heading")).toBeInTheDocument();
 });

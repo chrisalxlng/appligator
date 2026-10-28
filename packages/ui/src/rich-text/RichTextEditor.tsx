@@ -2,7 +2,7 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import {
   IconBold,
-  IconH2,
+  IconHeading,
   IconItalic,
   IconList,
   IconListNumbers,
@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 import { useEffect } from "react";
 import { useFieldLabelId } from "../field/Field.tsx";
+import { Tooltip } from "../tooltip/Tooltip.tsx";
 import { normalizeHeadings, richTextExtensions } from "./extensions.ts";
 import controlStyles from "../field/control.module.css";
 import proseStyles from "./prose.module.css";
@@ -85,7 +86,7 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
     { key: "italic", icon: IconItalic, toggle: () => editor.chain().focus().toggleItalic().run() },
     {
       key: "heading",
-      icon: IconH2,
+      icon: IconHeading,
       toggle: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
     },
     {
@@ -108,16 +109,17 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
       options={{ placement: "top", offset: 8 }}
     >
       {formats.map(({ key, icon: FormatIcon, toggle }) => (
-        <button
-          key={key}
-          type="button"
-          className={styles.format}
-          aria-label={labels[key]}
-          aria-pressed={active[key]}
-          onClick={toggle}
-        >
-          <FormatIcon size={18} stroke={2.2} aria-hidden />
-        </button>
+        <Tooltip key={key} label={labels[key]}>
+          <button
+            type="button"
+            className={styles.format}
+            aria-label={labels[key]}
+            aria-pressed={active[key]}
+            onClick={toggle}
+          >
+            <FormatIcon size={18} stroke={2.2} aria-hidden />
+          </button>
+        </Tooltip>
       ))}
     </BubbleMenu>
   );
