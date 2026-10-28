@@ -39,6 +39,7 @@ const semanticTokens = [
   "destructive-text-primary",
   "destructive-text",
   "backdrop",
+  "selection",
   "svg-fill",
   "svg-fill-light",
   "svg-separator",

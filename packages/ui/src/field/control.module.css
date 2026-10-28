@@ -9,6 +9,15 @@
   color: var(--text-primary);
   font: var(--font-body-m);
 
+  /* Chrome matches the active date segment with :focus-within, not :focus. */
+  &::-webkit-datetime-edit-day-field:focus-within,
+  &::-webkit-datetime-edit-month-field:focus-within,
+  &::-webkit-datetime-edit-year-field:focus-within {
+    border-radius: var(--spacing-0-5);
+    background: var(--selection);
+    color: var(--text-primary);
+  }
+
   &::placeholder {
     color: var(--text-secondary);
   }

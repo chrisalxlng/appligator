@@ -26,6 +26,7 @@
   --destructive-text-primary: var(--color-burgundy-red-100);
   --destructive-text: var(--color-burgundy-red-500);
   --backdrop: rgb(19 20 20 / 30%);
+  --selection: var(--color-deep-teal-200);
   --svg-fill: var(--color-deep-teal-500);
   --svg-fill-light: var(--color-deep-teal-200);
   --svg-separator: var(--color-teal-gray-900);
