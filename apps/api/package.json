@@ -4,20 +4,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/server.ts",
+    "dev": "node --env-file=.env.development --watch src/server.ts",
     "build": "vp pack",
     "start": "node dist/server.mjs",
     "test": "vp test"
   },
   "dependencies": {
     "@appligator/shared": "workspace:*",
+    "drizzle-orm": "catalog:",
     "fastify": "catalog:",
     "fastify-type-provider-zod": "catalog:",
     "jose": "catalog:",
+    "pg": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "catalog:",
     "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   }
