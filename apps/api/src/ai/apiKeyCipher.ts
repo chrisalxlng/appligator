@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 
 const algorithm = "aes-256-gcm";
 const version = "v1";
@@ -6,9 +6,12 @@ const ivLength = 12;
 
 export type ApiKeyCipher = ReturnType<typeof createApiKeyCipher>;
 
-export function createApiKeyCipher(base64Key: string) {
-  const key = Buffer.from(base64Key, "base64");
-  if (key.length !== 32) throw new Error("The API key encryption key must be 32 bytes (base64)");
+function deriveKey(secret: string) {
+  return Buffer.from(hkdfSync("sha256", secret, "", "appligator-api-key-encryption", 32));
+}
+
+export function createApiKeyCipher(secret: string) {
+  const key = deriveKey(secret);
 
   return {
     encrypt(apiKey: string, userId: string) {

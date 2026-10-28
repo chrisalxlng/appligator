@@ -141,8 +141,10 @@ export const de: Translations = {
     description:
       "Verbinde deinen eigenen API-Schlüssel, um die KI-Funktionen von Appligator zu nutzen. Du behältst die volle Kontrolle über deine Daten, Modelle und Kosten. Dein Schlüssel wird sicher verschlüsselt gespeichert.",
     loading: "KI-Einstellungen werden geladen …",
-    loadError: "Die KI-Einstellungen konnten nicht geladen werden.",
-    retry: "Erneut versuchen",
+    loadError: {
+      title: "KI-Einstellungen konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
     close: "Schließen",
     selectPlaceholder: "Bitte wählen",
     access: {

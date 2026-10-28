@@ -35,6 +35,36 @@
   }
 }
 
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 40px;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: var(--border-width-s) dashed var(--separator);
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--text-primary);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
 .form {
   display: flex;
   flex-direction: column;

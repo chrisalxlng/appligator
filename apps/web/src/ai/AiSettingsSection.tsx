@@ -1,16 +1,10 @@
 import type { AiSettings } from "@appligator/shared";
-import {
-  AddButton,
-  Button,
-  ConfirmDialog,
-  IconButton,
-  Spinner,
-  useSuccessToast,
-} from "@appligator/ui";
-import { IconChevronRight, IconRefresh, IconTrash } from "@tabler/icons-react";
+import { ConfirmDialog, IconButton, Spinner, useSuccessToast } from "@appligator/ui";
+import { IconChevronRight, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { capitalize, formatRelativeTime } from "../i18n/formatRelativeTime.ts";
+import { LoadError } from "../jobs/LoadError.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { AiAccessDrawer } from "./AiAccessDrawer.tsx";
@@ -42,13 +36,11 @@ export function AiSettingsSection() {
       </div>
       {showSpinner && <Spinner label={t("ai.loading")} />}
       {settings.isError && (
-        <div role="alert" className={styles.loadError}>
-          <p>{t("ai.loadError")}</p>
-          <Button variant="secondary" onClick={() => void settings.refetch()}>
-            <IconRefresh size={20} stroke={2.4} aria-hidden />
-            {t("ai.retry")}
-          </Button>
-        </div>
+        <LoadError
+          title={t("ai.loadError.title")}
+          description={t("ai.loadError.description")}
+          onRetry={() => void settings.refetch()}
+        />
       )}
       {settings.isSuccess &&
         (settings.data ? (
@@ -62,9 +54,15 @@ export function AiSettingsSection() {
             />
           </>
         ) : (
-          <AddButton aria-label={t("ai.access.addTitle")} onClick={() => setOpenDrawer("access")}>
+          <button
+            type="button"
+            className={styles.addButton}
+            aria-label={t("ai.access.addTitle")}
+            onClick={() => setOpenDrawer("access")}
+          >
+            <IconPlus size={20} stroke={2.4} aria-hidden />
             {t("ai.access.add")}
-          </AddButton>
+          </button>
         ))}
       <AiAccessDrawer
         settings={settings.data ?? undefined}

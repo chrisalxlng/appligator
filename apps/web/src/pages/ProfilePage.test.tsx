@@ -196,9 +196,11 @@ test("offers to retry when the AI settings cannot be loaded", async () => {
   renderApp("/profile");
 
   const section = await aiSection();
-  expect(await within(section).findByRole("alert")).toHaveTextContent(
-    "The AI settings could not be loaded.",
-  );
+  const loadError = await within(section).findByRole("alert");
+  expect(
+    within(loadError).getByRole("heading", { name: "The AI settings could not be loaded" }),
+  ).toBeVisible();
+  expect(loadError).toHaveTextContent("Check your connection and try again.");
 
   api.recover();
   await userEvent.click(within(section).getByRole("button", { name: "Try again" }));

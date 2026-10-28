@@ -40,8 +40,8 @@ test("rejects an API key encrypted with another key", () => {
   expect(() => otherCipher.decrypt(cipher.encrypt("sk-secret", "user-id"), "user-id")).toThrow();
 });
 
-test("requires a 32 byte key", () => {
-  expect(() => createApiKeyCipher(randomBytes(16).toString("base64"))).toThrow(
-    "The API key encryption key must be 32 bytes (base64)",
-  );
+test("accepts any secret and derives the same key from it", () => {
+  const encrypted = createApiKeyCipher("example-key").encrypt("sk-secret", "user-id");
+
+  expect(createApiKeyCipher("example-key").decrypt(encrypted, "user-id")).toBe("sk-secret");
 });
