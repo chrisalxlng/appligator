@@ -3,7 +3,7 @@
   min-width: 0;
 
   &[data-can-clear] {
-    --control-end-padding: calc(var(--spacing-10) + var(--spacing-1));
+    --control-end-padding: calc(var(--spacing-10) + var(--spacing-3));
   }
 }
 
@@ -18,7 +18,7 @@
   border: none;
   border-radius: 0 calc(var(--radius-m) - var(--border-width-s))
     calc(var(--radius-m) - var(--border-width-s)) 0;
-  background: transparent;
+  background: var(--fill);
   color: var(--text-primary);
   cursor: pointer;
 
