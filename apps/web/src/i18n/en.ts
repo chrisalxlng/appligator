@@ -134,6 +134,68 @@ export const en = {
     account: "Account",
     logout: "Sign out",
   },
+  ai: {
+    title: "AI features",
+    description:
+      "Connect your own API key to use Appligator's AI features. You keep full control over your data, models and costs. Your key is stored securely encrypted.",
+    loading: "Loading AI settings …",
+    loadError: {
+      title: "The AI settings could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    close: "Close",
+    selectPlaceholder: "Please select",
+    access: {
+      add: "Add",
+      addTitle: "Add AI access",
+      editTitle: "Edit AI access",
+      provider: "Provider",
+      model: "Model",
+      apiKey: "Key",
+      updated: "Updated {{time}}",
+      submitAdd: "Add",
+      submitUpdate: "Update",
+      modelsLoading: "Loading models …",
+      modelsLoadError: "The models could not be loaded. Please try again later.",
+      errors: {
+        providerRequired: "Please select a provider.",
+        modelRequired: "Please select a model.",
+        apiKeyRequired: "Please enter the key.",
+        apiKeyRequiredForProvider: "Please enter the key for the new provider.",
+        accessRejected: "The provider rejected the key or the model. Please check your input.",
+        rateLimited:
+          "Your key has reached its limit. Check your balance and limits with the provider.",
+        providerUnavailable: "The provider is currently unavailable. Please try again later.",
+        saveFailed: "The AI access could not be saved. Please try again.",
+      },
+      delete: {
+        action: "Delete AI access",
+        title: "Delete AI access?",
+        description:
+          "Your {{provider}} key will be deleted permanently. AI features are no longer available afterwards.",
+        confirm: "Delete",
+        cancel: "Cancel",
+        error: "The AI access could not be deleted. Please try again.",
+      },
+    },
+    language: {
+      title: "Edit AI language",
+      label: "Language",
+      description: "Sets the language in which the AI prepares information for you.",
+      submit: "Update",
+      saveError: "The AI language could not be saved. Please try again.",
+    },
+    languageName: {
+      de: "German",
+      en: "English",
+    },
+    toast: {
+      added: "AI access added",
+      updated: "AI access updated",
+      deleted: "AI access deleted",
+      languageUpdated: "AI language updated",
+    },
+  },
   error: {
     title: "Something went wrong",
     description: "An unexpected error occurred. Please reload the page or try again later.",

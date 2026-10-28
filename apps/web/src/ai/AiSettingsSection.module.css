@@ -1,0 +1,157 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  max-width: 552px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.title {
+  font: var(--font-heading-s);
+  letter-spacing: var(--tracking-heading-s);
+}
+
+.description {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 40px;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: var(--border-width-s) dashed var(--separator);
+  border-radius: var(--radius-m);
+  background: transparent;
+  color: var(--text-primary);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding-right: var(--spacing-4);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-m);
+  background: var(--fill);
+  color: var(--text-primary);
+}
+
+.languageCard,
+.accessCard {
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--fill-hover);
+    }
+  }
+
+  &:active {
+    background: var(--fill-press);
+  }
+}
+
+.languageCard {
+  width: 100%;
+  padding: var(--spacing-4);
+  text-align: left;
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.accessCard {
+  position: relative;
+
+  &:active:has(.deleteButton:active) {
+    background: var(--fill-hover);
+  }
+
+  &:has(.cardButton:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.cardButton {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--spacing-4) 0 var(--spacing-4) var(--spacing-4);
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-m);
+  }
+}
+
+.deleteButton {
+  position: relative;
+}
+
+.cardContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cardTitle {
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+  overflow-wrap: anywhere;
+}
+
+.cardText {
+  color: var(--text-secondary);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+  overflow-wrap: anywhere;
+}
+
+.cardCaption {
+  margin-top: var(--spacing-3);
+  color: var(--text-secondary);
+  font: var(--font-caption);
+  letter-spacing: var(--tracking-caption);
+}

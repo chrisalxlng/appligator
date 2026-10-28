@@ -1,9 +1,21 @@
 export class ApiError extends Error {
   readonly status: number;
+  readonly code?: string;
 
-  constructor(status: number) {
+  constructor(status: number, code?: string) {
     super(`API request failed with status ${status}`);
     this.status = status;
+    this.code = code;
+  }
+}
+
+async function errorCode(response: Response) {
+  try {
+    const body: unknown = await response.json();
+    const error = typeof body === "object" && body !== null && "error" in body && body.error;
+    return typeof error === "string" ? error : undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -28,7 +40,7 @@ export function createApiClient(getToken: () => Promise<string>) {
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-    if (!response.ok) throw new ApiError(response.status);
+    if (!response.ok) throw new ApiError(response.status, await errorCode(response));
     return response;
   }
 

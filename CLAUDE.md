@@ -36,6 +36,13 @@ Summarize the self-review findings and what was fixed in the PR description.
 - Code must be readable and understandable on its own: clear names, small focused functions, obvious control flow.
 - Comments are the last resort. Only add one when the code cannot be made self-explanatory, e.g. to explain a non-obvious "why" (external constraints, workarounds). Never comment what the code already says.
 - Indentation is 2 spaces everywhere (see `.editorconfig`).
+- Only create a new component (in `packages/ui` or the app) when it adds real value, e.g. behavior or markup reused in several places. A few lines of shared styling are no reason for a component.
+
+# UI Conventions
+
+- **Load errors:** When content cannot be loaded, show `LoadError` (error illustration, title, description and a retry button) — also for a section within a page. Failed saves show an inline `role="alert"` message above the submit button; invalid input shows the error of its `Field`.
+- **Colors are semantic:** Deep Teal is for interactive and active elements, Royal Purple for highlights (e.g. AI hints), Burgundy Red for destructive actions and errors, Teal Gray for neutral surfaces. Use the semantic tokens from `packages/ui/src/styles/tokens.css`, not palette colors directly.
+- **Colored surfaces:** Elements on a colored surface (e.g. a button in an error box) use a different shade of the same palette, never gray.
 
 # Git Workflow
 

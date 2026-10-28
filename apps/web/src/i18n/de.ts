@@ -136,6 +136,70 @@ export const de: Translations = {
     account: "Konto",
     logout: "Abmelden",
   },
+  ai: {
+    title: "KI-Funktionen",
+    description:
+      "Verbinde deinen eigenen API-Schlüssel, um die KI-Funktionen von Appligator zu nutzen. Du behältst die volle Kontrolle über deine Daten, Modelle und Kosten. Dein Schlüssel wird sicher verschlüsselt gespeichert.",
+    loading: "KI-Einstellungen werden geladen …",
+    loadError: {
+      title: "KI-Einstellungen konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    close: "Schließen",
+    selectPlaceholder: "Bitte wählen",
+    access: {
+      add: "Hinzufügen",
+      addTitle: "KI-Zugang hinzufügen",
+      editTitle: "KI-Zugang bearbeiten",
+      provider: "Anbieter",
+      model: "Modell",
+      apiKey: "Schlüssel",
+      updated: "{{time}} aktualisiert",
+      submitAdd: "Hinzufügen",
+      submitUpdate: "Aktualisieren",
+      modelsLoading: "Modelle werden geladen …",
+      modelsLoadError: "Die Modelle konnten nicht geladen werden. Bitte versuche es später erneut.",
+      errors: {
+        providerRequired: "Bitte wähle einen Anbieter.",
+        modelRequired: "Bitte wähle ein Modell.",
+        apiKeyRequired: "Bitte gib den Schlüssel an.",
+        apiKeyRequiredForProvider: "Bitte gib den Schlüssel für den neuen Anbieter an.",
+        accessRejected:
+          "Der Anbieter hat den Schlüssel oder das Modell abgelehnt. Bitte prüfe deine Angaben.",
+        rateLimited:
+          "Dein Schlüssel hat sein Limit erreicht. Prüfe Guthaben und Limits beim Anbieter.",
+        providerUnavailable:
+          "Der Anbieter ist gerade nicht erreichbar. Bitte versuche es später erneut.",
+        saveFailed: "Der KI-Zugang konnte nicht gespeichert werden. Bitte versuche es erneut.",
+      },
+      delete: {
+        action: "KI-Zugang löschen",
+        title: "KI-Zugang löschen?",
+        description:
+          "Dein Schlüssel für {{provider}} wird endgültig gelöscht. KI-Funktionen sind danach nicht mehr verfügbar.",
+        confirm: "Löschen",
+        cancel: "Abbrechen",
+        error: "Der KI-Zugang konnte nicht gelöscht werden. Bitte versuche es erneut.",
+      },
+    },
+    language: {
+      title: "KI-Sprache bearbeiten",
+      label: "Sprache",
+      description: "Bestimmt die Sprache, in der die KI Informationen für dich aufbereitet.",
+      submit: "Aktualisieren",
+      saveError: "Die KI-Sprache konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    },
+    languageName: {
+      de: "Deutsch",
+      en: "Englisch",
+    },
+    toast: {
+      added: "KI-Zugang hinzugefügt",
+      updated: "KI-Zugang aktualisiert",
+      deleted: "KI-Zugang gelöscht",
+      languageUpdated: "KI-Sprache aktualisiert",
+    },
+  },
   error: {
     title: "Etwas ist schiefgelaufen",
     description:
