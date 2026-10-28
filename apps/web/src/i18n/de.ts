@@ -189,7 +189,7 @@ export const de: Translations = {
     },
     languageName: {
       de: "Deutsch",
-      en: "English",
+      en: "Englisch",
     },
     toast: {
       added: "KI-Zugang hinzugefügt",

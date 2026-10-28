@@ -93,7 +93,7 @@ function AiAccessCard({ settings, onEdit }: { settings: AiSettings; onEdit: () =
   }
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${styles.accessCard}`}>
       <button type="button" className={styles.cardButton} onClick={onEdit}>
         <span className={styles.cardTitle}>{providerName}</span>
         <span className={styles.cardText}>{settings.model}</span>
@@ -107,6 +107,7 @@ function AiAccessCard({ settings, onEdit }: { settings: AiSettings; onEdit: () =
       </button>
       <IconButton
         variant="surface"
+        className={styles.deleteButton}
         label={t("ai.access.delete.action")}
         onClick={() => {
           deleteSettings.reset();
