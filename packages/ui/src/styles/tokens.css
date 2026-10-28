@@ -20,6 +20,12 @@
   --active-separator: var(--color-deep-teal-500);
   --active-text-primary: var(--color-deep-teal-900);
   --active-text-secondary: var(--color-deep-teal-600);
+  --destructive-fill: var(--color-burgundy-red-500);
+  --destructive-fill-hover: var(--color-burgundy-red-600);
+  --destructive-fill-press: var(--color-burgundy-red-700);
+  --destructive-text-primary: var(--color-burgundy-red-100);
+  --destructive-text: var(--color-burgundy-red-500);
+  --backdrop: rgb(19 20 20 / 30%);
   --svg-fill: var(--color-deep-teal-500);
   --svg-fill-light: var(--color-deep-teal-200);
   --svg-separator: var(--color-teal-gray-900);
@@ -49,6 +55,7 @@
   --focus-ring-offset: 2px;
 
   --radius-m: 8px;
+  --radius-l: 16px;
   --radius-full: 9999px;
 
   --shadow-color: #b1babd;

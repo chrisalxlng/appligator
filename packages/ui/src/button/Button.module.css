@@ -70,7 +70,27 @@
   }
 }
 
+.destructive {
+  background: var(--destructive-fill);
+  color: var(--destructive-text-primary);
+
+  @media (hover: hover) {
+    &:hover:not([data-disabled]) {
+      background: var(--destructive-fill-hover);
+    }
+  }
+
+  &:active:not([data-disabled]) {
+    background: var(--destructive-fill-press);
+  }
+}
+
 .iconOnly {
   width: 40px;
   padding: 0;
+
+  &.small {
+    width: 28px;
+    height: 28px;
+  }
 }

@@ -24,6 +24,10 @@ export const Surface: Story = {
   args: { variant: "surface" },
 };
 
+export const Destructive: Story = {
+  args: { variant: "destructive", children: "Delete" },
+};
+
 export const WithIcon: Story = {
   args: {
     children: (

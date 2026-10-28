@@ -1,0 +1,48 @@
+.editor {
+  height: 160px;
+  overflow-y: auto;
+  outline: none;
+}
+
+.menu {
+  display: flex;
+  gap: var(--spacing-0-5);
+  padding: var(--spacing-1);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  box-shadow: var(--shadow-m);
+}
+
+.format {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+  }
+
+  &[aria-pressed="true"] {
+    background: var(--active-surface);
+    color: var(--active-text-primary);
+  }
+}
