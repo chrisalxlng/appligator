@@ -8,7 +8,7 @@ import {
   IconListNumbers,
   type Icon,
 } from "@tabler/icons-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFieldLabelId } from "../field/Field.tsx";
 import { Tooltip } from "../tooltip/Tooltip.tsx";
 import { normalizeHeadings, richTextExtensions } from "./extensions.ts";
@@ -71,10 +71,16 @@ export function RichTextEditor({
 
 const formatMenuKey = "formatMenu";
 
-function selectionReference(editor: Editor) {
+type MenuPlacement = "top" | "bottom";
+
+function selectionRect(editor: Editor) {
   const { from, to } = editor.state.selection;
-  const rect = posToDOMRect(editor.view, from, to);
-  const { node } = editor.view.domAtPos(from);
+  return posToDOMRect(editor.view, from, to);
+}
+
+function selectionReference(editor: Editor) {
+  const rect = selectionRect(editor);
+  const { node } = editor.view.domAtPos(editor.state.selection.from);
 
   // The context element lets Floating UI hide the menu once the selection is scrolled out of view.
   return {
@@ -85,6 +91,30 @@ function selectionReference(editor: Editor) {
 }
 
 function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditorLabels }) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [lockedPlacement, setLockedPlacement] = useState<MenuPlacement | null>(null);
+  const getReference = useCallback(() => selectionReference(editor), [editor]);
+
+  // Floating UI may flip the menu below the selection when it opens, but flipping while
+  // scrolling makes the menu jump, so the side it opened on is kept until it closes.
+  const options = useMemo(() => {
+    const lockPlacement = () => {
+      const menu = menuRef.current;
+      if (!menu) return;
+      const opensAbove = menu.getBoundingClientRect().top < selectionRect(editor).top;
+      setLockedPlacement(opensAbove ? "top" : "bottom");
+    };
+
+    return {
+      placement: lockedPlacement ?? "top",
+      flip: lockedPlacement === null,
+      offset: 8,
+      hide: true,
+      onUpdate: lockPlacement,
+      onHide: () => setLockedPlacement(null),
+    };
+  }, [editor, lockedPlacement]);
+
   useEffect(() => {
     // The bubble menu only follows window scrolling, but the editor and the drawer scroll on their own.
     const updatePosition = () =>
@@ -126,12 +156,13 @@ function FormatMenu({ editor, labels }: { editor: Editor; labels: RichTextEditor
 
   return (
     <BubbleMenu
+      ref={menuRef}
       editor={editor}
       pluginKey={formatMenuKey}
-      getReferencedVirtualElement={() => selectionReference(editor)}
+      getReferencedVirtualElement={getReference}
       className={styles.menu}
       role="toolbar"
-      options={{ placement: "top", offset: 8, hide: true }}
+      options={options}
     >
       {formats.map(({ key, icon: FormatIcon, toggle }) => (
         <Tooltip key={key} label={labels[key]}>
