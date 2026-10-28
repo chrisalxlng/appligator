@@ -12,7 +12,7 @@ test("GET /health reports ok without authentication", async () => {
 });
 
 test("GET /health reports unavailable when the database is unreachable", async () => {
-  const db = createTestDatabase();
+  const db = await createTestDatabase();
   await db.$client.close();
   const app = buildTestApp({ db });
 

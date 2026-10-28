@@ -20,7 +20,7 @@ const app = buildApp({
     clientId: keycloakClientId,
     keys: createRemoteJWKSet(new URL(`${keycloakIssuer}/protocol/openid-connect/certs`)),
   },
-  db: drizzle({ client: pool, schema }),
+  db: drizzle({ client: pool, schema, casing: "snake_case" }),
 });
 
 pool.on("error", (error) => app.log.error(error, "Idle database client failed"));

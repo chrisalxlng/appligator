@@ -7,7 +7,7 @@ const issuer = "http://keycloak.test/realms/apps";
 const clientId = "appligator-app";
 const { privateKey, publicKey } = await generateKeyPair("RS256");
 const keys = createLocalJWKSet({ keys: [{ ...(await exportJWK(publicKey)), alg: "RS256" }] });
-const testDatabase = createTestDatabase();
+const testDatabase = await createTestDatabase();
 
 export function buildTestApp({ db = testDatabase }: { db?: Database } = {}) {
   return buildApp({ auth: { issuer, clientId, keys }, db });

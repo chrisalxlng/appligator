@@ -69,6 +69,12 @@ test("rejects a token issued for another client", async () => {
   expect(response.statusCode).toBe(401);
 });
 
+test("rejects a token without a subject", async () => {
+  const response = await requestWithToken(await signToken({ sub: undefined }));
+
+  expect(response.statusCode).toBe(401);
+});
+
 test("rejects unknown routes without revealing them", async () => {
   const response = await app.inject({ method: "GET", url: "/does-not-exist" });
 
