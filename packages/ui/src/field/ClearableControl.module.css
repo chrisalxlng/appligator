@@ -3,31 +3,28 @@
   min-width: 0;
 
   &[data-can-clear] {
-    --control-end-padding: calc(var(--spacing-2) + var(--spacing-6) + var(--spacing-1));
+    --control-end-padding: calc(var(--spacing-10) + var(--spacing-1));
   }
 }
 
 .clearButton {
   position: absolute;
-  top: 50%;
-  right: var(--spacing-2);
+  inset: var(--border-width-s) var(--border-width-s) var(--border-width-s) auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--spacing-6);
-  height: var(--spacing-6);
+  width: var(--spacing-10);
   padding: 0;
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: 0 calc(var(--radius-m) - var(--border-width-s))
+    calc(var(--radius-m) - var(--border-width-s)) 0;
   background: transparent;
-  color: var(--text-secondary);
-  translate: 0 -50%;
+  color: var(--text-primary);
   cursor: pointer;
 
   @media (hover: hover) {
     &:hover {
       background: var(--fill-hover);
-      color: var(--text-primary);
     }
   }
 
