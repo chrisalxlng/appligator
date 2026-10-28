@@ -20,13 +20,20 @@ export function formatDeadline(isoDate: string, locale: string) {
   return new Date(year!, month! - 1, day).toLocaleDateString(locale, { dateStyle: "medium" });
 }
 
+const rangeSeparator = "–";
+
 export function formatSalaryRange({ currency, min, max }: Salary, locale: string) {
   const format = new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
   });
-  return min === max ? format.format(min) : format.formatRange(min, max);
+  if (min === max) return format.format(min);
+
+  return format
+    .formatRangeToParts(min, max)
+    .map(({ value }) => (value === rangeSeparator ? ` ${rangeSeparator} ` : value))
+    .join("");
 }
 
 export function hostname(link: string) {

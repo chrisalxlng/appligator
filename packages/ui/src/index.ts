@@ -5,6 +5,7 @@ export { LinkButton, type LinkButtonProps } from "./button/LinkButton.tsx";
 export { ConfirmDialog, type ConfirmDialogProps } from "./dialog/ConfirmDialog.tsx";
 export { Drawer, type DrawerProps } from "./drawer/Drawer.tsx";
 export { EmptyState, type EmptyStateProps } from "./empty-state/EmptyState.tsx";
+export { DateInput, type DateInputProps } from "./field/DateInput.tsx";
 export { Field, type FieldProps } from "./field/Field.tsx";
 export { Fieldset, type FieldsetProps } from "./field/Fieldset.tsx";
 export { NumberInput, type NumberInputProps } from "./field/NumberInput.tsx";

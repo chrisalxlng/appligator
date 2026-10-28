@@ -81,6 +81,7 @@ export const de: Translations = {
       employmentType: "Anstellungsart",
       applicationDeadline: "Bewerbungsfrist",
       selectPlaceholder: "Bitte wählen",
+      clear: "Eingabe entfernen",
       add: "Hinzufügen",
       update: "Aktualisieren",
       saveError: "Die Stelle konnte nicht gespeichert werden. Bitte versuche es erneut.",

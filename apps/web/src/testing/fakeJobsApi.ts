@@ -35,12 +35,14 @@ export function createFakeJobsApi(initialJobs: Job[] = []) {
   let jobs = [...initialJobs];
   const requests: RecordedRequest[] = [];
   const failures = new Map<string, number>();
+  const holds = new Map<string, Promise<void>>();
 
   async function handle(url: string, init?: RequestInit): Promise<Response> {
     const method = init?.method ?? "GET";
     const path = url.replace(/^\/api/, "");
     const body = typeof init?.body === "string" ? (JSON.parse(init.body) as JobInput) : undefined;
     requests.push({ method, path, body });
+    await holds.get(method);
 
     const failure = failures.get(method);
     if (failure) return new Response(null, { status: failure });
@@ -80,5 +82,10 @@ export function createFakeJobsApi(initialJobs: Job[] = []) {
     requestsWith: (method: string) => requests.filter((request) => request.method === method),
     failWith: (method: string, status: number) => failures.set(method, status),
     recover: () => failures.clear(),
+    holdResponses: (method: string) => {
+      let release = () => {};
+      holds.set(method, new Promise<void>((resolve) => (release = resolve)));
+      return release;
+    },
   };
 }

@@ -1,0 +1,42 @@
+.clearable {
+  position: relative;
+  min-width: 0;
+
+  &[data-can-clear] {
+    --control-end-padding: calc(var(--spacing-2) + var(--spacing-6) + var(--spacing-1));
+  }
+}
+
+.clearButton {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-6);
+  height: var(--spacing-6);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  translate: 0 -50%;
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--fill-hover);
+      color: var(--text-primary);
+    }
+  }
+
+  &:active {
+    background: var(--fill-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: 0;
+  }
+}

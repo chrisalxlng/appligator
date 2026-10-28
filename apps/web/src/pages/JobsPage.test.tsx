@@ -304,6 +304,25 @@ test("edits a job", async () => {
   expect(api.requestsWith("PUT")[0]?.body).toEqual({ ...input, position: "Staff Engineer" });
 });
 
+test("shows the update as pending and saves only once", async () => {
+  const api = createFakeJobsApi([jobFixture]);
+  const releaseUpdate = api.holdResponses("PUT");
+  renderApp(`/jobs/${jobFixture.id}`);
+  const drawer = await openEditDrawer();
+
+  const position = within(drawer).getByRole("textbox", { name: "Position" });
+  await userEvent.click(within(drawer).getByRole("button", { name: "Update" }));
+  await userEvent.type(position, "{Enter}");
+
+  expect(within(drawer).getByRole("button", { name: "Update" })).toHaveAttribute(
+    "aria-busy",
+    "true",
+  );
+  expect(api.requestsWith("PUT")).toHaveLength(1);
+  releaseUpdate();
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+});
+
 test("deletes a job after confirmation", async () => {
   const api = createFakeJobsApi([jobFixture, olderJob]);
   const router = renderApp(`/jobs/${jobFixture.id}`);

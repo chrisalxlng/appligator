@@ -14,7 +14,7 @@ test.each([
 test("formats a salary range in the given locale", () => {
   const salary = { currency: "EUR", period: "year", min: 65_000, max: 75_000 } as const;
 
-  expect(formatSalaryRange(salary, "de")).toBe("65.000–75.000\u00a0€");
+  expect(formatSalaryRange(salary, "de")).toBe("65.000 – 75.000\u00a0€");
   expect(formatSalaryRange(salary, "en")).toBe("€65,000 – €75,000");
 });
 

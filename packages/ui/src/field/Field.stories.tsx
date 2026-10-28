@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { Select } from "../select/Select.tsx";
+import { DateInput } from "./DateInput.tsx";
 import { Field } from "./Field.tsx";
 import { Fieldset } from "./Fieldset.tsx";
 import { NumberInput } from "./NumberInput.tsx";
@@ -30,8 +31,18 @@ export const WithError: Story = {
   args: { error: "Please enter a company.", children: <TextInput /> },
 };
 
+function DeadlineField() {
+  const [deadline, setDeadline] = useState("2026-11-30");
+
+  return (
+    <Field label="Deadline">
+      <DateInput value={deadline} onValueChange={setDeadline} clearable clearLabel="Clear" />
+    </Field>
+  );
+}
+
 export const Date: Story = {
-  args: { label: "Deadline", children: <TextInput type="date" /> },
+  render: () => <DeadlineField />,
 };
 
 function SalaryFieldset() {

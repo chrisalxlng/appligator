@@ -79,6 +79,7 @@ export const en = {
       employmentType: "Employment type",
       applicationDeadline: "Application deadline",
       selectPlaceholder: "Please select",
+      clear: "Clear",
       add: "Add",
       update: "Update",
       saveError: "The job could not be saved. Please try again.",

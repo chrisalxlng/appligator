@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { expect, test, vi } from "vite-plus/test";
 import { Field } from "../field/Field.tsx";
 import { Select } from "./Select.tsx";
@@ -49,4 +50,37 @@ test("selects an option", async () => {
   await userEvent.click(await screen.findByRole("option", { name: "Remote" }));
 
   expect(onValueChange).toHaveBeenCalledWith("remote", expect.anything());
+});
+
+function ClearableSelect({ initialValue }: { initialValue: string | null }) {
+  const [value, setValue] = useState(initialValue);
+
+  return (
+    <Select
+      aria-label="Work model"
+      items={items}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Please select"
+      clearable
+      clearLabel="Clear"
+    />
+  );
+}
+
+test("offers clearing only when a value is selected", () => {
+  render(<ClearableSelect initialValue={null} />);
+
+  expect(screen.queryByRole("button", { name: "Clear" })).not.toBeInTheDocument();
+});
+
+test("clears the value and focuses the select", async () => {
+  render(<ClearableSelect initialValue="remote" />);
+
+  await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+
+  const select = screen.getByRole("combobox", { name: "Work model" });
+  expect(select).toHaveTextContent("Please select");
+  expect(select).toHaveFocus();
+  expect(screen.queryByRole("button", { name: "Clear" })).not.toBeInTheDocument();
 });

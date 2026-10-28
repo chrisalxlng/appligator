@@ -7,6 +7,7 @@ import {
 } from "@appligator/shared";
 import {
   Button,
+  DateInput,
   Drawer,
   Field,
   Fieldset,
@@ -98,6 +99,7 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
   }
 
   const selectPlaceholder = t("jobs.form.selectPlaceholder");
+  const clearLabel = t("jobs.form.clear");
 
   return (
     <form className={styles.form} onSubmit={submit} noValidate>
@@ -137,6 +139,8 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
             value={values.salaryCurrency}
             onValueChange={setValue("salaryCurrency")}
             placeholder={selectPlaceholder}
+            clearable
+            clearLabel={clearLabel}
           />
           <NumberInput
             aria-label={t("jobs.form.salaryMin")}
@@ -163,6 +167,8 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           value={values.salaryPeriod}
           onValueChange={setValue("salaryPeriod")}
           placeholder={selectPlaceholder}
+          clearable
+          clearLabel={clearLabel}
         />
       </Fieldset>
       <LocationList locations={values.locations} onChange={setValue("locations")} />
@@ -175,6 +181,8 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           value={values.workModel}
           onValueChange={setValue("workModel")}
           placeholder={selectPlaceholder}
+          clearable
+          clearLabel={clearLabel}
         />
       </Field>
       <Field label={t("jobs.form.employmentType")}>
@@ -186,13 +194,16 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           value={values.employmentType}
           onValueChange={setValue("employmentType")}
           placeholder={selectPlaceholder}
+          clearable
+          clearLabel={clearLabel}
         />
       </Field>
       <Field label={t("jobs.form.applicationDeadline")}>
-        <TextInput
-          type="date"
+        <DateInput
           value={values.applicationDeadline}
           onValueChange={setValue("applicationDeadline")}
+          clearable
+          clearLabel={clearLabel}
         />
       </Field>
       {save.isError && (
@@ -200,7 +211,7 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           {t("jobs.form.saveError")}
         </p>
       )}
-      <Button type="submit" disabled={save.isPending}>
+      <Button type="submit" pending={save.isPending}>
         {job ? (
           <IconPencil size={20} stroke={2.4} aria-hidden />
         ) : (

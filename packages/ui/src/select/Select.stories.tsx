@@ -21,6 +21,8 @@ function SelectDemo({ initialValue }: { initialValue: string | null }) {
           value={value}
           onValueChange={setValue}
           placeholder="Please select"
+          clearable
+          clearLabel="Clear"
         />
       </Field>
     </div>

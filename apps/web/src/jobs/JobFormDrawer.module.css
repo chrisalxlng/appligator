@@ -6,7 +6,7 @@
 
 .salaryRange {
   display: grid;
-  grid-template-columns: minmax(0, 88px) minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 120px) minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--spacing-3);
   font: var(--font-body-m);

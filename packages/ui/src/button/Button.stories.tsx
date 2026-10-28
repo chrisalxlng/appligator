@@ -42,3 +42,7 @@ export const WithIcon: Story = {
 export const Disabled: Story = {
   args: { disabled: true },
 };
+
+export const Pending: Story = {
+  args: { pending: true },
+};

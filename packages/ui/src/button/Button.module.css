@@ -20,9 +20,33 @@
   }
 
   &[data-disabled] {
-    opacity: 0.5;
     cursor: not-allowed;
+
+    &:not([aria-busy="true"]) {
+      opacity: 0.5;
+    }
   }
+
+  &[aria-busy="true"] {
+    position: relative;
+    cursor: progress;
+  }
+}
+
+.pendingContent {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  opacity: 0;
+}
+
+.spinner {
+  --spinner-indicator: currentColor;
+  --spinner-track: color-mix(in srgb, currentColor 30%, transparent);
+
+  position: absolute;
+  inset: 0;
+  margin: auto;
 }
 
 .primary {

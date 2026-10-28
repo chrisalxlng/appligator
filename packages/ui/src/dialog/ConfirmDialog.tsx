@@ -44,7 +44,7 @@ export function ConfirmDialog({
               <AlertDialog.Close render={<Button variant="secondary" />}>
                 {cancelLabel}
               </AlertDialog.Close>
-              <Button variant="destructive" onClick={onConfirm} disabled={pending}>
+              <Button variant="destructive" onClick={onConfirm} pending={pending}>
                 {confirmLabel}
               </Button>
             </div>
