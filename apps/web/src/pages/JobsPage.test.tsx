@@ -1,7 +1,8 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, onTestFinished, test, vi } from "vite-plus/test";
-import { createFakeJobsApi, jobFixture, jobWith } from "../testing/fakeJobsApi.ts";
+import { scrollObservedElementsIntoView } from "../testing/fakeIntersectionObserver.ts";
+import { createFakeJobsApi, fakePageSize, jobFixture, jobWith } from "../testing/fakeJobsApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
 
 const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -47,6 +48,52 @@ test("lists the jobs with their creation day", async () => {
 
   expect(newest).toHaveTextContent("Lead Developer FrontendRandstad Digital Germany AGToday");
   expect(older).toHaveTextContent("Frontend DeveloperInitech GmbHYesterday");
+});
+
+function manyJobs(count: number) {
+  return Array.from({ length: count }, (_, index) =>
+    jobWith({ id: crypto.randomUUID(), position: `Position ${index + 1}` }),
+  );
+}
+
+const findPositionLinks = () => screen.findAllByRole("link", { name: /^Position \d+/ });
+
+test("loads more jobs when scrolling to the end of the list", async () => {
+  const api = createFakeJobsApi(manyJobs(fakePageSize + 5));
+  renderApp("/jobs", { viewport: "mobile" });
+
+  expect(await findPositionLinks()).toHaveLength(fakePageSize);
+
+  act(scrollObservedElementsIntoView);
+
+  expect(await screen.findByRole("link", { name: /^Position 35/ })).toBeInTheDocument();
+  expect(await findPositionLinks()).toHaveLength(fakePageSize + 5);
+
+  act(scrollObservedElementsIntoView);
+
+  const nextPageRequests = api.requestsWith("GET").filter(({ path }) => path.includes("cursor"));
+  expect(nextPageRequests).toHaveLength(1);
+});
+
+test("retries loading more jobs after an error", async () => {
+  const api = createFakeJobsApi(manyJobs(fakePageSize + 1));
+  renderApp("/jobs", { viewport: "mobile" });
+  await findPositionLinks();
+
+  api.failWith("GET", 500);
+  act(scrollObservedElementsIntoView);
+
+  const alert = await screen.findByRole("alert");
+  expect(
+    within(alert).getByRole("heading", { name: "More jobs could not be loaded" }),
+  ).toBeVisible();
+  expect(await findPositionLinks()).toHaveLength(fakePageSize);
+
+  api.recover();
+  await userEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+
+  expect(await screen.findByRole("link", { name: /^Position 31/ })).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
 test("opens the first job on desktop", async () => {

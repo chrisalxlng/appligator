@@ -18,8 +18,13 @@ export const en = {
     yesterday: "Yesterday",
     loading: "Loading jobs …",
     loadingJob: "Loading job …",
+    loadingMore: "Loading more jobs …",
     loadError: {
       title: "Jobs could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    loadMoreError: {
+      title: "More jobs could not be loaded",
       description: "Check your connection and try again.",
     },
     retry: "Try again",
