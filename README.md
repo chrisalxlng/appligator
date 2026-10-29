@@ -20,6 +20,8 @@ The web app calls the API under `/api` on its own origin. `vp run dev` proxies t
 
 The API stores its data in PostgreSQL. Locally, the `appligator-db` database of the cl-dev setup must run at `localhost:5433`. The API requires `DATABASE_URL`; `vp run dev` and the database tasks load it from `apps/api/.env.development`, and a `DATABASE_URL` set in the environment takes precedence. Tests run against an in-memory PostgreSQL ([PGlite](https://pglite.dev)) and need no database.
 
+The API applies pending migrations from `apps/api/drizzle` on startup, before it accepts requests, and doesn't start if one fails. A deployment therefore needs `apps/api/drizzle` next to `apps/api/dist`.
+
 Users connect their own AI API key (OpenAI, Anthropic, Google or Mistral) on the profile page. The API encrypts these keys with AES-256-GCM using a key derived from `AI_API_KEY_ENCRYPTION_KEY`. `vp run dev` loads the placeholder `dev-only-example-key` from `apps/api/.env.development`; production must set a long random secret instead (e.g. `openssl rand -base64 32`) and keep it stable, because changing it makes stored API keys unreadable. The selectable models come from the [models.dev](https://models.dev) catalog, which the API caches for a day.
 
 - Install dependencies:
@@ -28,11 +30,10 @@ Users connect their own AI API key (OpenAI, Anthropic, Google or Mistral) on the
 vp install
 ```
 
-- Generate a migration in `apps/api/drizzle` after changing the schema in `apps/api/src/db/schema.ts`, then apply pending migrations:
+- Generate a migration in `apps/api/drizzle` after changing the schema in `apps/api/src/db/schema.ts`; the API applies it on its next start:
 
 ```bash
 vp run @appligator/api#db:generate
-vp run @appligator/api#db:migrate
 ```
 
 - Start the web app (http://localhost:5173) and the API (http://localhost:3000):

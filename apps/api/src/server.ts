@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { createRemoteJWKSet } from "jose";
 import { Pool } from "pg";
 import { createApiKeyCipher } from "./ai/apiKeyCipher.ts";
@@ -18,13 +19,15 @@ const pool = new Pool({
   connectionTimeoutMillis: 5_000,
 });
 
+const db = drizzle({ client: pool, schema, casing: "snake_case" });
+
 const app = buildApp({
   auth: {
     issuer: keycloakIssuer,
     clientId: keycloakClientId,
     keys: createRemoteJWKSet(new URL(`${keycloakIssuer}/protocol/openid-connect/certs`)),
   },
-  db: drizzle({ client: pool, schema, casing: "snake_case" }),
+  db,
   ai: { apiKeyCipher, modelCatalog: createModelCatalog(), createLanguageModel },
 });
 
@@ -36,6 +39,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 }
 
 try {
+  await migrate(db, { migrationsFolder: new URL("../drizzle", import.meta.url).pathname });
   await app.listen({ port, host });
 } catch (error) {
   app.log.error(error);
