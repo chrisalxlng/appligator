@@ -2,7 +2,7 @@ import type { AiSettingsInput } from "@appligator/shared";
 import { eq } from "drizzle-orm";
 import { beforeEach, expect, test, vi } from "vite-plus/test";
 import type { CreateLanguageModel } from "../ai/languageModel.ts";
-import { aiSettings } from "../db/schema.ts";
+import { aiSettings, jobs } from "../db/schema.ts";
 import { createTestDatabase } from "../testDatabase.ts";
 import { buildTestApp, signToken, testApiKeyCipher } from "../testAuth.ts";
 import { failingModel, respondingModel } from "../testLanguageModel.ts";
@@ -21,6 +21,7 @@ const settingsInput: AiSettingsInput = {
 
 beforeEach(async () => {
   await db.delete(aiSettings);
+  await db.delete(jobs);
   createLanguageModel.mockReset().mockImplementation(() => respondingModel());
   getCatalog.mockReset();
 });
@@ -263,6 +264,105 @@ test("POST /ai/job-extraction reports an invalid model output", async () => {
 
   expect(response.statusCode).toBe(502);
   expect(response.json()).toEqual({ error: "extractionFailed" });
+});
+
+const jobLink = "https://www.stepstone.de/stellenangebote--frontend-developer";
+const jobPage =
+  "<html><head><title>Frontend Developer | StepStone</title></head>" +
+  "<body><nav>Jobs</nav><h1>Frontend Developer</h1><p>Initech sucht dich.</p></body></html>";
+
+async function importJob(body: object = { link: jobLink, html: jobPage }) {
+  return request("POST", "/ai/job-import", { body });
+}
+
+test("POST /ai/job-import creates the job from the page", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() =>
+    respondingModel(
+      JSON.stringify({ ...extractionOutput, jobAd: { firstBlock: 0, lastBlock: 1 } }),
+    ),
+  );
+
+  const response = await importJob();
+
+  expect(response.statusCode).toBe(201);
+  const job = response.json();
+  expect(job).toMatchObject({
+    link: jobLink,
+    description: "<h2>Frontend Developer</h2><p>Initech sucht dich.</p>",
+    summary: "<p>Initech sucht eine Frontend-Entwicklerin.</p>",
+    company: "Initech GmbH",
+    position: "Frontend Developer",
+    locations: ["München"],
+    workModel: "remote",
+  });
+  const [row] = await db.select().from(jobs).where(eq(jobs.id, job.id));
+  expect(row).toMatchObject({ userId: "user-id", company: "Initech GmbH" });
+});
+
+test("POST /ai/job-import uses the page title without a job title", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() =>
+    respondingModel(JSON.stringify({ ...extractionOutput, position: null, jobAd: null })),
+  );
+
+  const response = await importJob();
+
+  expect(response.statusCode).toBe(201);
+  expect(response.json()).toMatchObject({ position: "Frontend Developer", description: "" });
+});
+
+test("POST /ai/job-import responds with 422 when the page shows no job ad", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() =>
+    respondingModel(JSON.stringify({ ...extractionOutput, company: null, jobAd: null })),
+  );
+
+  const response = await importJob();
+
+  expect(response.statusCode).toBe(422);
+  expect(response.json()).toEqual({ error: "noJobFound" });
+  expect(await db.select().from(jobs)).toEqual([]);
+});
+
+test("POST /ai/job-import responds with 409 without an AI access", async () => {
+  const response = await importJob();
+
+  expect(response.statusCode).toBe(409);
+  expect(response.json()).toEqual({ error: "notConfigured" });
+});
+
+test.each([
+  ["an invalid link", { link: "chrome://extensions", html: jobPage }],
+  ["an empty page", { link: jobLink, html: " " }],
+])("POST /ai/job-import rejects %s", async (_case, body) => {
+  await saveSettings();
+
+  const response = await importJob(body);
+
+  expect(response.statusCode).toBe(400);
+});
+
+test("POST /ai/job-import accepts large pages", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() =>
+    respondingModel(JSON.stringify({ ...extractionOutput, jobAd: null })),
+  );
+  const largePage = jobPage.replace("<nav>", `<nav>${"x".repeat(5_000_000)}`);
+
+  const response = await importJob({ link: jobLink, html: largePage });
+
+  expect(response.statusCode).toBe(201);
+});
+
+test("POST /ai/job-import reports a rejected access", async () => {
+  await saveSettings();
+  createLanguageModel.mockImplementation(() => failingModel(401));
+
+  const response = await importJob();
+
+  expect(response.statusCode).toBe(422);
+  expect(response.json()).toEqual({ error: "accessRejected" });
 });
 
 test("DELETE /ai/settings removes the settings", async () => {

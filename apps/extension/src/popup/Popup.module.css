@@ -1,0 +1,87 @@
+.popup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 360px;
+  padding: var(--spacing-8) var(--spacing-6) var(--spacing-6);
+}
+
+.title {
+  font: var(--font-heading-m);
+  letter-spacing: var(--tracking-heading-m);
+  text-align: center;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0-5);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-m);
+  background: var(--fill);
+}
+
+.pageTitle {
+  overflow: hidden;
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pageHost {
+  color: var(--text-secondary);
+}
+
+.submit,
+.importedJob {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.action {
+  width: 100%;
+}
+
+.error {
+  color: var(--destructive-text);
+}
+
+.hint {
+  font: var(--font-body-s);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.importedMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+  color: var(--active-text-primary);
+}
+
+.logout {
+  align-self: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

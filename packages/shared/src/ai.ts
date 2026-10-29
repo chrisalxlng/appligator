@@ -9,6 +9,7 @@ export const aiErrorCodes = [
   "providerUnavailable",
   "notConfigured",
   "extractionFailed",
+  "noJobFound",
 ] as const;
 
 export const aiSettingsInputSchema = z.object({
