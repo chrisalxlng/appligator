@@ -9,10 +9,6 @@ export interface ApiDocsOptions {
   clientId: string;
 }
 
-// The docs are opened through the API proxy of the web app, because Keycloak only accepts its
-// origin as a redirect target for the login.
-const webAppApiPrefix = "/api";
-
 type TransformInput = Parameters<typeof jsonSchemaTransform>[0];
 
 function describeRoute(input: TransformInput) {
@@ -26,7 +22,6 @@ export function serveApiDocs(app: FastifyInstance, { issuer, clientId }: ApiDocs
   app.register(fastifySwagger, {
     openapi: {
       info: { title: "Appligator API", version: packageJson.version },
-      servers: [{ url: webAppApiPrefix }],
       components: {
         securitySchemes: {
           keycloak: {
@@ -52,7 +47,6 @@ export function serveApiDocs(app: FastifyInstance, { issuer, clientId }: ApiDocs
     });
     await docs.register(fastifySwaggerUi, {
       routePrefix: "/docs",
-      indexPrefix: webAppApiPrefix,
       initOAuth: { clientId, scopes: ["openid"], usePkceWithAuthorizationCodeGrant: true },
     });
   });
