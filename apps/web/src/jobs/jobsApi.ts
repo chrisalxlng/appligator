@@ -1,11 +1,10 @@
-import { jobListItemSchema, jobSchema, type JobInput } from "@appligator/shared";
+import { jobListPageSchema, jobSchema, type JobInput } from "@appligator/shared";
 import type { ApiClient } from "../api/apiClient.ts";
-
-const jobListSchema = { parse: (data: unknown) => jobListItemSchema.array().parse(data) };
 
 export function createJobsApi(api: ApiClient) {
   return {
-    list: () => api.request("/jobs", jobListSchema),
+    list: (cursor: string | null) =>
+      api.request(cursor ? `/jobs?cursor=${cursor}` : "/jobs", jobListPageSchema),
     get: (id: string) => api.request(`/jobs/${id}`, jobSchema),
     create: (input: JobInput) => api.request("/jobs", jobSchema, { method: "POST", body: input }),
     update: (id: string, input: JobInput) =>

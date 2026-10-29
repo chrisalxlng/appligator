@@ -27,6 +27,8 @@ export function jobWith(overrides: Partial<Job>): Job {
   return { ...jobFixture, ...overrides };
 }
 
+export const fakePageSize = 30;
+
 function json(data: unknown, status = 200) {
   return Response.json(data, { status });
 }
@@ -40,6 +42,7 @@ export function createFakeJobsApi(initialJobs: Job[] = []) {
   async function handle(url: string, init?: RequestInit): Promise<Response> {
     const method = init?.method ?? "GET";
     const path = url.replace(/^\/api/, "");
+    const { pathname, searchParams } = new URL(path, location.origin);
     const body = typeof init?.body === "string" ? (JSON.parse(init.body) as JobInput) : undefined;
     requests.push({ method, path, body });
     await holds.get(method);
@@ -47,16 +50,12 @@ export function createFakeJobsApi(initialJobs: Job[] = []) {
     const failure = failures.get(method);
     if (failure) return new Response(null, { status: failure });
 
-    const id = path.match(/^\/jobs\/(.+)$/)?.[1];
+    const id = pathname.match(/^\/jobs\/(.+)$/)?.[1];
     const job = jobs.find((current) => current.id === id);
     const now = new Date().toISOString();
 
-    if (path === "/jobs" && method === "GET") {
-      return json(
-        jobs.map(({ id, company, position, createdAt }) => ({ id, company, position, createdAt })),
-      );
-    }
-    if (path === "/jobs" && method === "POST") {
+    if (pathname === "/jobs" && method === "GET") return json(listPage(searchParams.get("cursor")));
+    if (pathname === "/jobs" && method === "POST") {
       const created = { ...body!, id: crypto.randomUUID(), createdAt: now, updatedAt: now };
       jobs = [created, ...jobs];
       return json(created, 201);
@@ -70,6 +69,21 @@ export function createFakeJobsApi(initialJobs: Job[] = []) {
     }
     jobs = jobs.filter((current) => current.id !== id);
     return new Response(null, { status: 204 });
+  }
+
+  function listPage(cursor: string | null) {
+    const start = cursor ? jobs.findIndex((job) => job.id === cursor) + 1 : 0;
+    const page = jobs.slice(start, start + fakePageSize);
+    const hasMore = start + fakePageSize < jobs.length;
+    return {
+      items: page.map(({ id, company, position, createdAt }) => ({
+        id,
+        company,
+        position,
+        createdAt,
+      })),
+      nextCursor: hasMore ? page.at(-1)!.id : null,
+    };
   }
 
   vi.stubGlobal(

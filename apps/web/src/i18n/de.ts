@@ -20,8 +20,13 @@ export const de: Translations = {
     yesterday: "Gestern",
     loading: "Stellen werden geladen …",
     loadingJob: "Stelle wird geladen …",
+    loadingMore: "Weitere Stellen werden geladen …",
     loadError: {
       title: "Stellen konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    loadMoreError: {
+      title: "Weitere Stellen konnten nicht geladen werden",
       description: "Prüfe deine Verbindung und versuche es erneut.",
     },
     retry: "Erneut versuchen",
