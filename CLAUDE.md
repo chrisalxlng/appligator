@@ -27,6 +27,7 @@ Summarize the self-review findings and what was fixed in the PR description.
 
 - **Dev server:** `vp run dev` starts the web app at http://localhost:5173 (strict port; if it is taken, a dev server is already running) and the API at http://localhost:3000.
 - **Storybook:** `vp run storybook` serves the UI components at http://localhost:6006.
+- **API docs:** while `vp run dev` runs, http://localhost:5173/api/docs shows all API endpoints in a Swagger UI; `Authorize` logs in via Keycloak to try them out.
 - **Playwright MCP:** drive the app in a browser to verify features and take screenshots (saved to `.playwright-mcp/`, gitignored).
 - **Chrome DevTools MCP:** inspect console errors, network requests and performance.
 - **Figma MCP:** designs live in the Figma file "Appligator" (file key `p87iDADBZ2aALpClaG2UPd`, https://www.figma.com/design/p87iDADBZ2aALpClaG2UPd/Appligator). Check the relevant frames before implementing UI.

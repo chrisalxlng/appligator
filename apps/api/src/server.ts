@@ -26,6 +26,7 @@ const app = buildApp({
   },
   db: drizzle({ client: pool, schema, casing: "snake_case" }),
   ai: { apiKeyCipher, modelCatalog: createModelCatalog(), createLanguageModel },
+  apiDocs: process.env.API_DOCS === "true",
 });
 
 pool.on("error", (error) => app.log.error(error, "Idle database client failed"));
