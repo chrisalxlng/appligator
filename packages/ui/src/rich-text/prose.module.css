@@ -11,6 +11,10 @@
     letter-spacing: var(--tracking-heading-s);
   }
 
+  & h2 strong {
+    font-weight: 700;
+  }
+
   & * + h2 {
     margin-top: var(--spacing-6);
   }
