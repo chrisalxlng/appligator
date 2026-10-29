@@ -13,7 +13,7 @@ export default defineConfig({
     options: { typeAware: true, typeCheck: true },
     overrides: [
       {
-        files: ["apps/web/**", "packages/ui/**"],
+        files: ["apps/web/**", "apps/extension/**", "packages/ui/**"],
         plugins: ["react", "jsx-a11y"],
       },
     ],

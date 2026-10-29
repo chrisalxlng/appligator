@@ -19,6 +19,8 @@ dist-ssr
 !apps/web/.env.development
 !apps/web/.env.production
 !apps/api/.env.development
+!apps/extension/.env.development
+!apps/extension/.env.production
 
 # Editor directories and files
 .vscode/*
@@ -46,3 +48,6 @@ dist-ssr
 
 # Storybook build output
 storybook-static/
+
+# Chrome extension package
+appligator-extension.zip

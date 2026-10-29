@@ -21,6 +21,7 @@ const errorStatus: Record<AiErrorCode, 409 | 422 | 502> = {
   notConfigured: 409,
   providerUnavailable: 502,
   extractionFailed: 502,
+  noJobFound: 422,
 };
 
 export function aiErrorStatus(code: AiErrorCode) {

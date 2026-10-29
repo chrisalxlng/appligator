@@ -27,3 +27,7 @@ export function htmlToText(html: string) {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
+
+export function escapeHtml(text: string) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}

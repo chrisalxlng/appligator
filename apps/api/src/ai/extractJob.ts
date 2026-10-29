@@ -8,7 +8,8 @@ import {
 } from "@appligator/shared";
 import { generateText, Output, type LanguageModel } from "ai";
 import { z } from "zod";
-import { htmlToText } from "./htmlToText.ts";
+import { escapeHtml, htmlToText } from "./htmlToText.ts";
+import { blocksToHtml, type Block, type JobPage } from "./jobPage.ts";
 
 const maxDescriptionLength = 50_000;
 const maxTextLength = 200;
@@ -52,7 +53,21 @@ const extractionSchema = z.object({
     .describe("Deadline for applications as YYYY-MM-DD, only if the ad states one."),
 });
 
+const pageExtractionSchema = extractionSchema.extend({
+  jobAd: z
+    .object({ firstBlock: z.int(), lastBlock: z.int() })
+    .nullable()
+    .describe(
+      "Numbers of the first and last page block of the job description text, such as the " +
+        "company introduction, tasks, requirements and benefits. Start after any header above it " +
+        "that repeats the job title, company or location or shows posting dates, applicant " +
+        "numbers, buttons, ads or contacts, and after a section label like 'About the job'. " +
+        "null if the page shows no job ad.",
+    ),
+});
+
 type Extraction = z.infer<typeof extractionSchema>;
+type PageExtraction = z.infer<typeof pageExtractionSchema>;
 
 function instructions(language: AiLanguage, today: string) {
   const languageName = languageNames[language];
@@ -88,10 +103,6 @@ function cleanDate(date: string | null) {
   return z.iso.date().safeParse(date?.trim()).data ?? null;
 }
 
-function escapeHtml(text: string) {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 function toParagraphs(text: string) {
   return text
     .split(/\n\s*\n/)
@@ -114,28 +125,98 @@ function toJobExtraction(extraction: Extraction): JobExtraction {
   };
 }
 
-interface ExtractJobOptions {
+interface ExtractionOptions {
   model: LanguageModel;
-  description: string;
   language: AiLanguage;
   today: Date;
   abortSignal?: AbortSignal;
 }
 
-export async function extractJob({
-  model,
-  description,
-  language,
-  today,
-  abortSignal,
-}: ExtractJobOptions) {
+async function generateExtraction<Result>(
+  schema: z.ZodType<Result>,
+  prompt: string,
+  { model, language, today, abortSignal }: ExtractionOptions,
+) {
   const { output } = await generateText({
     model,
-    output: Output.object({ schema: extractionSchema }),
+    output: Output.object({ schema }),
     system: instructions(language, today.toISOString().slice(0, 10)),
-    prompt: htmlToText(description).slice(0, maxDescriptionLength),
+    prompt: prompt.slice(0, maxDescriptionLength),
     timeout: 90_000,
     abortSignal,
   });
-  return toJobExtraction(output);
+  return output;
+}
+
+export async function extractJob({
+  description,
+  ...options
+}: ExtractionOptions & { description: string }) {
+  return toJobExtraction(
+    await generateExtraction(extractionSchema, htmlToText(description), options),
+  );
+}
+
+function limitBlocks(blocks: Block[]) {
+  let length = 0;
+  return blocks.filter(({ text }) => (length += text.length + 1) <= maxDescriptionLength);
+}
+
+function blocksToText(blocks: Block[]) {
+  return blocks.map(({ kind, text }) => (kind === "listItem" ? `- ${text}` : text)).join("\n");
+}
+
+function postingPrompt(title: string, details: Record<string, unknown>, blocks: Block[]) {
+  return [
+    `Page title: ${title}`,
+    `Structured data: ${JSON.stringify(details)}`,
+    `Job ad:\n${blocksToText(blocks)}`,
+  ].join("\n\n");
+}
+
+function pagePrompt(title: string, blocks: Block[]) {
+  const numberedBlocks = blocks.map((block, index) => `[${index}] ${blocksToText([block])}`);
+  return [
+    `Page title: ${title}`,
+    "Page content in numbered blocks. Ignore blocks that are not about this job, " +
+      "such as navigation, ads or other jobs.",
+    numberedBlocks.join("\n"),
+  ].join("\n\n");
+}
+
+function jobAdBlocks(blocks: Block[], jobAd: PageExtraction["jobAd"]) {
+  if (!jobAd) return [];
+  const first = Math.max(0, Math.min(jobAd.firstBlock, jobAd.lastBlock));
+  const last = Math.max(jobAd.firstBlock, jobAd.lastBlock);
+  return blocks.slice(first, last + 1);
+}
+
+function withPageTitleAsPosition(extraction: Extraction, page: JobPage) {
+  return toJobExtraction({ ...extraction, position: cleanText(extraction.position) ?? page.title });
+}
+
+export async function extractJobFromPage({
+  page,
+  ...options
+}: ExtractionOptions & { page: JobPage }) {
+  if (page.posting) {
+    const blocks = limitBlocks(page.posting.blocks);
+    const prompt = postingPrompt(page.title, page.posting.details, blocks);
+    const extraction = await generateExtraction(extractionSchema, prompt, options);
+    return {
+      extraction: withPageTitleAsPosition(extraction, page),
+      description: blocksToHtml(blocks),
+    };
+  }
+
+  const blocks = limitBlocks(page.blocks);
+  const { jobAd, ...extraction } = await generateExtraction(
+    pageExtractionSchema,
+    pagePrompt(page.title, blocks),
+    options,
+  );
+  return {
+    extraction: withPageTitleAsPosition(extraction, page),
+    description: blocksToHtml(jobAdBlocks(blocks, jobAd)),
+  };
 }

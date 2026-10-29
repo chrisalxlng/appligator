@@ -20,6 +20,7 @@
     "fastify": "catalog:",
     "fastify-type-provider-zod": "catalog:",
     "jose": "catalog:",
+    "node-html-parser": "catalog:",
     "pg": "catalog:",
     "zod": "catalog:"
   },

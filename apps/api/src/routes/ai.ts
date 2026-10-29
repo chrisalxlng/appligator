@@ -5,17 +5,23 @@ import {
   aiSettingsSchema,
   jobExtractionInputSchema,
   jobExtractionSchema,
+  jobImportInputSchema,
+  jobSchema,
+  maxJobPageLength,
   type AiSettingsInput,
 } from "@appligator/shared";
 import { eq } from "drizzle-orm";
+import type { FastifyReply } from "fastify";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { aiErrorStatus, toAiErrorCode } from "../ai/aiError.ts";
 import type { ApiKeyCipher } from "../ai/apiKeyCipher.ts";
-import { extractJob } from "../ai/extractJob.ts";
+import { extractJob, extractJobFromPage } from "../ai/extractJob.ts";
+import { readJobPage } from "../ai/jobPage.ts";
 import { verifyLanguageModel, type CreateLanguageModel } from "../ai/languageModel.ts";
 import type { ModelCatalog } from "../ai/modelCatalog.ts";
-import { aiSettings } from "../db/schema.ts";
+import { aiSettings, jobs } from "../db/schema.ts";
+import { toColumns, toJob } from "./jobs.ts";
 
 export interface AiOptions {
   apiKeyCipher: ApiKeyCipher;
@@ -27,6 +33,7 @@ type AiSettingsRow = typeof aiSettings.$inferSelect;
 
 const notFoundSchema = z.object({ error: z.literal("Not Found") });
 const aiErrorResponses = { 409: aiErrorSchema, 422: aiErrorSchema, 502: aiErrorSchema };
+const maxJobPageBytes = maxJobPageLength * 2;
 
 function toAiSettings({ provider, model, language, accessUpdatedAt }: AiSettingsRow) {
   return { provider, model, language, accessUpdatedAt: accessUpdatedAt.toISOString() };
@@ -41,10 +48,27 @@ function changesAccess(existing: AiSettingsRow | undefined, input: AiSettingsInp
   );
 }
 
+function abortSignalOnClose(reply: FastifyReply) {
+  const abortController = new AbortController();
+  reply.raw.once("close", () => {
+    if (!reply.raw.writableFinished) abortController.abort();
+  });
+  return abortController.signal;
+}
+
 export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
   app,
   { apiKeyCipher, modelCatalog, createLanguageModel },
 ) => {
+  async function loadLanguageModel(userId: string) {
+    const [settings] = await app.db.select().from(aiSettings).where(eq(aiSettings.userId, userId));
+    if (!settings) return undefined;
+
+    const { provider, model, encryptedApiKey, language } = settings;
+    const apiKey = apiKeyCipher.decrypt(encryptedApiKey, userId);
+    return { model: createLanguageModel({ provider, model, apiKey }), language };
+  }
+
   app.get(
     "/ai/models",
     { schema: { response: { 200: aiModelCatalogSchema, 503: aiErrorSchema } } },
@@ -134,33 +158,64 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
       },
     },
     async (request, reply) => {
-      const { userId } = request;
-      const [settings] = await app.db
-        .select()
-        .from(aiSettings)
-        .where(eq(aiSettings.userId, userId));
-      if (!settings) return reply.code(409).send({ error: "notConfigured" });
-
-      const { provider, model, encryptedApiKey, language } = settings;
-      const apiKey = apiKeyCipher.decrypt(encryptedApiKey, userId);
-      const abortController = new AbortController();
-      reply.raw.once("close", () => {
-        if (!reply.raw.writableFinished) abortController.abort();
-      });
+      const languageModel = await loadLanguageModel(request.userId);
+      if (!languageModel) return reply.code(409).send({ error: "notConfigured" });
 
       try {
         return await extractJob({
-          model: createLanguageModel({ provider, model, apiKey }),
+          ...languageModel,
           description: request.body.description,
-          language,
           today: new Date(),
-          abortSignal: abortController.signal,
+          abortSignal: abortSignalOnClose(reply),
         });
       } catch (error) {
         const code = toAiErrorCode(error);
         request.log.info({ code }, "Job extraction failed");
         return reply.code(aiErrorStatus(code)).send({ error: code });
       }
+    },
+  );
+
+  app.post(
+    "/ai/job-import",
+    {
+      bodyLimit: maxJobPageBytes,
+      schema: {
+        body: jobImportInputSchema,
+        response: { 201: jobSchema, ...aiErrorResponses },
+      },
+    },
+    async (request, reply) => {
+      const languageModel = await loadLanguageModel(request.userId);
+      if (!languageModel) return reply.code(409).send({ error: "notConfigured" });
+
+      const { link, html } = request.body;
+      let result;
+      try {
+        result = await extractJobFromPage({
+          ...languageModel,
+          page: readJobPage(html, link),
+          today: new Date(),
+          abortSignal: abortSignalOnClose(reply),
+        });
+      } catch (error) {
+        const code = toAiErrorCode(error);
+        request.log.info({ code }, "Job import failed");
+        return reply.code(aiErrorStatus(code)).send({ error: code });
+      }
+
+      const { extraction, description } = result;
+      const { company, position, ...details } = extraction;
+      if (!company || !position) return reply.code(422).send({ error: "noJobFound" });
+
+      const [row] = await app.db
+        .insert(jobs)
+        .values({
+          ...toColumns({ ...details, link, description, company, position }),
+          userId: request.userId,
+        })
+        .returning();
+      return reply.code(201).send(toJob(row!));
     },
   );
 

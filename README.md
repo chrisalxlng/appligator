@@ -8,6 +8,7 @@ Monorepo built with [Vite+](https://viteplus.dev).
 | ----------------- | --------------------------------------------------------------- |
 | `apps/web`        | Web client: client-side rendered React app with TanStack Router |
 | `apps/api`        | Backend: Fastify app with PostgreSQL via Drizzle ORM            |
+| `apps/extension`  | Chrome extension to import job ads from the browser             |
 | `packages/ui`     | UI components based on Base UI and Tiptap, tokens and Storybook |
 | `packages/shared` | Schemas and types shared between web and API                    |
 
@@ -51,3 +52,32 @@ vp run storybook
 ```bash
 vp run ready
 ```
+
+## Chrome extension
+
+The extension submits the job ad in the active tab to the API (`POST /ai/job-import`). The API reduces the page to the job ad (the schema.org `JobPosting` data if the page has one, otherwise numbered text blocks of which the AI picks the job ad), lets the AI extract the job and creates it. Pages can be several megabytes, so a reverse proxy in front of the API must accept request bodies of up to 20 MB on this route. Users log in with the `appligator-app` Keycloak client, which must allow the redirect URI `chrome-extension://ikefecjehkhnchneifagjlnepkmikdan/auth-callback.html`. The `key` in the manifest (`apps/extension/vite.config.ts`) pins this extension ID for every installation.
+
+The extension reads its URLs from `apps/extension/.env.development` (`vp run @appligator/extension#dev`, local web app, API and Keycloak) or `.env.production` (`vp run @appligator/extension#build` and `#zip`).
+
+- Build the extension into `apps/extension/dist` and rebuild it on every change:
+
+```bash
+vp run @appligator/extension#dev
+```
+
+- Package the production build as `apps/extension/appligator-extension.zip`:
+
+```bash
+vp run @appligator/extension#zip
+```
+
+### Installation
+
+The extension is not published in the Chrome Web Store. To install it in Chrome (or Edge, Brave and other Chromium browsers):
+
+1. Unzip `appligator-extension.zip` into a folder that stays in place, as the browser loads the extension from there.
+2. Open `chrome://extensions` and turn on **Developer mode** in the top right corner.
+3. Click **Load unpacked** and select the unzipped folder (or `apps/extension/dist` during development).
+4. Pin Appligator via the puzzle icon in the toolbar, click it and log in.
+
+For an update, replace the folder's content with the new version and click the reload icon of Appligator on `chrome://extensions`.

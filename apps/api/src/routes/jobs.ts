@@ -9,7 +9,7 @@ type JobRow = typeof jobs.$inferSelect;
 const jobParamsSchema = z.object({ id: z.uuid() });
 const notFoundSchema = z.object({ error: z.literal("Not Found") });
 
-function toColumns({ salary, ...input }: JobInput) {
+export function toColumns({ salary, ...input }: JobInput) {
   return {
     ...input,
     salaryCurrency: salary?.currency ?? null,
@@ -19,7 +19,7 @@ function toColumns({ salary, ...input }: JobInput) {
   };
 }
 
-function toJob({
+export function toJob({
   userId: _userId,
   salaryCurrency,
   salaryPeriod,

@@ -37,3 +37,4 @@ export {
   type JobExtraction,
   type JobExtractionInput,
 } from "./jobExtraction.ts";
+export { jobImportInputSchema, maxJobPageLength, type JobImportInput } from "./jobImport.ts";
