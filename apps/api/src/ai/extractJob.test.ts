@@ -126,7 +126,8 @@ test("sends the numbered page blocks and keeps the blocks of the job ad as descr
       type: "text",
       text:
         "Page title: Frontend Developer (m/w/d)\n\n" +
-        "Page content in numbered blocks. Only use the blocks of the job ad.\n\n" +
+        "Page content in numbered blocks. Ignore blocks that are not about this job, " +
+        "such as navigation, ads or other jobs.\n\n" +
         "[0] Cookies akzeptieren\n[1] Frontend Developer\n[2] - TypeScript\n[3] Ähnliche Jobs",
     },
   ]);

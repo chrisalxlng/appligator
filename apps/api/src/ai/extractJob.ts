@@ -58,8 +58,11 @@ const pageExtractionSchema = extractionSchema.extend({
     .object({ firstBlock: z.int(), lastBlock: z.int() })
     .nullable()
     .describe(
-      "Numbers of the first and last page block of the job ad itself, without navigation, " +
-        "cookie notices, similar jobs or other page content. null if the page shows no job ad.",
+      "Numbers of the first and last page block of the job description text, such as the " +
+        "company introduction, tasks, requirements and benefits. Start after any header above it " +
+        "that repeats the job title, company or location or shows posting dates, applicant " +
+        "numbers, buttons, ads or contacts, and after a section label like 'About the job'. " +
+        "null if the page shows no job ad.",
     ),
 });
 
@@ -175,7 +178,8 @@ function pagePrompt(title: string, blocks: Block[]) {
   const numberedBlocks = blocks.map((block, index) => `[${index}] ${blocksToText([block])}`);
   return [
     `Page title: ${title}`,
-    "Page content in numbered blocks. Only use the blocks of the job ad.",
+    "Page content in numbered blocks. Ignore blocks that are not about this job, " +
+      "such as navigation, ads or other jobs.",
     numberedBlocks.join("\n"),
   ].join("\n\n");
 }
