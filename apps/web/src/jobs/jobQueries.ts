@@ -1,5 +1,5 @@
 import type { Job, JobInput } from "@appligator/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createApiClient } from "../api/apiClient.ts";
 import { useAuth } from "../auth/useAuth.ts";
@@ -17,7 +17,13 @@ function useJobsApi() {
 
 export function useJobs() {
   const jobsApi = useJobsApi();
-  return useQuery({ queryKey: jobKeys.all, queryFn: jobsApi.list });
+  return useInfiniteQuery({
+    queryKey: jobKeys.all,
+    queryFn: ({ pageParam }) => jobsApi.list(pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    select: (data) => data.pages.flatMap((page) => page.items),
+  });
 }
 
 export function useJob(id: string) {

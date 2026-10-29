@@ -7,7 +7,7 @@ import styles from "./RichText.stories.module.css";
 
 const jobDescription = `<h2>Introduction</h2>
 <p><strong>Initech GmbH</strong>: We build <em>enterprise software</em> since 1995.</p>
-<h2>Your tasks</h2>
+<h2><strong>Your tasks</strong></h2>
 <ul>
   <li><p><strong>Development:</strong> Build frontend components with React.</p></li>
   <li><p><strong>Architecture:</strong> Design scalable frontend architectures.</p></li>
