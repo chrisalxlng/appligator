@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ActiveIndicator } from "./ActiveIndicator.tsx";
 import { Brand } from "./Brand.tsx";
+import { Footer } from "./Footer.tsx";
 import { navigationItems } from "./navigation.ts";
 import styles from "./Sidebar.module.css";
 import { useActiveLinkRect } from "./useActiveLinkRect.ts";
@@ -24,6 +25,7 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
+      <Footer className={styles.footer} />
     </aside>
   );
 }

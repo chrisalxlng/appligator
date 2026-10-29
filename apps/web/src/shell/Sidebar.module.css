@@ -69,3 +69,7 @@
     color: var(--active-text-primary);
   }
 }
+
+.footer {
+  margin-top: auto;
+}
