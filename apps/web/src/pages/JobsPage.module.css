@@ -30,6 +30,9 @@
   }
 
   @media (width >= 1200px) {
+    /* The list scrolls on its own, and sticky elements stick inside the padding of their scroll container. */
+    --header-sticky-top: calc(-1 * var(--page-padding));
+
     flex: none;
     width: var(--spacing-96);
     border-right: var(--border-width-s) solid var(--separator);

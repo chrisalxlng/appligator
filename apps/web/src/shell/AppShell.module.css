@@ -14,3 +14,12 @@
   flex-direction: column;
   min-width: 0;
 }
+
+.footer {
+  padding-inline: var(--spacing-4);
+  text-align: center;
+
+  @media (width >= 768px) {
+    display: none;
+  }
+}

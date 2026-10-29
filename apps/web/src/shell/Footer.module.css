@@ -1,0 +1,5 @@
+.footer {
+  color: var(--text-secondary);
+  font: var(--font-caption);
+  letter-spacing: var(--tracking-caption);
+}

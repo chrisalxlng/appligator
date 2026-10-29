@@ -1,21 +1,35 @@
 .page {
+  --page-padding: var(--spacing-4);
+
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: var(--spacing-8);
-  padding: var(--spacing-4);
+  padding: var(--page-padding);
 
   @media (width >= 768px) {
+    --page-padding: var(--spacing-6);
+
     gap: var(--spacing-10);
-    padding: var(--spacing-6);
   }
 }
 
+/* The header reaches to the page edges, so no content shows around it when it sticks. */
 .header {
+  --header-padding-bottom: var(--spacing-3);
+
+  position: sticky;
+  top: var(--header-sticky-top, 0);
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
   min-height: var(--spacing-12);
+  margin: calc(-1 * var(--page-padding)) calc(-1 * var(--page-padding))
+    calc(-1 * var(--header-padding-bottom));
+  padding: var(--page-padding) var(--page-padding) var(--header-padding-bottom);
+  background: var(--background);
+  box-sizing: content-box;
 }
 
 .actions {
