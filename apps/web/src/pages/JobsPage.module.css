@@ -36,3 +36,8 @@
     overflow-y: auto;
   }
 }
+
+.loadingMore {
+  display: flex;
+  justify-content: center;
+}

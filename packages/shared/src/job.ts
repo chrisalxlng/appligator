@@ -55,6 +55,11 @@ export const jobListItemSchema = jobSchema.pick({
   createdAt: true,
 });
 
+export const jobListPageSchema = z.object({
+  items: z.array(jobListItemSchema),
+  nextCursor: z.string().nullable(),
+});
+
 export type Currency = (typeof currencies)[number];
 export type SalaryPeriod = (typeof salaryPeriods)[number];
 export type WorkModel = (typeof workModels)[number];
@@ -63,3 +68,4 @@ export type Salary = z.infer<typeof salarySchema>;
 export type JobInput = z.infer<typeof jobInputSchema>;
 export type Job = z.infer<typeof jobSchema>;
 export type JobListItem = z.infer<typeof jobListItemSchema>;
+export type JobListPage = z.infer<typeof jobListPageSchema>;

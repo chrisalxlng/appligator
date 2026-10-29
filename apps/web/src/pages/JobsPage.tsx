@@ -1,4 +1,4 @@
-import { Button, EmptyState } from "@appligator/ui";
+import { Button, EmptyState, Spinner } from "@appligator/ui";
 import { IconPlus } from "@tabler/icons-react";
 import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
@@ -47,11 +47,14 @@ export function JobsPage() {
     />
   );
 
+  const loadMore = () => void jobs.fetchNextPage();
+  const canLoadMore = jobs.hasNextPage && !jobs.isFetchingNextPage && !jobs.isFetchNextPageError;
+
   if (jobs.isPending || showSpinner) {
     return <Page title={title}>{showSpinner && <PageSpinner label={t("jobs.loading")} />}</Page>;
   }
 
-  if (jobs.isError) {
+  if (jobs.isError && !jobs.isFetchNextPageError) {
     return (
       <Page title={title} hideHeader={isDesktop}>
         <LoadError
@@ -81,7 +84,19 @@ export function JobsPage() {
   return (
     <div className={styles.layout} data-detail-open={jobId ? "" : undefined}>
       <Page title={title} actions={isDesktop && addButton} className={styles.list}>
-        <JobList jobs={jobs.data} />
+        <JobList jobs={jobs.data} onEndReached={canLoadMore ? loadMore : undefined} />
+        {jobs.isFetchingNextPage && (
+          <div className={styles.loadingMore}>
+            <Spinner label={t("jobs.loadingMore")} />
+          </div>
+        )}
+        {jobs.isFetchNextPageError && (
+          <LoadError
+            title={t("jobs.loadMoreError.title")}
+            description={t("jobs.loadMoreError.description")}
+            onRetry={loadMore}
+          />
+        )}
       </Page>
       <Outlet />
       {!jobId && floatingAddButton}

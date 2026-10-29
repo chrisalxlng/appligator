@@ -1,7 +1,8 @@
-import type { JobInput } from "@appligator/shared";
-import { eq } from "drizzle-orm";
+import type { JobInput, JobListPage } from "@appligator/shared";
+import { eq, sql } from "drizzle-orm";
 import { beforeEach, expect, test } from "vite-plus/test";
 import { jobs } from "../db/schema.ts";
+import { toColumns } from "./jobs.ts";
 import { createTestDatabase } from "../testDatabase.ts";
 import { buildTestApp, signToken } from "../testAuth.ts";
 
@@ -89,6 +90,23 @@ test.each([
   expect(response.statusCode).toBe(400);
 });
 
+function toListItem({ id, company, position, createdAt }: Record<string, unknown>) {
+  return { id, company, position, createdAt };
+}
+
+async function insertJobs(count: number, createdAt: string) {
+  return db
+    .insert(jobs)
+    .values(
+      Array.from({ length: count }, () => ({
+        ...toColumns(emptyInput),
+        userId: "user-id",
+        createdAt: sql`${createdAt}::timestamptz`,
+      })),
+    )
+    .returning();
+}
+
 test("GET /jobs lists only the user's jobs, newest first", async () => {
   const older = await createJob(emptyInput);
   const newer = await createJob();
@@ -97,14 +115,50 @@ test("GET /jobs lists only the user's jobs, newest first", async () => {
   const response = await request("GET", "/jobs");
 
   expect(response.statusCode).toBe(200);
-  expect(response.json()).toEqual(
-    [newer, older].map(({ id, company, position, createdAt }) => ({
-      id,
-      company,
-      position,
-      createdAt,
-    })),
+  expect(response.json()).toEqual({ items: [newer, older].map(toListItem), nextCursor: null });
+});
+
+test("GET /jobs pages through the jobs with a cursor", async () => {
+  const [oldest, middle, newest] = [await createJob(), await createJob(), await createJob()].map(
+    toListItem,
   );
+
+  const firstPage = (await request("GET", "/jobs?limit=2")).json();
+  const secondPage = (await request("GET", `/jobs?limit=2&cursor=${firstPage.nextCursor}`)).json();
+
+  expect(firstPage).toEqual({ items: [newest, middle], nextCursor: expect.any(String) });
+  expect(secondPage).toEqual({ items: [oldest], nextCursor: null });
+});
+
+test("GET /jobs neither skips nor repeats jobs created at the same time", async () => {
+  const created = await insertJobs(5, "2026-10-01T12:00:00.123456Z");
+
+  const ids: string[] = [];
+  let cursor: string | null = null;
+  do {
+    const page: JobListPage = (
+      await request("GET", `/jobs?limit=2${cursor ? `&cursor=${cursor}` : ""}`)
+    ).json();
+    ids.push(...page.items.map((item) => item.id));
+    cursor = page.nextCursor;
+  } while (cursor);
+
+  expect(ids).toHaveLength(created.length);
+  expect(new Set(ids)).toEqual(new Set(created.map((job) => job.id)));
+});
+
+test.each([
+  ["a limit of zero", "limit=0"],
+  ["a limit above the maximum", "limit=101"],
+  ["a malformed cursor", "cursor=not-a-cursor"],
+  [
+    "a cursor without an id",
+    `cursor=${Buffer.from("2026-10-01T12:00:00.000000Z").toString("base64url")}`,
+  ],
+])("GET /jobs rejects %s", async (_, query) => {
+  const response = await request("GET", `/jobs?${query}`);
+
+  expect(response.statusCode).toBe(400);
 });
 
 test("GET /jobs/:id returns the job", async () => {
