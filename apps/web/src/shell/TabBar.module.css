@@ -6,6 +6,17 @@
   gap: var(--spacing-4);
   padding: var(--spacing-4);
   background: linear-gradient(to bottom, transparent, var(--surface));
+  transform: translateY(calc(100% * var(--bars-hidden, 0)));
+
+  &:has(:focus-visible) {
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-bars-settling] & {
+      transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
 
   @media (width >= 768px) {
     display: none;
