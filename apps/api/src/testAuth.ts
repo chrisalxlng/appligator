@@ -24,8 +24,9 @@ const testAi: AiOptions = {
 export function buildTestApp({
   db = testDatabase,
   ai = {},
-}: { db?: Database; ai?: Partial<AiOptions> } = {}) {
-  return buildApp({ auth: { issuer, clientId, keys }, db, ai: { ...testAi, ...ai } });
+  apiDocs = false,
+}: { db?: Database; ai?: Partial<AiOptions>; apiDocs?: boolean } = {}) {
+  return buildApp({ auth: { issuer, clientId, keys }, db, ai: { ...testAi, ...ai }, apiDocs });
 }
 
 export function signToken(

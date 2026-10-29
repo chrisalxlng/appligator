@@ -29,6 +29,7 @@ const app = buildApp({
   },
   db,
   ai: { apiKeyCipher, modelCatalog: createModelCatalog(), createLanguageModel },
+  apiDocs: process.env.API_DOCS === "true",
 });
 
 pool.on("error", (error) => app.log.error(error, "Idle database client failed"));

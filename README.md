@@ -24,6 +24,8 @@ The API applies pending migrations from `apps/api/drizzle` on startup, before it
 
 Users connect their own AI API key (OpenAI, Anthropic, Google or Mistral) on the profile page. The API encrypts these keys with AES-256-GCM using a key derived from `AI_API_KEY_ENCRYPTION_KEY`. `vp run dev` loads the placeholder `dev-only-example-key` from `apps/api/.env.development`; production must set a long random secret instead (e.g. `openssl rand -base64 32`) and keep it stable, because changing it makes stored API keys unreadable. The selectable models come from the [models.dev](https://models.dev) catalog, which the API caches for a day.
 
+With `API_DOCS=true` (set in `apps/api/.env.development`), the API serves its OpenAPI document and a Swagger UI at http://localhost:3000/docs, generated from the Zod schemas of the routes. The `Authorize` button logs in via Keycloak, which requires `http://localhost:3000/docs/static/oauth2-redirect.html` as a redirect URI of the `appligator-app` client (set up by cl-dev in development). Production leaves `API_DOCS` unset.
+
 - Install dependencies:
 
 ```bash
