@@ -8,14 +8,15 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-// Overscrolling past either end bounces back, which must not count as scrolling the other way.
-function scrollPosition() {
+function scrollRange() {
   const { scrollHeight, clientHeight } = document.documentElement;
-  return clamp(window.scrollY, 0, scrollHeight - clientHeight);
+  const end = scrollHeight - clientHeight;
+  // Overscrolling past either end bounces back, which must not count as scrolling the other way.
+  return { position: clamp(window.scrollY, 0, end), end };
 }
 
-// Sets --bars-hidden (0 to 1) in step with the scrolled distance and, once scrolling pauses,
-// data-bars-settling while the bars move fully in or out of view.
+// Sets --bars-hidden (0 to 1) in step with the scrolled distance and, once scrolling pauses or
+// reaches either end, data-bars-settling while the bars move fully in or out of view.
 export function useHideBarsOnScroll(ref: RefObject<HTMLElement | null>, enabled: boolean) {
   const { pathname } = useLocation();
 
@@ -24,26 +25,33 @@ export function useHideBarsOnScroll(ref: RefObject<HTMLElement | null>, enabled:
     if (!element || !enabled) return;
 
     let hidden = 0;
-    let lastPosition = scrollPosition();
+    let lastPosition = scrollRange().position;
     let settleTimeout: ReturnType<typeof setTimeout> | undefined;
 
     function render() {
       element!.style.setProperty("--bars-hidden", String(hidden));
     }
 
-    function settle() {
-      hidden = Math.round(hidden);
+    function settle(target = Math.round(hidden)) {
+      hidden = target;
       element!.dataset.barsSettling = "";
       render();
     }
 
     function follow() {
-      const position = scrollPosition();
-      hidden = position === 0 ? 0 : clamp(hidden + (position - lastPosition) / hideDistance, 0, 1);
+      const { position, end } = scrollRange();
+      const delta = position - lastPosition;
       lastPosition = position;
+      clearTimeout(settleTimeout);
+
+      if (position === 0 || position === end) {
+        settle(0);
+        return;
+      }
+
+      hidden = clamp(hidden + delta / hideDistance, 0, 1);
       delete element!.dataset.barsSettling;
       render();
-      clearTimeout(settleTimeout);
       settleTimeout = setTimeout(settle, settleDelay);
     }
 

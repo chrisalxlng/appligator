@@ -62,15 +62,18 @@ test("moves the bars fully in or out of view once scrolling pauses", async () =>
   expect(barsHidden(shell)).toBe("0");
 });
 
-test("shows the bars at the top and ignores bouncing past the end", async () => {
+test("shows the bars again at either end of the page", async () => {
   const shell = await renderHomePage("mobile");
 
-  scrollTo(1200);
-  scrollTo(1300);
-  scrollTo(1200);
+  scrollTo(1000);
   expect(barsHidden(shell)).toBe("1");
+  scrollTo(1300);
+  expect(barsHidden(shell)).toBe("0");
+  expect(shell).toHaveAttribute("data-bars-settling");
 
-  scrollTo(20);
+  scrollTo(500);
+  scrollTo(600);
+  expect(barsHidden(shell)).toBe("1");
   scrollTo(0);
   expect(barsHidden(shell)).toBe("0");
 });
