@@ -1,0 +1,5 @@
+# Installs the dependencies after pulling or merging if the lockfile changed.
+git diff --quiet ORIG_HEAD HEAD -- pnpm-lock.yaml && exit 0
+
+echo "pnpm-lock.yaml changed, installing dependencies …"
+vp install
