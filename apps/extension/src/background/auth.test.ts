@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vite-plus/test";
 import { readSession, saveSession, type Session } from "../session.ts";
 import { installFakeChrome } from "../testing/fakeChrome.ts";
-import { getAccessToken, LoggedOutError, login, logout } from "./auth.ts";
+import { completeLogin, getAccessToken, LoggedOutError, login, logout } from "./auth.ts";
 
 const endpoint = "http://localhost:8080/realms/apps/protocol/openid-connect";
 const now = new Date("2026-10-29T12:00:00Z").getTime();
@@ -35,26 +35,43 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
 });
 
-test("logs in with the authorization code flow and PKCE", async () => {
-  fakeChrome.identity.launchWebAuthFlow.mockImplementation(async ({ url }) => {
-    const state = new URL(url).searchParams.get("state");
-    return `https://extension-id.chromiumapp.org/?state=${state}&code=auth-code`;
-  });
+const redirectUri = "chrome-extension://extension-id/auth-callback.html";
 
+async function startLogin() {
   await login();
+  const { url, ...window } = fakeChrome.windows.create.mock.calls[0]![0];
+  return { authUrl: new URL(url as string), window };
+}
 
-  const authUrl = new URL(fakeChrome.identity.launchWebAuthFlow.mock.calls[0]![0].url);
+function callbackUrl(params: Record<string, string>) {
+  return `${redirectUri}?${new URLSearchParams(params)}`;
+}
+
+test("opens the login in a window of a fixed size", async () => {
+  const { authUrl, window } = await startLogin();
+
   expect(`${authUrl.origin}${authUrl.pathname}`).toBe(`${endpoint}/auth`);
   expect(Object.fromEntries(authUrl.searchParams)).toMatchObject({
     client_id: "appligator-app",
-    redirect_uri: "https://extension-id.chromiumapp.org/",
+    redirect_uri: redirectUri,
     response_type: "code",
     code_challenge_method: "S256",
   });
+  expect(window).toEqual({ type: "popup", width: 480, height: 720 });
+});
+
+test("completes the login with the authorization code and the PKCE verifier", async () => {
+  const { authUrl } = await startLogin();
+
+  await completeLogin(
+    callbackUrl({ state: authUrl.searchParams.get("state")!, code: "auth-code" }),
+  );
+
   expect(fetchMock.mock.calls[0]![0]).toBe(`${endpoint}/token`);
   const body = requestBody(0);
   expect(body.get("grant_type")).toBe("authorization_code");
   expect(body.get("code")).toBe("auth-code");
+  expect(body.get("redirect_uri")).toBe(redirectUri);
   const challenge = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(body.get("code_verifier")!),
@@ -73,14 +90,29 @@ test("logs in with the authorization code flow and PKCE", async () => {
   });
 });
 
-test("rejects a login response with another state", async () => {
-  fakeChrome.identity.launchWebAuthFlow.mockResolvedValue(
-    "https://extension-id.chromiumapp.org/?state=forged&code=auth-code",
-  );
+test.each([
+  ["another state", { state: "forged", code: "auth-code" }],
+  ["an error", { error: "access_denied" }],
+])("rejects a login callback with %s", async (_case, params) => {
+  await startLogin();
 
-  await expect(login()).rejects.toThrow("Login was not completed");
+  await expect(completeLogin(callbackUrl(params))).rejects.toThrow("Login was not completed");
   expect(fetchMock).not.toHaveBeenCalled();
   expect(await readSession()).toBeUndefined();
+});
+
+test("rejects a login callback without a started login", async () => {
+  await expect(completeLogin(callbackUrl({ state: "state", code: "auth-code" }))).rejects.toThrow(
+    "Login was not completed",
+  );
+});
+
+test("accepts a login callback only once", async () => {
+  const { authUrl } = await startLogin();
+  const url = callbackUrl({ state: authUrl.searchParams.get("state")!, code: "auth-code" });
+  await completeLogin(url);
+
+  await expect(completeLogin(url)).rejects.toThrow("Login was not completed");
 });
 
 test("provides the stored access token while it is valid", async () => {

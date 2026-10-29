@@ -1,5 +1,6 @@
 export type Message =
   | { type: "login" }
+  | { type: "completeLogin"; url: string }
   | { type: "logout" }
   | { type: "importJob"; tabId: number; link: string };
 

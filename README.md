@@ -55,7 +55,7 @@ vp run ready
 
 ## Chrome extension
 
-The extension submits the job ad in the active tab to the API (`POST /ai/job-import`). The API reduces the page to the job ad (the schema.org `JobPosting` data if the page has one, otherwise numbered text blocks of which the AI picks the job ad), lets the AI extract the job and creates it. Pages can be several megabytes, so a reverse proxy in front of the API must accept request bodies of up to 20 MB on this route. Users log in with the `appligator-app` Keycloak client, which must allow the redirect URI `https://ikefecjehkhnchneifagjlnepkmikdan.chromiumapp.org/*`. The `key` in the manifest (`apps/extension/vite.config.ts`) pins this extension ID for every installation.
+The extension submits the job ad in the active tab to the API (`POST /ai/job-import`). The API reduces the page to the job ad (the schema.org `JobPosting` data if the page has one, otherwise numbered text blocks of which the AI picks the job ad), lets the AI extract the job and creates it. Pages can be several megabytes, so a reverse proxy in front of the API must accept request bodies of up to 20 MB on this route. Users log in with the `appligator-app` Keycloak client, which must allow the redirect URI `chrome-extension://ikefecjehkhnchneifagjlnepkmikdan/auth-callback.html`. The `key` in the manifest (`apps/extension/vite.config.ts`) pins this extension ID for every installation.
 
 The extension reads its URLs from `apps/extension/.env.development` (`vp run @appligator/extension#dev`, local web app, API and Keycloak) or `.env.production` (`vp run @appligator/extension#build` and `#zip`).
 

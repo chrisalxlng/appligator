@@ -32,11 +32,14 @@ function fakeStorageArea() {
 export function installFakeChrome() {
   const fakeChrome = {
     storage: { local: fakeStorageArea(), session: fakeStorageArea() },
-    runtime: { sendMessage: vi.fn(async () => undefined) },
+    runtime: {
+      sendMessage: vi.fn(async () => undefined),
+      getURL: (path: string) => `chrome-extension://extension-id/${path}`,
+    },
     tabs: { query: vi.fn(async (): Promise<Partial<chrome.tabs.Tab>[]> => []) },
-    identity: {
-      getRedirectURL: () => "https://extension-id.chromiumapp.org/",
-      launchWebAuthFlow: vi.fn<(details: { url: string }) => Promise<string | undefined>>(),
+    windows: {
+      create: vi.fn(async (_data: chrome.windows.CreateData) => ({})),
+      remove: vi.fn(async (_windowId: number) => {}),
     },
     scripting: { executeScript: vi.fn(async (): Promise<{ result?: unknown }[]> => []) },
     action: {

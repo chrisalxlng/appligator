@@ -1,5 +1,5 @@
 import type { Message } from "../messages.ts";
-import { login, logout } from "./auth.ts";
+import { completeLogin, login, logout } from "./auth.ts";
 import { clearBadge, importJob } from "./importJob.ts";
 
 const keepAliveIntervalMs = 20_000;
@@ -15,14 +15,23 @@ async function keepAlive(task: Promise<void>) {
   }
 }
 
-async function handleMessage(message: Message) {
+async function finishLogin(url: string, windowId: number | undefined) {
+  try {
+    await completeLogin(url);
+  } finally {
+    if (windowId !== undefined) await chrome.windows.remove(windowId);
+  }
+}
+
+async function handleMessage(message: Message, sender: chrome.runtime.MessageSender) {
   if (message.type === "login") return login();
+  if (message.type === "completeLogin") return finishLogin(message.url, sender.tab?.windowId);
   if (message.type === "logout") return logout();
   return keepAlive(importJob(message.tabId, message.link));
 }
 
-chrome.runtime.onMessage.addListener((message: Message) => {
-  handleMessage(message).catch((error: unknown) => console.error(error));
+chrome.runtime.onMessage.addListener((message: Message, sender) => {
+  handleMessage(message, sender).catch((error: unknown) => console.error(error));
 });
 
 chrome.tabs.onUpdated.addListener((tabId, { status }) => {

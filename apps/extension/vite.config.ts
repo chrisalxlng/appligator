@@ -29,8 +29,11 @@ function manifest(env: Record<string, string>): Plugin {
           icons,
           action: { default_popup: "popup.html", default_icon: icons },
           background: { service_worker: "background.js", type: "module" },
-          permissions: ["activeTab", "identity", "scripting", "storage"],
+          permissions: ["activeTab", "scripting", "storage"],
           host_permissions: [`${env.VITE_API_URL}/*`, `${env.VITE_KEYCLOAK_URL}/*`],
+          web_accessible_resources: [
+            { resources: ["auth-callback.html"], matches: [`${env.VITE_KEYCLOAK_URL}/*`] },
+          ],
         }),
       });
     },
@@ -41,7 +44,11 @@ export default defineConfig(({ mode }) => ({
   plugins: [react(), manifest(loadEnv(mode, import.meta.dirname))],
   build: {
     rollupOptions: {
-      input: { popup: "popup.html", background: "src/background/background.ts" },
+      input: {
+        popup: "popup.html",
+        authCallback: "auth-callback.html",
+        background: "src/background/background.ts",
+      },
       output: {
         entryFileNames: ({ name }) =>
           name === "background" ? "background.js" : "assets/[name]-[hash].js",

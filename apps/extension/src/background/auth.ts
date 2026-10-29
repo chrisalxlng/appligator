@@ -5,6 +5,13 @@ import { isActive, readSession, removeSession, saveSession } from "../session.ts
 const endpoint = `${keycloak.url}/realms/${keycloak.realm}/protocol/openid-connect`;
 const minTokenValidityMs = 30_000;
 const rejectedStatusCodes = new Set([400, 401]);
+const loginWindowSize = { width: 480, height: 720 };
+const pendingLoginKey = "pendingLogin";
+
+interface PendingLogin {
+  state: string;
+  codeVerifier: string;
+}
 
 const tokenResponseSchema = z.object({
   access_token: z.string(),
@@ -43,6 +50,10 @@ async function codeChallenge(codeVerifier: string) {
   return base64Url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier)));
 }
 
+function redirectUri() {
+  return chrome.runtime.getURL("auth-callback.html");
+}
+
 async function requestTokens(params: Record<string, string>) {
   const response = await fetch(`${endpoint}/token`, {
     method: "POST",
@@ -65,11 +76,10 @@ async function requestTokens(params: Record<string, string>) {
 export async function login() {
   const codeVerifier = randomString();
   const state = randomString();
-  const redirectUri = chrome.identity.getRedirectURL();
   const authUrl = new URL(`${endpoint}/auth`);
   authUrl.search = new URLSearchParams({
     client_id: keycloak.clientId,
-    redirect_uri: redirectUri,
+    redirect_uri: redirectUri(),
     response_type: "code",
     scope: "openid",
     state,
@@ -77,19 +87,27 @@ export async function login() {
     code_challenge_method: "S256",
   }).toString();
 
-  const responseUrl = await chrome.identity.launchWebAuthFlow({
-    url: authUrl.href,
-    interactive: true,
-  });
-  const params = new URL(responseUrl ?? "").searchParams;
+  await chrome.storage.session.set({ [pendingLoginKey]: { state, codeVerifier } });
+  await chrome.windows.create({ url: authUrl.href, type: "popup", ...loginWindowSize });
+}
+
+export async function completeLogin(callbackUrl: string) {
+  const { [pendingLoginKey]: pendingLogin } = await chrome.storage.session.get<{
+    pendingLogin?: PendingLogin;
+  }>(pendingLoginKey);
+  await chrome.storage.session.remove(pendingLoginKey);
+
+  const params = new URL(callbackUrl).searchParams;
   const code = params.get("code");
-  if (params.get("state") !== state || !code) throw new Error("Login was not completed");
+  if (!pendingLogin || params.get("state") !== pendingLogin.state || !code) {
+    throw new Error("Login was not completed");
+  }
 
   await requestTokens({
     grant_type: "authorization_code",
     code,
-    redirect_uri: redirectUri,
-    code_verifier: codeVerifier,
+    redirect_uri: redirectUri(),
+    code_verifier: pendingLogin.codeVerifier,
   });
 }
 
