@@ -96,6 +96,46 @@ test("retries loading more jobs after an error", async () => {
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
+async function tabIntoJobList() {
+  for (let step = 0; step < 20 && !document.activeElement?.matches("ul a"); step++) {
+    await userEvent.tab();
+  }
+}
+
+test("makes the job list a single tab stop that is navigated with arrow keys", async () => {
+  createFakeJobsApi(manyJobs(3));
+  renderApp("/jobs", { viewport: "tablet" });
+  const [first, second, third] = await findPositionLinks();
+
+  await tabIntoJobList();
+  expect(first).toHaveFocus();
+
+  await userEvent.keyboard("{ArrowDown}");
+  expect(second).toHaveFocus();
+  await userEvent.keyboard("{End}{ArrowDown}");
+  expect(third).toHaveFocus();
+  await userEvent.keyboard("{Home}{ArrowUp}");
+  expect(first).toHaveFocus();
+
+  await userEvent.keyboard("{ArrowDown}");
+  await userEvent.tab();
+  expect(document.activeElement).not.toBeOneOf([first, second, third]);
+
+  await userEvent.tab({ shift: true });
+  expect(first).toHaveFocus();
+});
+
+test("enters the job list at the opened job", async () => {
+  const [first, opened] = manyJobs(2);
+  createFakeJobsApi([first!, opened!]);
+  renderApp(`/jobs/${opened!.id}`);
+  await screen.findByRole("article");
+
+  await tabIntoJobList();
+
+  expect(screen.getByRole("link", { name: /^Position 2/ })).toHaveFocus();
+});
+
 test("opens the first job on desktop", async () => {
   createFakeJobsApi([jobFixture, olderJob]);
   const router = renderApp("/jobs");
