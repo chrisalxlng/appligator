@@ -1,0 +1,42 @@
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.option {
+  min-height: 30px;
+  padding: var(--spacing-1) var(--spacing-3);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text-primary);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  &[aria-pressed="true"] {
+    border: var(--border-width-m) solid var(--active-separator);
+    background: var(--active-surface);
+    color: var(--active-text-primary);
+  }
+}

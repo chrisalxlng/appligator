@@ -56,7 +56,7 @@ export function TextList({ kind, legend, items, onChange }: TextListProps) {
               </button>
               <IconButton
                 variant="surface"
-                label={t(`jobs.${kind}.remove`, { item })}
+                label={t(`textList.${kind}.remove`, { item })}
                 onClick={() => onChange(items.filter((_, current) => current !== index))}
               >
                 <IconTrash size={20} stroke={2} aria-hidden />
@@ -69,16 +69,18 @@ export function TextList({ kind, legend, items, onChange }: TextListProps) {
         <button
           type="button"
           className={styles.addButton}
-          aria-label={t(`jobs.${kind}.addTitle`)}
+          aria-label={t(`textList.${kind}.addTitle`)}
           onClick={() => setDrawer({ open: true, index: null })}
         >
           <IconPlus size={20} stroke={2.4} aria-hidden />
-          {t("jobs.textList.add")}
+          {t("textList.add")}
         </button>
       )}
       <Drawer
-        title={t(drawer.index === null ? `jobs.${kind}.addTitle` : `jobs.${kind}.editTitle`)}
-        closeLabel={t("jobs.close")}
+        title={t(
+          drawer.index === null ? `textList.${kind}.addTitle` : `textList.${kind}.editTitle`,
+        )}
+        closeLabel={t("common.close")}
         open={drawer.open}
         onOpenChange={(open) => setDrawer((current) => ({ ...current, open }))}
         initialFocus={inputRef}
@@ -128,7 +130,7 @@ function TextForm({ kind, inputRef, initialValue, isEditing, onSave }: TextFormP
 
   return (
     <form className={styles.form} onSubmit={submit} noValidate>
-      <Field label={t(`jobs.${kind}.label`)} error={error && t(`jobs.${kind}.${error}`)}>
+      <Field label={t(`textList.${kind}.label`)} error={error && t(`textList.${kind}.${error}`)}>
         <TextInput ref={inputRef} value={value} onValueChange={setValue} />
       </Field>
       <Button
@@ -141,7 +143,7 @@ function TextForm({ kind, inputRef, initialValue, isEditing, onSave }: TextFormP
         ) : (
           <IconPlus size={20} stroke={2.4} aria-hidden />
         )}
-        {t(isEditing ? "jobs.textList.update" : "jobs.textList.add")}
+        {t(isEditing ? "textList.update" : "textList.add")}
       </Button>
     </form>
   );

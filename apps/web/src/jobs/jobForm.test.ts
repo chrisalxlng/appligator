@@ -1,6 +1,11 @@
 import { jobInputSchema, jobLimits, type Job, type JobExtraction } from "@appligator/shared";
 import { expect, test } from "vite-plus/test";
-import { fillEmptyFields, toFormValues, validateJobForm, type JobFormValues } from "./jobForm.ts";
+import {
+  fillEmptyJobFields,
+  toFormValues,
+  validateJobForm,
+  type JobFormValues,
+} from "./jobForm.ts";
 
 const job: Job = {
   id: "8f9c1a52-7d1e-4b8a-9a43-1c2d3e4f5a6b",
@@ -28,6 +33,8 @@ const job: Job = {
   noticePeriod: { amount: 4, unit: "weeks", endOf: "month" },
   notes: "<p>Training budget of €2,000 per year</p>",
   applicationDeadline: "2026-12-31",
+  status: "open",
+  application: null,
   createdAt: "2026-10-28T09:00:00.000Z",
   updatedAt: "2026-10-28T09:00:00.000Z",
 };
@@ -37,7 +44,14 @@ function valuesWith(overrides: Partial<JobFormValues>): JobFormValues {
 }
 
 test("turns the values of an existing job back into the same input", () => {
-  const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...input } = job;
+  const {
+    id: _id,
+    status: _status,
+    application: _application,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    ...input
+  } = job;
 
   expect(validateJobForm(toFormValues(job))).toEqual({ input });
 });
@@ -216,7 +230,7 @@ const extraction: JobExtraction = {
 };
 
 test("fills all empty fields with the extracted job information", () => {
-  const { values, filledFields } = fillEmptyFields(toFormValues(), extraction);
+  const { values, filledFields } = fillEmptyJobFields(toFormValues(), extraction);
 
   expect(values).toEqual({
     ...toFormValues(),
@@ -263,7 +277,7 @@ test("keeps fields the user already filled in", () => {
     notes: "<p>Own notes</p>",
   };
 
-  const { values, filledFields } = fillEmptyFields(current, extraction);
+  const { values, filledFields } = fillEmptyJobFields(current, extraction);
 
   expect(values).toMatchObject({
     description: "<p>Ad</p>",
@@ -283,7 +297,7 @@ test("keeps fields the user already filled in", () => {
 });
 
 test("treats blank text as empty", () => {
-  const { values } = fillEmptyFields({ ...toFormValues(), company: "  " }, extraction);
+  const { values } = fillEmptyJobFields({ ...toFormValues(), company: "  " }, extraction);
 
   expect(values.company).toBe("Initech GmbH");
 });
@@ -312,7 +326,7 @@ test("leaves fields empty when nothing was extracted for them", () => {
     applicationDeadline: null,
   };
 
-  expect(fillEmptyFields(toFormValues(), nothingFound)).toEqual({
+  expect(fillEmptyJobFields(toFormValues(), nothingFound)).toEqual({
     values: toFormValues(),
     filledFields: [],
   });

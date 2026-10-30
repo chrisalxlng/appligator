@@ -78,8 +78,15 @@
   }
 }
 
-.created {
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
   margin-top: var(--spacing-3);
+}
+
+.created {
   color: var(--text-secondary);
   font: var(--font-caption);
   letter-spacing: var(--tracking-caption);

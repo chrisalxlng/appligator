@@ -1,3 +1,4 @@
+export { Badge, type BadgeProps, type BadgeTone } from "./badge/Badge.tsx";
 export { Button, type ButtonProps } from "./button/Button.tsx";
 export type { ButtonVariant } from "./button/buttonClassName.ts";
 export { IconButton, type IconButtonProps } from "./button/IconButton.tsx";
@@ -10,14 +11,17 @@ export { Field, type FieldProps } from "./field/Field.tsx";
 export { Fieldset, type FieldsetProps } from "./field/Fieldset.tsx";
 export { NumberInput, type NumberInputProps } from "./field/NumberInput.tsx";
 export { TextInput, type TextInputProps } from "./field/TextInput.tsx";
+export { LinkChip, type LinkChipProps } from "./link-chip/LinkChip.tsx";
 export { LogoMark } from "./logo-mark/LogoMark.tsx";
 export { Menu, MenuItem, type MenuItemProps, type MenuProps } from "./menu/Menu.tsx";
+export { Popover, type PopoverProps } from "./popover/Popover.tsx";
 export { RichText, type RichTextProps } from "./rich-text/RichText.tsx";
 export {
   RichTextEditor,
   type RichTextEditorLabels,
   type RichTextEditorProps,
 } from "./rich-text/RichTextEditor.tsx";
+export { SearchList, type SearchListProps } from "./search-list/SearchList.tsx";
 export { Select, type SelectItem, type SelectProps } from "./select/Select.tsx";
 export { submitKeyShortcuts } from "./shortcut/submitShortcut.ts";
 export { Spinner, type SpinnerProps } from "./spinner/Spinner.tsx";

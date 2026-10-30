@@ -9,6 +9,7 @@ import { serveApiDocs } from "./apiDocs.ts";
 import { requireAuthentication, type AuthOptions } from "./auth.ts";
 import type { Database } from "./db/database.ts";
 import { aiRoutes, type AiOptions } from "./routes/ai.ts";
+import { applicationRoutes } from "./routes/applications.ts";
 import { healthRoutes } from "./routes/health.ts";
 import { jobRoutes } from "./routes/jobs.ts";
 
@@ -40,6 +41,7 @@ export function buildApp({ auth, db, ai, webAppOrigin, apiDocs = false }: AppOpt
 
   app.register(healthRoutes);
   app.register(jobRoutes);
+  app.register(applicationRoutes);
   app.register(aiRoutes, ai);
 
   return app;

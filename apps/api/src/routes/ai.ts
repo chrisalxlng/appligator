@@ -21,7 +21,8 @@ import { readJobPage } from "../ai/jobPage.ts";
 import { verifyLanguageModel, type CreateLanguageModel } from "../ai/languageModel.ts";
 import type { ModelCatalog } from "../ai/modelCatalog.ts";
 import { aiSettings, jobs } from "../db/schema.ts";
-import { toColumns, toJob } from "./jobs.ts";
+import { toJob } from "./jobs.ts";
+import { toSalaryColumns } from "./salaryColumns.ts";
 import { notFoundSchema } from "./notFound.ts";
 
 export interface AiOptions {
@@ -222,7 +223,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
       const [row] = await app.db
         .insert(jobs)
         .values({
-          ...toColumns({
+          ...toSalaryColumns({
             ...details,
             link,
             description,
@@ -234,7 +235,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
           userId: request.userId,
         })
         .returning();
-      return reply.code(201).send(toJob(row!));
+      return reply.code(201).send(toJob(row!, null));
     },
   );
 

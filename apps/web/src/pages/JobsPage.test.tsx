@@ -3,7 +3,13 @@ import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, onTestFinished, test, vi } from "vite-plus/test";
 import { scrollObservedElementsIntoView } from "../testing/fakeIntersectionObserver.ts";
-import { createFakeJobsApi, fakePageSize, jobFixture, jobWith } from "../testing/fakeJobsApi.ts";
+import {
+  applicationFor,
+  createFakeApi,
+  fakePageSize,
+  jobFixture,
+  jobWith,
+} from "../testing/fakeApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
 
 const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -47,7 +53,7 @@ async function openEditDrawer() {
 }
 
 test("shows an empty state with an add button when there are no jobs", async () => {
-  createFakeJobsApi();
+  createFakeApi();
   renderApp("/jobs");
 
   expect(await screen.findByRole("heading", { name: "No jobs yet" })).toBeInTheDocument();
@@ -56,7 +62,7 @@ test("shows an empty state with an add button when there are no jobs", async () 
 });
 
 test("lists the jobs with their creation day", async () => {
-  createFakeJobsApi([jobFixture, olderJob]);
+  createFakeApi([jobFixture, olderJob]);
   renderApp("/jobs");
 
   const [newest, older] = await screen.findAllByRole("link", { name: /Developer/ });
@@ -75,7 +81,7 @@ function manyJobs(count: number) {
 const findPositionLinks = () => screen.findAllByRole("link", { name: /^Position \d+/ });
 
 test("loads more jobs when scrolling to the end of the list", async () => {
-  const api = createFakeJobsApi(manyJobs(fakePageSize + 5));
+  const api = createFakeApi(manyJobs(fakePageSize + 5));
   renderApp("/jobs", { viewport: "mobile" });
 
   expect(await findPositionLinks()).toHaveLength(fakePageSize);
@@ -92,7 +98,7 @@ test("loads more jobs when scrolling to the end of the list", async () => {
 });
 
 test("retries loading more jobs after an error", async () => {
-  const api = createFakeJobsApi(manyJobs(fakePageSize + 1));
+  const api = createFakeApi(manyJobs(fakePageSize + 1));
   renderApp("/jobs", { viewport: "mobile" });
   await findPositionLinks();
 
@@ -119,7 +125,7 @@ async function tabIntoJobList() {
 }
 
 test("makes the job list a single tab stop that is navigated with arrow keys", async () => {
-  createFakeJobsApi(manyJobs(3));
+  createFakeApi(manyJobs(3));
   renderApp("/jobs", { viewport: "tablet" });
   const [first, second, third] = await findPositionLinks();
 
@@ -143,7 +149,7 @@ test("makes the job list a single tab stop that is navigated with arrow keys", a
 
 test("enters the job list at the opened job", async () => {
   const [first, opened] = manyJobs(2);
-  createFakeJobsApi([first!, opened!]);
+  createFakeApi([first!, opened!]);
   renderApp(`/jobs/${opened!.id}`);
   await screen.findByRole("article");
 
@@ -153,7 +159,7 @@ test("enters the job list at the opened job", async () => {
 });
 
 test("opens the first job on desktop", async () => {
-  createFakeJobsApi([jobFixture, olderJob]);
+  createFakeApi([jobFixture, olderJob]);
   const router = renderApp("/jobs");
 
   expect(
@@ -167,7 +173,7 @@ test("opens the first job on desktop", async () => {
 });
 
 test("loads the jobs only once when opening the first job", async () => {
-  const api = createFakeJobsApi([jobFixture, olderJob]);
+  const api = createFakeApi([jobFixture, olderJob]);
   renderApp("/jobs");
 
   await screen.findByRole("heading", { level: 2, name: "Lead Developer Frontend" });
@@ -176,7 +182,7 @@ test("loads the jobs only once when opening the first job", async () => {
 });
 
 test("shows the list and an opened job one at a time on medium screens", async () => {
-  createFakeJobsApi([jobFixture]);
+  createFakeApi([jobFixture]);
   const router = renderApp("/jobs", { viewport: "tablet" });
 
   await userEvent.click(await screen.findByRole("link", { name: /Lead Developer Frontend/ }));
@@ -196,7 +202,7 @@ test("shows a spinner while the jobs take long to load", async () => {
 });
 
 test("shows the details of a job", async () => {
-  createFakeJobsApi([jobFixture]);
+  createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
 
   const detail = await screen.findByRole("article");
@@ -255,13 +261,14 @@ test("shows the details of a job", async () => {
 });
 
 test("marks missing details as not specified", async () => {
-  createFakeJobsApi([olderJob]);
+  createFakeApi([olderJob]);
   renderApp(`/jobs/${olderJob.id}`);
 
   const detail = await screen.findByRole("article");
 
   expect(within(detail).getByText("Application deadline", { selector: "dt" })).toBeVisible();
-  expect(within(detail).getAllByText("Not specified")).toHaveLength(1);
+  expect(within(detail).getByText("Application", { selector: "dt" })).toBeVisible();
+  expect(within(detail).getAllByText("Not specified")).toHaveLength(2);
   expect(within(detail).queryByRole("region")).not.toBeInTheDocument();
   expect(within(detail).queryByRole("link")).not.toBeInTheDocument();
 });
@@ -290,7 +297,7 @@ test.each([
       companyType: null,
       employeeCount: 1,
     });
-    createFakeJobsApi([job]);
+    createFakeApi([job]);
     renderApp(`/jobs/${job.id}`);
 
     const detail = await screen.findByRole("article");
@@ -306,7 +313,7 @@ test.each([
 );
 
 test("shows that a job does not exist", async () => {
-  createFakeJobsApi([jobFixture]);
+  createFakeApi([jobFixture]);
   renderApp("/jobs/00000000-0000-4000-8000-000000000000");
 
   expect(await screen.findByRole("heading", { name: "Job not found" })).toBeInTheDocument();
@@ -315,7 +322,7 @@ test("shows that a job does not exist", async () => {
 });
 
 test("retries loading the jobs after an error", async () => {
-  const api = createFakeJobsApi([jobFixture]);
+  const api = createFakeApi([jobFixture]);
   api.failWith("GET", 500);
   renderApp("/jobs");
 
@@ -329,7 +336,7 @@ test("retries loading the jobs after an error", async () => {
 });
 
 test("shows the list on mobile and closes an opened job", async () => {
-  createFakeJobsApi([jobFixture]);
+  createFakeApi([jobFixture]);
   const router = renderApp("/jobs", { viewport: "mobile" });
 
   await userEvent.click(await screen.findByRole("link", { name: /Lead Developer Frontend/ }));
@@ -344,7 +351,7 @@ test("shows the list on mobile and closes an opened job", async () => {
 });
 
 test("adds a job and opens it", async () => {
-  const api = createFakeJobsApi();
+  const api = createFakeApi();
   const router = renderApp("/jobs");
   const drawer = await openAddDrawer();
 
@@ -376,7 +383,7 @@ test("adds a job and opens it", async () => {
 });
 
 test("enters a salary range", async () => {
-  const api = createFakeJobsApi();
+  const api = createFakeApi();
   renderApp("/jobs");
   const drawer = await openAddDrawer();
 
@@ -401,7 +408,7 @@ test("enters a salary range", async () => {
 });
 
 test("enters the details of a job", async () => {
-  const api = createFakeJobsApi();
+  const api = createFakeApi();
   renderApp("/jobs");
   const drawer = await openAddDrawer();
   const textbox = (name: string) => within(drawer).getByRole("textbox", { name });
@@ -445,7 +452,7 @@ test("enters the details of a job", async () => {
 });
 
 test("requires the duration of a fixed-term contract", async () => {
-  const api = createFakeJobsApi();
+  const api = createFakeApi();
   renderApp("/jobs");
   const drawer = await openAddDrawer();
 
@@ -460,7 +467,7 @@ test("requires the duration of a fixed-term contract", async () => {
 });
 
 test("focuses the first field when adding a job", async () => {
-  createFakeJobsApi();
+  createFakeApi();
   renderApp("/jobs");
   const drawer = await openAddDrawer();
 
@@ -468,7 +475,7 @@ test("focuses the first field when adding a job", async () => {
 });
 
 test("focuses the drawer instead of a field when editing a job", async () => {
-  createFakeJobsApi([jobFixture]);
+  createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
   const drawer = await openEditDrawer();
 
@@ -476,7 +483,7 @@ test("focuses the drawer instead of a field when editing a job", async () => {
 });
 
 test("validates the job before saving it", async () => {
-  const api = createFakeJobsApi();
+  const api = createFakeApi();
   renderApp("/jobs");
   const drawer = await openAddDrawer();
 
@@ -492,7 +499,7 @@ test("validates the job before saving it", async () => {
 });
 
 test("keeps the drawer open and shows an error when saving fails", async () => {
-  const api = createFakeJobsApi();
+  const api = createFakeApi();
   api.failWith("POST", 500);
   renderApp("/jobs");
   const drawer = await openAddDrawer();
@@ -507,7 +514,7 @@ test("keeps the drawer open and shows an error when saving fails", async () => {
 });
 
 test("adds, edits and removes locations in a nested drawer", async () => {
-  const api = createFakeJobsApi([olderJob]);
+  const api = createFakeApi([olderJob]);
   renderApp(`/jobs/${olderJob.id}`);
   const drawer = await openEditDrawer();
 
@@ -542,7 +549,7 @@ test("adds, edits and removes locations in a nested drawer", async () => {
 });
 
 test("rejects a location longer than a job allows", async () => {
-  createFakeJobsApi([olderJob]);
+  createFakeApi([olderJob]);
   renderApp(`/jobs/${olderJob.id}`);
   const drawer = await openEditDrawer();
 
@@ -559,7 +566,7 @@ test("rejects a location longer than a job allows", async () => {
 
 test("offers no further location once a job has the most locations it allows", async () => {
   const locations = Array.from({ length: jobLimits.listItems }, (_, index) => `City ${index}`);
-  createFakeJobsApi([{ ...olderJob, locations }]);
+  createFakeApi([{ ...olderJob, locations }]);
   renderApp(`/jobs/${olderJob.id}`);
   const drawer = await openEditDrawer();
 
@@ -568,7 +575,7 @@ test("offers no further location once a job has the most locations it allows", a
 });
 
 test("edits a job", async () => {
-  const api = createFakeJobsApi([jobFixture]);
+  const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
   const drawer = await openEditDrawer();
 
@@ -582,13 +589,20 @@ test("edits a job", async () => {
   expect(
     await screen.findByRole("heading", { level: 2, name: "Staff Engineer" }),
   ).toBeInTheDocument();
-  const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...input } = jobFixture;
+  const {
+    id: _id,
+    status: _status,
+    application: _application,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    ...input
+  } = jobFixture;
   expect(api.requestsWith("PUT")[0]?.body).toEqual({ ...input, position: "Staff Engineer" });
   expect(screen.getByText("Job updated")).toBeInTheDocument();
 });
 
 test("shows the update as pending and saves only once", async () => {
-  const api = createFakeJobsApi([jobFixture]);
+  const api = createFakeApi([jobFixture]);
   const releaseUpdate = api.holdResponses("PUT");
   renderApp(`/jobs/${jobFixture.id}`);
   const drawer = await openEditDrawer();
@@ -609,7 +623,7 @@ test("shows the update as pending and saves only once", async () => {
 });
 
 test("deletes a job after confirmation", async () => {
-  const api = createFakeJobsApi([jobFixture, olderJob]);
+  const api = createFakeApi([jobFixture, olderJob]);
   const router = renderApp(`/jobs/${jobFixture.id}`);
 
   await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
@@ -629,7 +643,7 @@ test("deletes a job after confirmation", async () => {
 });
 
 test("keeps the job when deleting is cancelled", async () => {
-  const api = createFakeJobsApi([jobFixture]);
+  const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
 
   await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
@@ -642,7 +656,7 @@ test("keeps the job when deleting is cancelled", async () => {
 });
 
 test("shows an error when deleting fails", async () => {
-  const api = createFakeJobsApi([jobFixture]);
+  const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
   await screen.findByRole("article");
   api.failWith("DELETE", 500);
@@ -658,7 +672,7 @@ test("shows an error when deleting fails", async () => {
 });
 
 test("opens the add drawer with Alt+N and shows the shortcut", async () => {
-  createFakeJobsApi([jobFixture]);
+  createFakeApi([jobFixture]);
   renderApp("/jobs");
 
   const addButton = await screen.findByRole("button", { name: "Add" });
@@ -671,7 +685,7 @@ test("opens the add drawer with Alt+N and shows the shortcut", async () => {
 });
 
 test("edits a job with Alt+E and saves it with Ctrl+Enter", async () => {
-  const api = createFakeJobsApi([jobFixture]);
+  const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
   await screen.findByRole("button", { name: "Edit" });
 
@@ -686,7 +700,7 @@ test("edits a job with Alt+E and saves it with Ctrl+Enter", async () => {
 });
 
 test("confirms deleting with Ctrl+Enter", async () => {
-  const api = createFakeJobsApi([jobFixture]);
+  const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
 
   await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
@@ -707,10 +721,124 @@ test("hides shortcut hints on touch devices", async () => {
   onTestFinished(() => {
     vi.stubGlobal("matchMedia", matchMedia);
   });
-  createFakeJobsApi();
+  createFakeApi();
   renderApp("/jobs");
 
   const drawer = await openAddDrawer();
 
   expect(within(drawer).getByRole("button", { name: "Add" }).textContent).toBe("Add");
+});
+
+function todayIsoDate() {
+  return new Date().toLocaleDateString("sv-SE");
+}
+
+test("shows the status of the jobs and filters them by status", async () => {
+  const openJob = jobWith({ id: crypto.randomUUID(), position: "Open Developer" });
+  createFakeApi([jobFixture, olderJob, openJob], [applicationFor(jobFixture)]);
+  renderApp("/jobs/" + olderJob.id);
+
+  const filter = await screen.findByRole("group", { name: "Filter by status" });
+  expect(
+    within(filter)
+      .getAllByRole("button")
+      .map((button) => button.textContent),
+  ).toEqual(["3 All", "2 Open", "1 Applied"]);
+  expect(within(filter).getByRole("button", { name: "3 All" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(screen.getByRole("link", { name: /Lead Developer Frontend/ })).toHaveTextContent(
+    "Applied",
+  );
+
+  await userEvent.click(within(filter).getByRole("button", { name: "1 Applied" }));
+
+  await waitFor(() => expect(screen.getAllByRole("link", { name: /Developer/ })).toHaveLength(1));
+  expect(screen.getByRole("link", { name: /Developer/ })).toHaveTextContent(
+    "Lead Developer Frontend",
+  );
+});
+
+test("hides the status filter while all jobs have the same status", async () => {
+  createFakeApi([jobFixture, olderJob]);
+  renderApp("/jobs");
+
+  await screen.findAllByRole("link", { name: /Developer/ });
+
+  expect(screen.queryByRole("group", { name: "Filter by status" })).not.toBeInTheDocument();
+});
+
+test("applies for a job from its detail view", async () => {
+  const api = createFakeApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  const detail = await screen.findByRole("article");
+  const property = (name: string) =>
+    within(detail).getByText(name, { selector: "dt" }).nextElementSibling;
+  expect(property("Status")).toHaveTextContent("Open");
+
+  await userEvent.click(within(detail).getByRole("button", { name: "Apply" }));
+
+  expect(await screen.findByText("Application created")).toBeInTheDocument();
+  expect(api.requestsWith("POST")[0]?.body).toEqual({
+    jobId: jobFixture.id,
+    appliedAt: todayIsoDate(),
+  });
+  await waitFor(() => expect(property("Status")).toHaveTextContent("Applied"));
+  expect(within(detail).getByRole("link", { name: /Lead Developer Frontend/ })).toHaveTextContent(
+    "Applied",
+  );
+});
+
+test("shows an error when applying fails", async () => {
+  const api = createFakeApi([jobFixture]);
+  api.failWith("POST", 500);
+  renderApp(`/jobs/${jobFixture.id}`);
+
+  await userEvent.click(await screen.findByRole("button", { name: "Apply" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "The application could not be created. Please try again.",
+  );
+});
+
+test("links an applied job to its application and locks it", async () => {
+  const application = applicationFor(jobFixture);
+  createFakeApi([jobFixture], [application]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  const detail = await screen.findByRole("article");
+
+  expect(within(detail).getByRole("link", { name: /Lead Developer Frontend/ })).toHaveAttribute(
+    "href",
+    `/applications/${application.id}`,
+  );
+  expect(within(detail).getByRole("button", { name: "Apply" })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
+  expect(within(detail).getByRole("button", { name: "Edit" })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
+
+  await userEvent.hover(within(detail).getByRole("button", { name: "Edit" }));
+  expect(
+    await screen.findByText("Jobs you applied for can no longer be edited."),
+  ).toBeInTheDocument();
+
+  await userEvent.click(within(detail).getByRole("button", { name: "More actions" }));
+  expect(await screen.findByRole("menuitem", { name: "Delete" })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
+});
+
+test("does not open the edit drawer of an applied job with Alt+E", async () => {
+  createFakeApi([jobFixture], [applicationFor(jobFixture)]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  await screen.findByRole("article");
+
+  await userEvent.keyboard("{Alt>}e{/Alt}");
+
+  expect(screen.queryByRole("dialog", { name: "Edit job" })).not.toBeInTheDocument();
 });

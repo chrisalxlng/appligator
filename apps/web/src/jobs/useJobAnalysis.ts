@@ -2,7 +2,7 @@ import type { AiErrorCode, JobExtraction } from "@appligator/shared";
 import { useEffect, useRef, useState } from "react";
 import { useAiApi, useAiSettings } from "../ai/aiQueries.ts";
 import { ApiError } from "../api/apiClient.ts";
-import type { ExtractedField } from "./jobForm.ts";
+import type { ExtractedField } from "../details/detailsForm.ts";
 
 const minPastedLength = 100;
 

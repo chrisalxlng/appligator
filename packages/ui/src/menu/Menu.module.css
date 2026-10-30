@@ -41,4 +41,10 @@
   &[data-variant="destructive"] {
     color: var(--destructive-text);
   }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    background: none;
+    cursor: not-allowed;
+  }
 }

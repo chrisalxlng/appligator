@@ -1,64 +1,52 @@
-import { jobInputSchema, jobListPageSchema, jobSchema, type JobInput } from "@appligator/shared";
-import { and, desc, eq, sql } from "drizzle-orm";
+import {
+  jobInputSchema,
+  jobListPageSchema,
+  jobSchema,
+  jobStatusCountsSchema,
+  jobStatuses,
+  type Job,
+  type JobStatus,
+} from "@appligator/shared";
+import { and, count, desc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { jobs } from "../db/schema.ts";
+import { applications, jobs } from "../db/schema.ts";
 import { notFoundSchema } from "./notFound.ts";
+import { afterCursor, cursorCreatedAt, pageQuerySchema, toPage } from "./pagination.ts";
+import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
+import { sortByStatus } from "./statusCounts.ts";
 
 type JobRow = typeof jobs.$inferSelect;
+type JobApplication = NonNullable<Job["application"]>;
 
 const jobParamsSchema = z.object({ id: z.uuid() });
 
-const defaultPageSize = 30;
-const maxPageSize = 100;
-const cursorSeparator = "|";
-
-// The cursor keeps the full microsecond precision of Postgres, which a JavaScript Date would lose.
-const cursorCreatedAt = sql<string>`to_char(${jobs.createdAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
-
-function encodeCursor(createdAt: string, id: string) {
-  return Buffer.from(`${createdAt}${cursorSeparator}${id}`).toString("base64url");
-}
-
-const cursorSchema = z
-  .base64url()
-  .transform((cursor) => Buffer.from(cursor, "base64url").toString().split(cursorSeparator))
-  .pipe(z.tuple([z.iso.datetime({ precision: 6 }), z.uuid()]))
-  .transform(([createdAt, id]) => ({ createdAt, id }));
-
-const jobListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(maxPageSize).default(defaultPageSize),
-  cursor: cursorSchema.optional(),
+const jobListQuerySchema = pageQuerySchema.extend({
+  status: z.enum(jobStatuses).optional(),
+  search: z.string().trim().max(200).optional(),
 });
 
-export function toColumns({ salary, ...input }: JobInput) {
-  return {
-    ...input,
-    salaryCurrency: salary?.currency ?? null,
-    salaryPeriod: salary?.period ?? null,
-    salaryMin: salary?.min ?? null,
-    salaryMax: salary?.max ?? null,
-  };
+const appliedSchema = z.object({ error: z.literal("applied") });
+
+const jobStatus = sql<JobStatus>`case when ${applications.id} is null then 'open' else 'applied' end`;
+
+function hasStatus(status: JobStatus) {
+  return status === "applied" ? isNotNull(applications.id) : isNull(applications.id);
 }
 
-export function toJob({
-  userId: _userId,
-  salaryCurrency,
-  salaryPeriod,
-  salaryMin,
-  salaryMax,
-  createdAt,
-  updatedAt,
-  ...row
-}: JobRow) {
-  const hasSalary =
-    salaryCurrency !== null && salaryPeriod !== null && salaryMin !== null && salaryMax !== null;
+function matchesSearch(search: string) {
+  const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+  return or(ilike(jobs.company, pattern), ilike(jobs.position, pattern));
+}
 
+export function toJob(
+  { userId: _userId, createdAt, updatedAt, ...row }: JobRow,
+  application: JobApplication | null,
+) {
   return {
-    ...row,
-    salary: hasSalary
-      ? { currency: salaryCurrency, period: salaryPeriod, min: salaryMin, max: salaryMax }
-      : null,
+    ...fromSalaryColumns(row),
+    status: application ? ("applied" as const) : ("open" as const),
+    application,
     createdAt: createdAt.toISOString(),
     updatedAt: updatedAt.toISOString(),
   };
@@ -67,41 +55,65 @@ export function toJob({
 export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
   const ownJob = (id: string, userId: string) => and(eq(jobs.id, id), eq(jobs.userId, userId));
 
+  async function findJob(id: string, userId: string) {
+    const [result] = await app.db
+      .select({
+        job: jobs,
+        application: {
+          id: applications.id,
+          position: applications.position,
+          status: applications.status,
+        },
+      })
+      .from(jobs)
+      .leftJoin(applications, eq(applications.jobId, jobs.id))
+      .where(ownJob(id, userId));
+    return result;
+  }
+
   app.get(
     "/jobs",
     { schema: { querystring: jobListQuerySchema, response: { 200: jobListPageSchema } } },
     async (request) => {
-      const { limit, cursor } = request.query;
+      const { limit, cursor, status, search } = request.query;
       const rows = await app.db
         .select({
           id: jobs.id,
           company: jobs.company,
           position: jobs.position,
+          status: jobStatus,
           createdAt: jobs.createdAt,
-          cursorCreatedAt,
+          cursorCreatedAt: cursorCreatedAt(jobs),
         })
         .from(jobs)
+        .leftJoin(applications, eq(applications.jobId, jobs.id))
         .where(
           and(
             eq(jobs.userId, request.userId),
-            cursor &&
-              sql`(${jobs.createdAt}, ${jobs.id}) < (${cursor.createdAt}::timestamptz, ${cursor.id}::uuid)`,
+            status && hasStatus(status),
+            search ? matchesSearch(search) : undefined,
+            afterCursor(jobs, cursor),
           ),
         )
         .orderBy(desc(jobs.createdAt), desc(jobs.id))
         .limit(limit + 1);
 
-      const pageRows = rows.slice(0, limit);
-      const lastRow = pageRows.at(-1);
+      return toPage(rows, limit);
+    },
+  );
 
-      return {
-        items: pageRows.map(({ cursorCreatedAt: _cursorCreatedAt, createdAt, ...row }) => ({
-          ...row,
-          createdAt: createdAt.toISOString(),
-        })),
-        nextCursor:
-          rows.length > limit && lastRow ? encodeCursor(lastRow.cursorCreatedAt, lastRow.id) : null,
-      };
+  app.get(
+    "/jobs/status-counts",
+    { schema: { response: { 200: jobStatusCountsSchema } } },
+    async (request) => {
+      const rows = await app.db
+        .select({ status: jobStatus, count: count() })
+        .from(jobs)
+        .leftJoin(applications, eq(applications.jobId, jobs.id))
+        .where(eq(jobs.userId, request.userId))
+        .groupBy(jobStatus);
+
+      return sortByStatus(rows, jobStatuses);
     },
   );
 
@@ -109,13 +121,10 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     "/jobs/:id",
     { schema: { params: jobParamsSchema, response: { 200: jobSchema, 404: notFoundSchema } } },
     async (request, reply) => {
-      const [row] = await app.db
-        .select()
-        .from(jobs)
-        .where(ownJob(request.params.id, request.userId));
+      const result = await findJob(request.params.id, request.userId);
 
-      if (!row) return reply.code(404).send({ error: "Not Found" });
-      return toJob(row);
+      if (!result) return reply.code(404).send({ error: "Not Found" });
+      return toJob(result.job, result.application);
     },
   );
 
@@ -125,10 +134,10 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, reply) => {
       const [row] = await app.db
         .insert(jobs)
-        .values({ ...toColumns(request.body), userId: request.userId })
+        .values({ ...toSalaryColumns(request.body), userId: request.userId })
         .returning();
 
-      return reply.code(201).send(toJob(row!));
+      return reply.code(201).send(toJob(row!, null));
     },
   );
 
@@ -138,31 +147,38 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: {
         params: jobParamsSchema,
         body: jobInputSchema,
-        response: { 200: jobSchema, 404: notFoundSchema },
+        response: { 200: jobSchema, 404: notFoundSchema, 409: appliedSchema },
       },
     },
     async (request, reply) => {
+      const existing = await findJob(request.params.id, request.userId);
+      if (!existing) return reply.code(404).send({ error: "Not Found" });
+      if (existing.application) return reply.code(409).send({ error: "applied" });
+
       const [row] = await app.db
         .update(jobs)
-        .set({ ...toColumns(request.body), updatedAt: new Date() })
+        .set({ ...toSalaryColumns(request.body), updatedAt: new Date() })
         .where(ownJob(request.params.id, request.userId))
         .returning();
 
-      if (!row) return reply.code(404).send({ error: "Not Found" });
-      return toJob(row);
+      return toJob(row!, null);
     },
   );
 
   app.delete(
     "/jobs/:id",
-    { schema: { params: jobParamsSchema, response: { 204: z.null(), 404: notFoundSchema } } },
+    {
+      schema: {
+        params: jobParamsSchema,
+        response: { 204: z.null(), 404: notFoundSchema, 409: appliedSchema },
+      },
+    },
     async (request, reply) => {
-      const [row] = await app.db
-        .delete(jobs)
-        .where(ownJob(request.params.id, request.userId))
-        .returning({ id: jobs.id });
+      const existing = await findJob(request.params.id, request.userId);
+      if (!existing) return reply.code(404).send({ error: "Not Found" });
+      if (existing.application) return reply.code(409).send({ error: "applied" });
 
-      if (!row) return reply.code(404).send({ error: "Not Found" });
+      await app.db.delete(jobs).where(ownJob(request.params.id, request.userId));
       return reply.code(204).send(null);
     },
   );

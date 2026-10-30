@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { applicationStatuses, jobStatuses } from "./status.ts";
 
 export const currencies = ["EUR", "USD", "CHF", "GBP"] as const;
 export const salaryPeriods = ["year", "month", "hour"] as const;
@@ -32,7 +33,7 @@ export const jobLimits = {
   weeks: 520,
 };
 
-const requiredText = z.string().trim().min(1).max(jobLimits.textLength);
+export const requiredText = z.string().trim().min(1).max(jobLimits.textLength);
 const salaryAmount = z.int().min(0).max(jobLimits.salary);
 
 const salarySchema = z
@@ -75,15 +76,7 @@ const noticePeriodSchema = z
 
 const textList = z.array(requiredText).max(jobLimits.listItems);
 
-export const jobInputSchema = z.object({
-  link: z
-    .url({ protocol: /^https?$/ })
-    .max(2_000)
-    .nullable(),
-  description: z.string().max(jobLimits.descriptionLength),
-  summary: z.string().max(jobLimits.summaryLength),
-  company: requiredText,
-  position: requiredText,
+export const jobDetailsSchema = z.object({
   companyType: z.enum(companyTypes).nullable(),
   employeeCount: z.int().min(1).max(jobLimits.employeeCount).nullable(),
   salary: salarySchema.nullable(),
@@ -102,11 +95,27 @@ export const jobInputSchema = z.object({
   probationMonths: z.int().min(0).max(jobLimits.months).nullable(),
   noticePeriod: noticePeriodSchema.nullable(),
   notes: z.string().max(jobLimits.notesLength),
+});
+
+export const jobInputSchema = z.object({
+  link: z
+    .url({ protocol: /^https?$/ })
+    .max(2_000)
+    .nullable(),
+  description: z.string().max(jobLimits.descriptionLength),
+  summary: z.string().max(jobLimits.summaryLength),
+  company: requiredText,
+  position: requiredText,
   applicationDeadline: z.iso.date().nullable(),
+  ...jobDetailsSchema.shape,
 });
 
 export const jobSchema = jobInputSchema.extend({
   id: z.uuid(),
+  status: z.enum(jobStatuses),
+  application: z
+    .object({ id: z.uuid(), position: z.string(), status: z.enum(applicationStatuses) })
+    .nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
@@ -115,6 +124,7 @@ export const jobListItemSchema = jobSchema.pick({
   id: true,
   company: true,
   position: true,
+  status: true,
   createdAt: true,
 });
 
@@ -136,6 +146,7 @@ export type WorkingHours = z.infer<typeof workingHoursSchema>;
 export type ContractTerm = z.infer<typeof contractTermSchema>;
 export type ContractTermKind = ContractTerm["kind"];
 export type NoticePeriod = z.infer<typeof noticePeriodSchema>;
+export type JobDetails = z.infer<typeof jobDetailsSchema>;
 export type JobInput = z.infer<typeof jobInputSchema>;
 export type Job = z.infer<typeof jobSchema>;
 export type JobListItem = z.infer<typeof jobListItemSchema>;

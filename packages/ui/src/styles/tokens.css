@@ -27,6 +27,8 @@
   --highlight-fill: var(--color-royal-purple-200);
   --highlight-fill-hover: var(--color-royal-purple-300);
   --highlight-fill-press: var(--color-royal-purple-400);
+  --success-fill: var(--color-forest-green-200);
+  --success-text-primary: var(--color-forest-green-900);
   --destructive-fill: var(--color-burgundy-red-500);
   --destructive-fill-hover: var(--color-burgundy-red-600);
   --destructive-fill-press: var(--color-burgundy-red-700);

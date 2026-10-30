@@ -23,13 +23,25 @@ export function Menu({ trigger, children }: MenuProps) {
 export interface MenuItemProps {
   icon?: ReactNode;
   variant?: "default" | "destructive";
+  disabled?: boolean;
   onClick: () => void;
   children: ReactNode;
 }
 
-export function MenuItem({ icon, variant = "default", onClick, children }: MenuItemProps) {
+export function MenuItem({
+  icon,
+  variant = "default",
+  disabled,
+  onClick,
+  children,
+}: MenuItemProps) {
   return (
-    <BaseMenu.Item className={styles.item} data-variant={variant} onClick={onClick}>
+    <BaseMenu.Item
+      className={styles.item}
+      data-variant={variant}
+      disabled={disabled}
+      onClick={onClick}
+    >
       {icon}
       {children}
     </BaseMenu.Item>
