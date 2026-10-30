@@ -1,6 +1,5 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv, type Plugin } from "vite-plus";
-import packageJson from "./package.json" with { type: "json" };
 
 // The public key pins the extension ID, which the Keycloak client allows as redirect URI.
 const publicKey =
@@ -23,7 +22,7 @@ function manifest(env: Record<string, string>): Plugin {
         source: JSON.stringify({
           manifest_version: 3,
           name: "Appligator",
-          version: packageJson.version,
+          version: env.VITE_APP_VERSION,
           description: "Import job ads into Appligator with one click.",
           key: publicKey,
           icons,
