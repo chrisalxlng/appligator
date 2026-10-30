@@ -68,3 +68,30 @@ test("parses and formats numbers in the given locale", async () => {
   expect(onValueChange).toHaveBeenLastCalledWith(65_000);
   expect(input).toHaveValue("65.000");
 });
+
+test("formats decimals with a unit", async () => {
+  const onValueChange = vi.fn();
+  function Demo() {
+    const [value, setValue] = useState<number | null>(null);
+    return (
+      <NumberInput
+        aria-label="Working hours"
+        locale="de-DE"
+        format={{ style: "unit", unit: "hour", unitDisplay: "short", maximumFractionDigits: 2 }}
+        value={value}
+        onValueChange={(next) => {
+          setValue(next);
+          onValueChange(next);
+        }}
+      />
+    );
+  }
+  render(<Demo />);
+  const input = screen.getByRole("textbox", { name: "Working hours" });
+
+  await userEvent.type(input, "38,5");
+  await userEvent.tab();
+
+  expect(onValueChange).toHaveBeenLastCalledWith(38.5);
+  expect(input).toHaveValue("38,5 Std.");
+});

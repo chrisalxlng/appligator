@@ -15,9 +15,17 @@ export function formatDate(isoDateTime: string, locale: string) {
   return new Date(isoDateTime).toLocaleDateString(locale, { dateStyle: "medium" });
 }
 
-export function formatDeadline(isoDate: string, locale: string) {
+export function formatIsoDate(isoDate: string, locale: string) {
   const [year, month, day] = isoDate.split("-").map(Number);
-  return new Date(year!, month! - 1, day).toLocaleDateString(locale, { dateStyle: "medium" });
+  return new Date(year!, month! - 1, day).toLocaleDateString(locale, { dateStyle: "long" });
+}
+
+export function formatNumber(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value);
+}
+
+export function formatUnit(value: number, unit: string, locale: string) {
+  return new Intl.NumberFormat(locale, { style: "unit", unit }).format(value);
 }
 
 const rangeSeparator = "–";

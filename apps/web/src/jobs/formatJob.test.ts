@@ -1,5 +1,12 @@
 import { expect, test } from "vite-plus/test";
-import { daysAgo, formatDeadline, formatSalaryRange, hostname } from "./formatJob.ts";
+import {
+  daysAgo,
+  formatIsoDate,
+  formatNumber,
+  formatSalaryRange,
+  formatUnit,
+  hostname,
+} from "./formatJob.ts";
 
 const now = new Date(2026, 9, 28, 9, 0);
 
@@ -24,8 +31,17 @@ test("formats a fixed salary as a single amount", () => {
   );
 });
 
-test("formats a deadline as a calendar date regardless of the time zone", () => {
-  expect(formatDeadline("2026-12-31", "de")).toBe("31.12.2026");
+test("formats a date as a calendar date regardless of the time zone", () => {
+  expect(formatIsoDate("2026-12-31", "de")).toBe("31. Dezember 2026");
+});
+
+test("formats decimals in the given locale", () => {
+  expect(formatNumber(38.5, "de")).toBe("38,5");
+});
+
+test("formats a value with its unit in the given locale", () => {
+  expect(formatUnit(80, "percent", "de")).toBe("80\u00a0%");
+  expect(formatUnit(17, "kilometer", "en")).toBe("17 km");
 });
 
 test("shortens a link to its host name", () => {

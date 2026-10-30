@@ -218,9 +218,19 @@ const extractionOutput = {
   position: "Frontend Developer",
   summary: "Initech sucht eine Frontend-Entwicklerin.",
   salary: null,
-  locations: ["München"],
-  workModel: "remote",
+  bonuses: [],
+  benefits: ["Jobrad"],
   employmentType: "fullTime",
+  workModel: "remote",
+  homeOfficePercentage: null,
+  workingHours: null,
+  locations: ["München"],
+  vacationDays: 30,
+  startDate: null,
+  contractTerm: { kind: "permanent", months: null, date: null },
+  probationMonths: null,
+  noticePeriod: null,
+  notes: [],
   applicationDeadline: null,
 };
 
@@ -238,6 +248,8 @@ test("POST /ai/job-extraction extracts the job with the stored access", async ()
   expect(response.json()).toEqual({
     ...extractionOutput,
     summary: "<p>Initech sucht eine Frontend-Entwicklerin.</p>",
+    contractTerm: { kind: "permanent" },
+    notes: "",
   });
   expect(createLanguageModel).toHaveBeenCalledWith({
     provider: "openai",
@@ -320,8 +332,11 @@ test("POST /ai/job-import creates the job from the page", async () => {
     summary: "<p>Initech sucht eine Frontend-Entwicklerin.</p>",
     company: "Initech GmbH",
     position: "Frontend Developer",
+    benefits: ["Jobrad"],
     locations: ["München"],
     workModel: "remote",
+    contractTerm: { kind: "permanent" },
+    commuteDistance: null,
   });
   const [row] = await db.select().from(jobs).where(eq(jobs.id, job.id));
   expect(row).toMatchObject({ userId: "user-id", company: "Initech GmbH" });

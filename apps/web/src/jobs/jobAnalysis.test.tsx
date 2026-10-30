@@ -35,10 +35,10 @@ test("fills the empty fields after pasting a job ad", async () => {
 
   await pasteDescription(drawer);
 
-  expect(await within(drawer).findByText("AI filled in 7 fields")).toBeVisible();
+  expect(await within(drawer).findByText("AI filled in 9 fields")).toBeVisible();
   expect(analysisStatus(drawer)).toHaveTextContent(
-    "Summary, Company, Position, Salary, Locations, Work model, and Employment type. " +
-      "Please check the information.",
+    "Summary, Company, Position, Salary, Benefits, Employment type, Work model, " +
+      "Working hours, and Locations. Please check the information.",
   );
   expect(within(drawer).getByRole("textbox", { name: "Company" })).toHaveValue("Initech GmbH");
   expect(within(drawer).getByRole("textbox", { name: "Position" })).toHaveValue(
@@ -49,6 +49,8 @@ test("fills the empty fields after pasting a job ad", async () => {
   );
   expect(within(drawer).getByRole("combobox", { name: "Work model" })).toHaveTextContent("Remote");
   expect(within(drawer).getByRole("button", { name: "Munich" })).toBeVisible();
+  expect(within(drawer).getByRole("button", { name: "Job bike" })).toBeVisible();
+  expect(within(drawer).getByRole("textbox", { name: "Working hours" })).toHaveValue("40 hr");
   expect(within(drawer).getByRole("textbox", { name: "Description" })).toHaveTextContent(jobAd);
   expect(api.requestsWith("POST")[0]!.body).toEqual({ description: `<p>${jobAd}</p>` });
 });
@@ -60,7 +62,7 @@ test("does not overwrite fields the user already filled in", async () => {
   await userEvent.type(within(drawer).getByRole("textbox", { name: "Company" }), "Own name");
   await pasteDescription(drawer);
 
-  expect(await within(drawer).findByText("AI filled in 6 fields")).toBeVisible();
+  expect(await within(drawer).findByText("AI filled in 8 fields")).toBeVisible();
   expect(within(drawer).getByRole("textbox", { name: "Company" })).toHaveValue("Own name");
 });
 
@@ -90,7 +92,7 @@ test("shows the analysis in progress and lets the user keep editing", async () =
   await userEvent.type(within(drawer).getByRole("textbox", { name: "Position" }), "Lead");
 
   release();
-  expect(await within(drawer).findByText("AI filled in 6 fields")).toBeVisible();
+  expect(await within(drawer).findByText("AI filled in 8 fields")).toBeVisible();
   expect(within(drawer).getByRole("textbox", { name: "Position" })).toHaveValue("Lead");
 });
 
@@ -142,7 +144,7 @@ test("shows why the analysis failed and retries it", async () => {
   api.recover();
   await userEvent.click(within(drawer).getByRole("button", { name: "Try again" }));
 
-  expect(await within(drawer).findByText("AI filled in 7 fields")).toBeVisible();
+  expect(await within(drawer).findByText("AI filled in 9 fields")).toBeVisible();
 });
 
 test("dismisses the analysis result", async () => {

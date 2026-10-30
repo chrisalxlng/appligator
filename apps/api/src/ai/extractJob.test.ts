@@ -9,9 +9,19 @@ const modelOutput = {
   position: "Frontend Developer",
   summary: "Initech builds software.\n\nThe team works <remotely> & in Munich.",
   salary: { currency: "EUR", period: "year", min: 75_000.4, max: 60_000 },
-  locations: ["München", " ", "München", "Hamburg"],
-  workModel: "hybrid",
+  bonuses: ["13. Monatsgehalt", " "],
+  benefits: ["Jobrad"],
   employmentType: "fullTime",
+  workModel: "hybrid",
+  homeOfficePercentage: 79.6,
+  workingHours: { hours: 38.5, period: "week" },
+  locations: ["München", " ", "München", "Hamburg"],
+  vacationDays: 30,
+  startDate: "2027-02-01",
+  contractTerm: { kind: "months", months: 24, date: null },
+  probationMonths: 6,
+  noticePeriod: { amount: 4, unit: "weeks", endOf: "month" },
+  notes: ["Weiterbildungsbudget von 2.000 € <pro Jahr>", "Reisebereitschaft"],
   applicationDeadline: "2026-12-31",
 };
 
@@ -38,9 +48,21 @@ test("returns the extracted job information cleaned up", async () => {
     summary:
       "<p>Initech builds software.</p><p>The team works &lt;remotely&gt; &amp; in Munich.</p>",
     salary: { currency: "EUR", period: "year", min: 60_000, max: 75_000 },
-    locations: ["München", "Hamburg"],
-    workModel: "hybrid",
+    bonuses: ["13. Monatsgehalt"],
+    benefits: ["Jobrad"],
     employmentType: "fullTime",
+    workModel: "hybrid",
+    homeOfficePercentage: 80,
+    workingHours: { hours: 38.5, period: "week" },
+    locations: ["München", "Hamburg"],
+    vacationDays: 30,
+    startDate: "2027-02-01",
+    contractTerm: { kind: "months", months: 24 },
+    probationMonths: 6,
+    noticePeriod: { amount: 4, unit: "weeks", endOf: "month" },
+    notes:
+      "<ul><li><p>Weiterbildungsbudget von 2.000 € &lt;pro Jahr&gt;</p></li>" +
+      "<li><p>Reisebereitschaft</p></li></ul>",
     applicationDeadline: "2026-12-31",
   });
 });
@@ -52,9 +74,19 @@ test("returns empty values for missing information", async () => {
     position: null,
     summary: "",
     salary: null,
-    locations: [],
-    workModel: null,
+    bonuses: [],
+    benefits: [],
     employmentType: null,
+    workModel: null,
+    homeOfficePercentage: null,
+    workingHours: null,
+    locations: [],
+    vacationDays: null,
+    startDate: "as soon as possible",
+    contractTerm: null,
+    probationMonths: null,
+    noticePeriod: null,
+    notes: [],
     applicationDeadline: "end of November",
   });
 
@@ -63,11 +95,49 @@ test("returns empty values for missing information", async () => {
     position: null,
     summary: "",
     salary: null,
-    locations: [],
-    workModel: null,
+    bonuses: [],
+    benefits: [],
     employmentType: null,
+    workModel: null,
+    homeOfficePercentage: null,
+    workingHours: null,
+    locations: [],
+    vacationDays: null,
+    startDate: null,
+    contractTerm: null,
+    probationMonths: null,
+    noticePeriod: null,
+    notes: "",
     applicationDeadline: null,
   });
+});
+
+test.each([
+  ["a home office share above 100 percent", { homeOfficePercentage: 120 }],
+  ["no working hours", { workingHours: { hours: 0, period: "week" } }],
+  ["negative vacation days", { vacationDays: -5 }],
+  ["a fixed term without duration", { contractTerm: { kind: "months", months: null, date: null } }],
+  [
+    "a fixed term with an invalid end",
+    { contractTerm: { kind: "until", months: null, date: "soon" } },
+  ],
+  ["a notice period without amount", { noticePeriod: { amount: 0, unit: "months", endOf: null } }],
+])("drops %s", async (_case, override) => {
+  const { extraction } = await extract({ ...modelOutput, ...override });
+  const [field] = Object.keys(override) as (keyof typeof extraction)[];
+
+  expect(extraction[field!]).toBeNull();
+});
+
+test("keeps the notes within the length limit", async () => {
+  const notes = Array.from({ length: jobLimits.listItems }, (_, index) =>
+    `${index} `.padEnd(jobLimits.textLength, "x"),
+  );
+
+  const { extraction } = await extract({ ...modelOutput, notes });
+
+  expect(extraction.notes.length).toBeLessThanOrEqual(jobLimits.notesLength);
+  expect(extraction.notes).toMatch(/^<ul>.*<\/ul>$/);
 });
 
 test("drops an implausible salary", async () => {
@@ -87,7 +157,9 @@ test("sends the ad as plain text and asks for the configured language", async ()
 
   const [system, user] = call.prompt;
   expect(system).toMatchObject({ role: "system" });
-  expect(system!.content).toContain("Write the summary and the locations in English");
+  expect(system!.content).toContain(
+    "Write the summary, locations, bonuses, benefits and notes in English",
+  );
   expect(system!.content).toContain("Today is 2026-10-28.");
   expect(user).toMatchObject({
     role: "user",

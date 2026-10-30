@@ -12,9 +12,21 @@ const olderJob = jobWith({
   company: "Initech GmbH",
   position: "Frontend Developer",
   salary: null,
-  locations: [],
-  workModel: null,
+  bonuses: [],
+  benefits: [],
   employmentType: null,
+  workModel: null,
+  homeOfficePercentage: null,
+  workingHours: null,
+  locations: [],
+  commuteDistance: null,
+  commuteDuration: null,
+  vacationDays: null,
+  startDate: null,
+  contractTerm: null,
+  probationMonths: null,
+  noticePeriod: null,
+  notes: "",
   applicationDeadline: null,
   link: null,
   summary: "",
@@ -190,14 +202,48 @@ test("shows the details of a job", async () => {
     within(detail).getByText(name, { selector: "dt" }).nextElementSibling;
 
   expect(within(detail).getByText("Randstad Digital Germany AG")).toBeInTheDocument();
+  expect(property("Application deadline")).toHaveTextContent("December 31, 2026");
+  const details = within(detail).getByRole("region", { name: "Details" });
+  expect(
+    within(details)
+      .getAllByRole("term")
+      .map((term) => term.textContent),
+  ).toEqual([
+    "Salary",
+    "Bonuses",
+    "Benefit",
+    "Employment type",
+    "Work model",
+    "Home office",
+    "Working hours",
+    "Locations",
+    "Commute",
+    "Vacation days",
+    "Start date",
+    "Contract term",
+    "Probation",
+    "Notice period",
+    "Notes",
+  ]);
   expect(property("Salary")).toHaveTextContent("€65,000 – €75,000 / year");
-  expect(property("Locations")).toHaveTextContent("Düsseldorf, Hamburg");
-  expect(property("Work model")).toHaveTextContent("Hybrid");
+  expect(property("Bonuses")).toHaveTextContent("13. Monatsgehalt, Erfolgsbeteiligung");
+  expect(property("Benefit")).toHaveTextContent("50 € Brutto-Netto-Auszahlung");
   expect(property("Employment type")).toHaveTextContent("Full-time");
-  expect(property("Application deadline")).toHaveTextContent("Dec 31, 2026");
+  expect(property("Work model")).toHaveTextContent("Hybrid");
+  expect(property("Home office")).toHaveTextContent("80%");
+  expect(property("Working hours")).toHaveTextContent("38.5 h / week");
+  expect(property("Locations")).toHaveTextContent("Düsseldorf, Hamburg");
+  expect(property("Commute")).toHaveTextContent("17 km, 25 min");
+  expect(property("Vacation days")).toHaveTextContent("30");
+  expect(property("Start date")).toHaveTextContent("February 1, 2027");
+  expect(property("Contract term")).toHaveTextContent("Permanent");
+  expect(property("Probation")).toHaveTextContent("3 months");
+  expect(property("Notice period")).toHaveTextContent("4 weeks to the end of the month");
+  expect(property("Notes")).toHaveTextContent("Training budget of €2,000 per year");
   expect(document.title).toBe("Lead Developer Frontend • Appligator");
   expect(within(detail).getByText("Lead position with a focus on Angular.")).toBeInTheDocument();
-  expect(within(detail).getByRole("heading", { name: "Introduction" })).toBeInTheDocument();
+  const description = within(detail).getByRole("region", { name: "Description" });
+  expect(within(description).getByRole("heading", { name: "Introduction" })).toBeInTheDocument();
   expect(within(detail).getByRole("link", { name: "stepstone.de" })).toHaveAttribute(
     "href",
     jobFixture.link,
@@ -210,9 +256,47 @@ test("marks missing details as not specified", async () => {
 
   const detail = await screen.findByRole("article");
 
-  expect(within(detail).getAllByText("Not specified")).toHaveLength(5);
+  expect(within(detail).getByText("Application deadline", { selector: "dt" })).toBeVisible();
+  expect(within(detail).getAllByText("Not specified")).toHaveLength(1);
+  expect(within(detail).queryByRole("region")).not.toBeInTheDocument();
   expect(within(detail).queryByRole("link")).not.toBeInTheDocument();
 });
+
+test.each([
+  [
+    { kind: "months", months: 1 },
+    { amount: 1, unit: "months", endOf: null },
+    "Fixed term of 1 month",
+    "1 month",
+  ],
+  [
+    { kind: "until", date: "2028-01-31" },
+    { amount: 2, unit: "weeks", endOf: "quarter" },
+    "Fixed term until January 31, 2028",
+    "2 weeks to the end of the quarter",
+  ],
+] as const)(
+  "shows the contract term %o and notice period %o",
+  async (contractTerm, noticePeriod, term, notice) => {
+    const job = jobWith({
+      contractTerm,
+      noticePeriod,
+      locations: ["Hamburg"],
+      commuteDistance: null,
+    });
+    createFakeJobsApi([job]);
+    renderApp(`/jobs/${job.id}`);
+
+    const detail = await screen.findByRole("article");
+    const property = (name: string) =>
+      within(detail).getByText(name, { selector: "dt" }).nextElementSibling;
+
+    expect(property("Contract term")).toHaveTextContent(term);
+    expect(property("Notice period")).toHaveTextContent(notice);
+    expect(property("Location")).toHaveTextContent("Hamburg");
+    expect(property("Commute")?.textContent).toBe("25 min");
+  },
+);
 
 test("shows that a job does not exist", async () => {
   createFakeJobsApi([jobFixture]);
@@ -307,6 +391,61 @@ test("enters a salary range", async () => {
       max: 75_000,
     }),
   );
+});
+
+test("enters the details of a job", async () => {
+  const api = createFakeJobsApi();
+  renderApp("/jobs");
+  const drawer = await openAddDrawer();
+  const textbox = (name: string) => within(drawer).getByRole("textbox", { name });
+  async function choose(combobox: string, option: string) {
+    await userEvent.click(within(drawer).getByRole("combobox", { name: combobox }));
+    await userEvent.click(await screen.findByRole("option", { name: option }));
+  }
+
+  await userEvent.type(textbox("Company"), "Initech");
+  await userEvent.type(textbox("Position"), "Developer");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add bonus" }));
+  const addBonus = await screen.findByRole("dialog", { name: "Add bonus" });
+  await userEvent.type(within(addBonus).getByRole("textbox", { name: "Bonus" }), "Profit sharing");
+  await userEvent.click(within(addBonus).getByRole("button", { name: "Add" }));
+  await userEvent.type(textbox("Home office"), "60");
+  await userEvent.type(textbox("Working hours"), "38.5");
+  await choose("Working hours period", "Per month");
+  await userEvent.type(textbox("Distance"), "17");
+  await userEvent.type(textbox("Travel time"), "25");
+  await choose("Contract term", "Fixed term (duration)");
+  await userEvent.type(textbox("Duration in months"), "24");
+  await userEvent.type(textbox("Duration"), "3");
+  await choose("End of period", "To the end of the quarter");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+
+  await waitFor(() =>
+    expect(api.requestsWith("POST")[0]?.body).toMatchObject({
+      bonuses: ["Profit sharing"],
+      homeOfficePercentage: 60,
+      workingHours: { hours: 38.5, period: "month" },
+      commuteDistance: 17,
+      commuteDuration: 25,
+      contractTerm: { kind: "months", months: 24 },
+      noticePeriod: { amount: 3, unit: "months", endOf: "quarter" },
+    }),
+  );
+});
+
+test("requires the duration of a fixed-term contract", async () => {
+  const api = createFakeJobsApi();
+  renderApp("/jobs");
+  const drawer = await openAddDrawer();
+
+  await userEvent.type(within(drawer).getByRole("textbox", { name: "Company" }), "Initech");
+  await userEvent.type(within(drawer).getByRole("textbox", { name: "Position" }), "Developer");
+  await userEvent.click(within(drawer).getByRole("combobox", { name: "Contract term" }));
+  await userEvent.click(await screen.findByRole("option", { name: "Fixed term (end date)" }));
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+
+  expect(await within(drawer).findByText("Please enter the end date.")).toBeVisible();
+  expect(api.requestsWith("POST")).toHaveLength(0);
 });
 
 test("focuses the first field when adding a job", async () => {
@@ -408,7 +547,7 @@ test("rejects a location longer than a job allows", async () => {
 });
 
 test("offers no further location once a job has the most locations it allows", async () => {
-  const locations = Array.from({ length: jobLimits.locations }, (_, index) => `City ${index}`);
+  const locations = Array.from({ length: jobLimits.listItems }, (_, index) => `City ${index}`);
   createFakeJobsApi([{ ...olderJob, locations }]);
   renderApp(`/jobs/${olderJob.id}`);
   const drawer = await openEditDrawer();

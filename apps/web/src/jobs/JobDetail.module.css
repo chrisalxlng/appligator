@@ -27,7 +27,9 @@
   flex-direction: column;
   gap: var(--spacing-5);
   margin: 0;
+}
 
+.meta {
   @container (width >= 600px) {
     margin-top: var(--spacing-4);
   }
@@ -90,11 +92,18 @@
   }
 }
 
-.separator {
-  width: 100%;
-  margin: var(--spacing-4) 0;
-  border: none;
-  border-top: var(--border-width-s) solid var(--separator);
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-6);
+}
+
+.sectionTitle {
+  padding-bottom: var(--spacing-3);
+  border-bottom: var(--border-width-s) solid var(--separator);
+  font: var(--font-heading-s);
+  letter-spacing: var(--tracking-heading-s);
 }
 
 .visuallyHidden {
