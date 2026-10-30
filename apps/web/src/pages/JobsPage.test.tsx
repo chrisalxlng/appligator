@@ -11,6 +11,8 @@ const olderJob = jobWith({
   id: "2b7e4c10-5a3d-4e8f-9b21-0c4d5e6f7a8b",
   company: "Initech GmbH",
   position: "Frontend Developer",
+  companyType: null,
+  employeeCount: null,
   salary: null,
   bonuses: [],
   benefits: [],
@@ -209,6 +211,7 @@ test("shows the details of a job", async () => {
       .getAllByRole("term")
       .map((term) => term.textContent),
   ).toEqual([
+    "Company",
     "Salary",
     "Bonuses",
     "Benefit",
@@ -225,6 +228,7 @@ test("shows the details of a job", async () => {
     "Notice period",
     "Notes",
   ]);
+  expect(property("Company")).toHaveTextContent("Corporation • about 60,000 employees");
   expect(property("Salary")).toHaveTextContent("€65,000 – €75,000 / year");
   expect(property("Bonuses")).toHaveTextContent("13. Monatsgehalt, Erfolgsbeteiligung");
   expect(property("Benefit")).toHaveTextContent("50 € Brutto-Netto-Auszahlung");
@@ -283,6 +287,8 @@ test.each([
       noticePeriod,
       locations: ["Hamburg"],
       commuteDistance: null,
+      companyType: null,
+      employeeCount: 1,
     });
     createFakeJobsApi([job]);
     renderApp(`/jobs/${job.id}`);
@@ -295,6 +301,7 @@ test.each([
     expect(property("Notice period")).toHaveTextContent(notice);
     expect(property("Location")).toHaveTextContent("Hamburg");
     expect(property("Commute")?.textContent).toBe("25 min");
+    expect(property("Company")?.textContent).toBe("about 1 employee");
   },
 );
 
@@ -405,6 +412,8 @@ test("enters the details of a job", async () => {
 
   await userEvent.type(textbox("Company"), "Initech");
   await userEvent.type(textbox("Position"), "Developer");
+  await choose("Company type", "Startup");
+  await userEvent.type(textbox("Employees"), "25");
   await userEvent.click(within(drawer).getByRole("button", { name: "Add bonus" }));
   const addBonus = await screen.findByRole("dialog", { name: "Add bonus" });
   await userEvent.type(within(addBonus).getByRole("textbox", { name: "Bonus" }), "Profit sharing");
@@ -422,6 +431,8 @@ test("enters the details of a job", async () => {
 
   await waitFor(() =>
     expect(api.requestsWith("POST")[0]?.body).toMatchObject({
+      companyType: "startup",
+      employeeCount: 25,
       bonuses: ["Profit sharing"],
       homeOfficePercentage: 60,
       workingHours: { hours: 38.5, period: "month" },

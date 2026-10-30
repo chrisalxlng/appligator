@@ -3,6 +3,7 @@ import { RichText } from "@appligator/ui";
 import {
   IconBasketHeart,
   IconBeach,
+  IconBuildingSkyscraper,
   IconBuilding,
   IconCalendar,
   IconClock,
@@ -109,7 +110,21 @@ function useDetails(job: Job): Detail[] {
     job.commuteDuration !== null && formatUnit(job.commuteDuration, "minute", locale),
   ].filter(Boolean);
 
+  const companySize = [
+    job.companyType !== null && t(`jobs.companyType.${job.companyType}`),
+    job.employeeCount !== null &&
+      t("jobs.employees", {
+        count: job.employeeCount,
+        amount: formatNumber(job.employeeCount, locale),
+      }),
+  ].filter(Boolean);
+
   const details: (Detail | false)[] = [
+    companySize.length > 0 && {
+      icon: IconBuildingSkyscraper,
+      label: t("jobs.properties.companySize"),
+      value: companySize.join(" • "),
+    },
     job.salary !== null && {
       icon: IconCurrencyDollar,
       label: t("jobs.properties.salary"),

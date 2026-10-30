@@ -14,6 +14,8 @@ export const jobFixture: Job = {
   summary: "<p>Lead position with a focus on Angular.</p>",
   company: "Randstad Digital Germany AG",
   position: "Lead Developer Frontend",
+  companyType: "corporation",
+  employeeCount: 60_000,
   salary: { currency: "EUR", period: "year", min: 65_000, max: 75_000 },
   bonuses: ["13. Monatsgehalt", "Erfolgsbeteiligung"],
   benefits: ["50 € Brutto-Netto-Auszahlung"],

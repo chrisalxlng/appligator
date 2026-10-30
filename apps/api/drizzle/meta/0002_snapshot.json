@@ -1,5 +1,5 @@
 {
-  "id": "eabad1ec-aa1b-4ec4-b5a9-b9a746be3e22",
+  "id": "e5858186-b72b-4245-8117-156ad418db89",
   "prevId": "13fda2b0-db61-4784-ac69-9c0110a800df",
   "version": "7",
   "dialect": "postgresql",
@@ -109,6 +109,19 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "company_type": {
+          "name": "company_type",
+          "type": "company_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employee_count": {
+          "name": "employee_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "salary_currency": {
           "name": "salary_currency",
@@ -300,6 +313,16 @@
         "anthropic",
         "google",
         "mistral"
+      ]
+    },
+    "public.company_type": {
+      "name": "company_type",
+      "schema": "public",
+      "values": [
+        "startup",
+        "midsize",
+        "corporation",
+        "publicSector"
       ]
     },
     "public.currency": {

@@ -9,6 +9,8 @@ export const jobExtractionSchema = z.object({
   summary: jobFields.summary,
   company: z.string().max(jobLimits.textLength).nullable(),
   position: z.string().max(jobLimits.textLength).nullable(),
+  companyType: jobFields.companyType,
+  employeeCount: jobFields.employeeCount,
   salary: jobFields.salary,
   bonuses: jobFields.bonuses,
   benefits: jobFields.benefits,

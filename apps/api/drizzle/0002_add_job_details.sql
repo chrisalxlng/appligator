@@ -1,3 +1,6 @@
+CREATE TYPE "public"."company_type" AS ENUM('startup', 'midsize', 'corporation', 'publicSector');--> statement-breakpoint
+ALTER TABLE "jobs" ADD COLUMN "company_type" "company_type";--> statement-breakpoint
+ALTER TABLE "jobs" ADD COLUMN "employee_count" integer;--> statement-breakpoint
 ALTER TABLE "jobs" ADD COLUMN "bonuses" text[] DEFAULT '{}' NOT NULL;--> statement-breakpoint
 ALTER TABLE "jobs" ADD COLUMN "benefits" text[] DEFAULT '{}' NOT NULL;--> statement-breakpoint
 ALTER TABLE "jobs" ADD COLUMN "home_office_percentage" integer;--> statement-breakpoint

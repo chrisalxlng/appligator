@@ -48,6 +48,7 @@ export const de: Translations = {
     },
     properties: {
       applicationDeadline: "Bewerbungsfrist",
+      companySize: "Unternehmen",
       salary: "Gehalt",
       bonuses_one: "Bonus",
       bonuses_other: "Boni",
@@ -68,6 +69,14 @@ export const de: Translations = {
       notes: "Notizen",
     },
     notSpecified: "Keine Angabe",
+    companyType: {
+      startup: "Startup",
+      midsize: "Mittelstand",
+      corporation: "Konzern",
+      publicSector: "Öffentlicher Dienst",
+    },
+    employees_one: "ca. {{amount}} Mitarbeitende",
+    employees_other: "ca. {{amount}} Mitarbeitende",
     workingHoursPerPeriod: {
       week: "{{hours}} h / Woche",
       month: "{{hours}} h / Monat",
@@ -141,6 +150,9 @@ export const de: Translations = {
       salaryMax: "Gehalt bis",
       salaryTo: "bis",
       salaryPeriod: "Zeitraum",
+      companySize: "Unternehmensgröße",
+      companyType: "Unternehmenstyp",
+      employeeCount: "Mitarbeitende",
       bonuses: "Boni",
       benefits: "Benefits",
       employmentType: "Anstellungsart",

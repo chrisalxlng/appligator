@@ -1,4 +1,5 @@
 import {
+  companyTypes,
   contractTermKinds,
   currencies,
   employmentTypes,
@@ -177,6 +178,31 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           clearLabel={clearLabel}
         />
       </Field>
+      <Fieldset legend={t("jobs.form.companySize")}>
+        <div className={styles.pair}>
+          <Select
+            aria-label={t("jobs.form.companyType")}
+            items={companyTypes.map((companyType) => ({
+              value: companyType,
+              label: t(`jobs.companyType.${companyType}`),
+            }))}
+            value={values.companyType}
+            onValueChange={setValue("companyType")}
+            placeholder={t("jobs.form.companyType")}
+            clearable
+            clearLabel={clearLabel}
+          />
+          <NumberInput
+            aria-label={t("jobs.form.employeeCount")}
+            placeholder={t("jobs.form.employeeCount")}
+            locale={i18n.language}
+            min={1}
+            max={jobLimits.employeeCount}
+            value={values.employeeCount}
+            onValueChange={setValue("employeeCount")}
+          />
+        </div>
+      </Fieldset>
       <Fieldset legend={t("jobs.form.salary")} error={errorFor("salary")}>
         <div className={styles.salaryRange}>
           <Select

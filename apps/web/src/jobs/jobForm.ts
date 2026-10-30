@@ -1,6 +1,7 @@
 import {
   jobLimits,
   maxNoticePeriod,
+  type CompanyType,
   type ContractTerm,
   type ContractTermKind,
   type Currency,
@@ -23,6 +24,8 @@ export interface JobFormValues {
   summary: string;
   company: string;
   position: string;
+  companyType: CompanyType | null;
+  employeeCount: number | null;
   salaryCurrency: Currency | null;
   salaryMin: number | null;
   salaryMax: number | null;
@@ -90,6 +93,8 @@ export function toFormValues(job?: Job): JobFormValues {
     summary: job?.summary ?? "",
     company: job?.company ?? "",
     position: job?.position ?? "",
+    companyType: job?.companyType ?? null,
+    employeeCount: job?.employeeCount ?? null,
     salaryCurrency: job?.salary?.currency ?? null,
     salaryMin: job?.salary?.min ?? null,
     salaryMax: job?.salary?.max ?? null,
@@ -236,6 +241,8 @@ export function validateJobForm(values: JobFormValues): ValidationResult {
       summary: values.summary,
       company,
       position,
+      companyType: values.companyType,
+      employeeCount: values.employeeCount,
       salary,
       bonuses: values.bonuses,
       benefits: values.benefits,
@@ -279,6 +286,14 @@ const fieldFillers: Record<ExtractedField, FieldFiller> = {
   position: {
     isEmpty: (values) => !values.position.trim(),
     fill: ({ position }) => (position ? { position } : null),
+  },
+  companyType: {
+    isEmpty: (values) => values.companyType === null,
+    fill: ({ companyType }) => companyType && { companyType },
+  },
+  employeeCount: {
+    isEmpty: (values) => values.employeeCount === null,
+    fill: ({ employeeCount }) => (employeeCount === null ? null : { employeeCount }),
   },
   salary: {
     isEmpty: ({ salaryCurrency, salaryPeriod, salaryMin, salaryMax }) =>

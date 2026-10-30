@@ -46,6 +46,7 @@ export const en = {
     },
     properties: {
       applicationDeadline: "Application deadline",
+      companySize: "Company",
       salary: "Salary",
       bonuses_one: "Bonus",
       bonuses_other: "Bonuses",
@@ -66,6 +67,14 @@ export const en = {
       notes: "Notes",
     },
     notSpecified: "Not specified",
+    companyType: {
+      startup: "Startup",
+      midsize: "Small or medium-sized company",
+      corporation: "Corporation",
+      publicSector: "Public sector",
+    },
+    employees_one: "about {{amount}} employee",
+    employees_other: "about {{amount}} employees",
     workingHoursPerPeriod: {
       week: "{{hours}} h / week",
       month: "{{hours}} h / month",
@@ -139,6 +148,9 @@ export const en = {
       salaryMax: "Maximum salary",
       salaryTo: "to",
       salaryPeriod: "Period",
+      companySize: "Company size",
+      companyType: "Company type",
+      employeeCount: "Employees",
       bonuses: "Bonuses",
       benefits: "Benefits",
       employmentType: "Employment type",

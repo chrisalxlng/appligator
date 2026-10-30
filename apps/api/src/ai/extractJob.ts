@@ -1,4 +1,5 @@
 import {
+  companyTypes,
   contractTermKinds,
   currencies,
   employmentTypes,
@@ -31,6 +32,20 @@ const extractionSchema = z.object({
     .string()
     .nullable()
     .describe("Job title as stated in the ad, without gender markers such as (m/w/d)."),
+  companyType: z
+    .enum(companyTypes)
+    .nullable()
+    .describe(
+      "midsize is a small or medium-sized company such as a German Mittelstand company, " +
+        "corporation a large company or group, publicSector a public authority or institution. " +
+        "Only if the ad states it or makes it evident.",
+    ),
+  employeeCount: z
+    .number()
+    .nullable()
+    .describe(
+      "Number of employees of the company, for 'over 1,000' 1000, only if the ad states it.",
+    ),
   summary: z
     .string()
     .describe(
@@ -233,6 +248,8 @@ function toJobExtraction(extraction: Extraction): JobExtraction {
     summary: toParagraphs(extraction.summary),
     company: cleanText(extraction.company),
     position: cleanText(extraction.position),
+    companyType: extraction.companyType,
+    employeeCount: cleanInteger(extraction.employeeCount, 1, jobLimits.employeeCount),
     salary: cleanSalary(extraction.salary),
     bonuses: cleanTextList(extraction.bonuses),
     benefits: cleanTextList(extraction.benefits).slice(0, maxBenefits),

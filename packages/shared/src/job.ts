@@ -10,6 +10,7 @@ export const employmentTypes = [
   "internship",
   "freelance",
 ] as const;
+export const companyTypes = ["startup", "midsize", "corporation", "publicSector"] as const;
 export const workingHoursPeriods = ["week", "month"] as const;
 export const contractTermKinds = ["permanent", "months", "until"] as const;
 export const noticePeriodUnits = ["weeks", "months"] as const;
@@ -22,6 +23,7 @@ export const jobLimits = {
   notesLength: 10_000,
   listItems: 50,
   salary: 100_000_000,
+  employeeCount: 10_000_000,
   workingHours: 1_000,
   commuteDistance: 10_000,
   commuteDuration: 10_000,
@@ -82,6 +84,8 @@ export const jobInputSchema = z.object({
   summary: z.string().max(jobLimits.summaryLength),
   company: requiredText,
   position: requiredText,
+  companyType: z.enum(companyTypes).nullable(),
+  employeeCount: z.int().min(1).max(jobLimits.employeeCount).nullable(),
   salary: salarySchema.nullable(),
   bonuses: textList,
   benefits: textList,
@@ -123,6 +127,7 @@ export type Currency = (typeof currencies)[number];
 export type SalaryPeriod = (typeof salaryPeriods)[number];
 export type WorkModel = (typeof workModels)[number];
 export type EmploymentType = (typeof employmentTypes)[number];
+export type CompanyType = (typeof companyTypes)[number];
 export type WorkingHoursPeriod = (typeof workingHoursPeriods)[number];
 export type NoticePeriodUnit = (typeof noticePeriodUnits)[number];
 export type NoticePeriodEnd = (typeof noticePeriodEnds)[number];

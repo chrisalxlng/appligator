@@ -7,6 +7,8 @@ import type { JobPage } from "./jobPage.ts";
 const modelOutput = {
   company: " Initech GmbH ",
   position: "Frontend Developer",
+  companyType: "midsize",
+  employeeCount: 1_000.2,
   summary: "Initech builds software.\n\nThe team works <remotely> & in Munich.",
   salary: { currency: "EUR", period: "year", min: 75_000.4, max: 60_000 },
   bonuses: ["13. Monatsgehalt", " "],
@@ -45,6 +47,8 @@ test("returns the extracted job information cleaned up", async () => {
   expect(extraction).toEqual({
     company: "Initech GmbH",
     position: "Frontend Developer",
+    companyType: "midsize",
+    employeeCount: 1_000,
     summary:
       "<p>Initech builds software.</p><p>The team works &lt;remotely&gt; &amp; in Munich.</p>",
     salary: { currency: "EUR", period: "year", min: 60_000, max: 75_000 },
@@ -72,6 +76,8 @@ test("returns empty values for missing information", async () => {
     ...modelOutput,
     company: " ",
     position: null,
+    companyType: null,
+    employeeCount: null,
     summary: "",
     salary: null,
     bonuses: [],
@@ -93,6 +99,8 @@ test("returns empty values for missing information", async () => {
   expect(extraction).toEqual({
     company: null,
     position: null,
+    companyType: null,
+    employeeCount: null,
     summary: "",
     salary: null,
     bonuses: [],
@@ -113,6 +121,7 @@ test("returns empty values for missing information", async () => {
 });
 
 test.each([
+  ["a company without employees", { employeeCount: 0 }],
   ["a home office share above 100 percent", { homeOfficePercentage: 120 }],
   ["no working hours", { workingHours: { hours: 0, period: "week" } }],
   ["negative vacation days", { vacationDays: -5 }],

@@ -32,6 +32,8 @@ export const jobExtractionFixture: JobExtraction = {
   summary: "<p>Initech is looking for a frontend developer.</p>",
   company: "Initech GmbH",
   position: "Frontend Developer",
+  companyType: null,
+  employeeCount: null,
   salary: { currency: "EUR", period: "year", min: 60_000, max: 70_000 },
   bonuses: [],
   benefits: ["Job bike"],

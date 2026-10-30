@@ -1,6 +1,7 @@
 import {
   aiLanguages,
   aiProviders,
+  companyTypes,
   currencies,
   employmentTypes,
   salaryPeriods,
@@ -23,6 +24,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+export const companyTypeEnum = pgEnum("company_type", companyTypes);
 export const currencyEnum = pgEnum("currency", currencies);
 export const salaryPeriodEnum = pgEnum("salary_period", salaryPeriods);
 export const workModelEnum = pgEnum("work_model", workModels);
@@ -40,6 +42,8 @@ export const jobs = pgTable(
     summary: text().notNull(),
     company: text().notNull(),
     position: text().notNull(),
+    companyType: companyTypeEnum(),
+    employeeCount: integer(),
     salaryCurrency: currencyEnum(),
     salaryPeriod: salaryPeriodEnum(),
     salaryMin: integer(),

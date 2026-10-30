@@ -216,6 +216,8 @@ test.each([
 const extractionOutput = {
   company: "Initech GmbH",
   position: "Frontend Developer",
+  companyType: "startup",
+  employeeCount: 40,
   summary: "Initech sucht eine Frontend-Entwicklerin.",
   salary: null,
   bonuses: [],
