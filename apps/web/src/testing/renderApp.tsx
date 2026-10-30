@@ -1,7 +1,7 @@
-import { QueryClient } from "@tanstack/react-query";
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import { vi } from "vite-plus/test";
+import { createQueryClient } from "../api/queryClient.ts";
 import type { Auth } from "../auth/authenticate.ts";
 import { createAppRouter } from "../router.tsx";
 
@@ -23,7 +23,8 @@ export function renderApp(
   { viewport = "desktop", authentication = Promise.resolve(testAuth) }: RenderAppOptions = {},
 ) {
   window.innerWidth = viewportWidths[viewport];
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = createQueryClient();
+  queryClient.setQueryDefaults([], { retry: false });
   const router = createAppRouter(authentication, {
     history: createMemoryHistory({ initialEntries: [path] }),
     queryClient,
