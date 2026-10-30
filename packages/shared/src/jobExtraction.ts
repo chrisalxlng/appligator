@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jobInputSchema } from "./job.ts";
+import { jobInputSchema, jobLimits } from "./job.ts";
 
 const { description, summary, salary, locations, workModel, employmentType, applicationDeadline } =
   jobInputSchema.shape;
@@ -8,8 +8,8 @@ export const jobExtractionInputSchema = z.object({ description: description.trim
 
 export const jobExtractionSchema = z.object({
   summary,
-  company: z.string().max(200).nullable(),
-  position: z.string().max(200).nullable(),
+  company: z.string().max(jobLimits.textLength).nullable(),
+  position: z.string().max(jobLimits.textLength).nullable(),
   salary,
   locations,
   workModel,

@@ -11,7 +11,7 @@ import {
   type AiSettingsInput,
 } from "@appligator/shared";
 import { eq } from "drizzle-orm";
-import type { FastifyReply } from "fastify";
+import type { FastifyBaseLogger, FastifyReply } from "fastify";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { aiErrorStatus, toAiErrorCode } from "../ai/aiError.ts";
@@ -60,12 +60,24 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
   app,
   { apiKeyCipher, modelCatalog, createLanguageModel },
 ) => {
-  async function loadLanguageModel(userId: string) {
+  // A key stored with another encryption secret can't be decrypted and counts as missing.
+  function readApiKey({ encryptedApiKey, userId }: AiSettingsRow, log: FastifyBaseLogger) {
+    try {
+      return apiKeyCipher.decrypt(encryptedApiKey, userId);
+    } catch (error) {
+      log.error(error, "Decrypting the stored API key failed");
+      return undefined;
+    }
+  }
+
+  async function loadLanguageModel(userId: string, log: FastifyBaseLogger) {
     const [settings] = await app.db.select().from(aiSettings).where(eq(aiSettings.userId, userId));
     if (!settings) return undefined;
 
-    const { provider, model, encryptedApiKey, language } = settings;
-    const apiKey = apiKeyCipher.decrypt(encryptedApiKey, userId);
+    const apiKey = readApiKey(settings, log);
+    if (!apiKey) return undefined;
+
+    const { provider, model, language } = settings;
     return { model: createLanguageModel({ provider, model, apiKey }), language };
   }
 
@@ -120,8 +132,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
 
       const keepsProvider = existing?.provider === input.provider;
       const apiKey =
-        input.apiKey ??
-        (keepsProvider ? apiKeyCipher.decrypt(existing.encryptedApiKey, userId) : undefined);
+        input.apiKey ?? (keepsProvider ? readApiKey(existing, request.log) : undefined);
       if (!apiKey) return reply.code(422).send({ error: "apiKeyRequired" });
 
       try {
@@ -158,7 +169,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
       },
     },
     async (request, reply) => {
-      const languageModel = await loadLanguageModel(request.userId);
+      const languageModel = await loadLanguageModel(request.userId, request.log);
       if (!languageModel) return reply.code(409).send({ error: "notConfigured" });
 
       try {
@@ -186,7 +197,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
       },
     },
     async (request, reply) => {
-      const languageModel = await loadLanguageModel(request.userId);
+      const languageModel = await loadLanguageModel(request.userId, request.log);
       if (!languageModel) return reply.code(409).send({ error: "notConfigured" });
 
       const { link, html } = request.body;

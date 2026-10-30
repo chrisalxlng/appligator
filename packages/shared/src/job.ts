@@ -11,8 +11,16 @@ export const employmentTypes = [
   "freelance",
 ] as const;
 
-const requiredText = z.string().trim().min(1).max(200);
-const salaryAmount = z.int().min(0).max(100_000_000);
+export const jobLimits = {
+  textLength: 200,
+  descriptionLength: 100_000,
+  summaryLength: 10_000,
+  locations: 50,
+  salary: 100_000_000,
+};
+
+const requiredText = z.string().trim().min(1).max(jobLimits.textLength);
+const salaryAmount = z.int().min(0).max(jobLimits.salary);
 
 const salarySchema = z
   .object({
@@ -31,12 +39,12 @@ export const jobInputSchema = z.object({
     .url({ protocol: /^https?$/ })
     .max(2_000)
     .nullable(),
-  description: z.string().max(100_000),
-  summary: z.string().max(10_000),
+  description: z.string().max(jobLimits.descriptionLength),
+  summary: z.string().max(jobLimits.summaryLength),
   company: requiredText,
   position: requiredText,
   salary: salarySchema.nullable(),
-  locations: z.array(requiredText).max(50),
+  locations: z.array(requiredText).max(jobLimits.locations),
   workModel: z.enum(workModels).nullable(),
   employmentType: z.enum(employmentTypes).nullable(),
   applicationDeadline: z.iso.date().nullable(),

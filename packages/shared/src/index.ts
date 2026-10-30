@@ -19,6 +19,7 @@ export {
   employmentTypes,
   jobInputSchema,
   jobListItemSchema,
+  jobLimits,
   jobListPageSchema,
   jobSchema,
   salaryPeriods,

@@ -1,6 +1,7 @@
 import {
   currencies,
   employmentTypes,
+  jobLimits,
   salaryPeriods,
   workModels,
   type AiLanguage,
@@ -12,9 +13,6 @@ import { escapeHtml, htmlToText } from "./htmlToText.ts";
 import { blocksToHtml, type Block, type JobPage } from "./jobPage.ts";
 
 const maxDescriptionLength = 50_000;
-const maxTextLength = 200;
-const maxLocations = 50;
-const maxSalary = 100_000_000;
 
 const languageNames: Record<AiLanguage, string> = { de: "German", en: "English" };
 
@@ -82,7 +80,7 @@ function instructions(language: AiLanguage, today: string) {
 
 function cleanText(value: string | null) {
   const text = value?.trim();
-  return text ? text.slice(0, maxTextLength) : null;
+  return text ? text.slice(0, jobLimits.textLength) : null;
 }
 
 function cleanSalary(salary: Extraction["salary"]) {
@@ -90,13 +88,14 @@ function cleanSalary(salary: Extraction["salary"]) {
 
   const min = Math.round(Math.min(salary.min, salary.max));
   const max = Math.round(Math.max(salary.min, salary.max));
-  if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max > maxSalary) return null;
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max > jobLimits.salary)
+    return null;
   return { currency: salary.currency, period: salary.period, min, max };
 }
 
 function cleanLocations(locations: string[]) {
   const unique = new Set(locations.map(cleanText).filter((location) => location !== null));
-  return [...unique].slice(0, maxLocations);
+  return [...unique].slice(0, jobLimits.locations);
 }
 
 function cleanDate(date: string | null) {
@@ -157,9 +156,17 @@ export async function extractJob({
   );
 }
 
+// The description keeps the blocks as HTML, which escaping and markup make longer than the text.
+const maxBlockMarkupLength = "<ul><li><p></p></li></ul>".length;
+
 function limitBlocks(blocks: Block[]) {
-  let length = 0;
-  return blocks.filter(({ text }) => (length += text.length + 1) <= maxDescriptionLength);
+  let textLength = 0;
+  let htmlLength = 0;
+  return blocks.filter(({ text }) => {
+    textLength += text.length + 1;
+    htmlLength += escapeHtml(text).length + maxBlockMarkupLength;
+    return textLength <= maxDescriptionLength && htmlLength <= jobLimits.descriptionLength;
+  });
 }
 
 function blocksToText(blocks: Block[]) {
