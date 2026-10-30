@@ -42,7 +42,10 @@ const extractionSchema = z.object({
   company: z.string().describe("Name of the hiring company as stated in the ad."),
   position: z
     .string()
-    .describe("Job title as stated in the ad, without gender markers such as (m/w/d)."),
+    .describe(
+      "Job title as stated in the ad, without gender markers such as (m/w/d) and without " +
+        "recruiting phrases around it such as 'Werde', 'Wir suchen dich als' or 'Join us as'.",
+    ),
   companyType: enumWithUnknown(companyTypes).describe(
     "midsize is a small or medium-sized company such as a German Mittelstand company, " +
       "corporation a large company or group, publicSector a public authority or institution. " +
@@ -157,7 +160,7 @@ function instructions(language: AiLanguage, today: string) {
       `an empty list, ${unknown} or null.`,
     `Write the summary, locations, bonuses, benefits and notes in ${languageName}, ` +
       "even if the ad uses another language.",
-    "Keep the company name and the job title as written in the ad.",
+    "Keep the company name and the job title in the wording of the ad.",
     `Today is ${today}. Resolve deadlines without a year relative to today.`,
   ].join("\n");
 }
