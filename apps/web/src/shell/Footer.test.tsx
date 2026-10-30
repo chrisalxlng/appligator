@@ -13,6 +13,6 @@ test("shows the copyright of the current year and the app version", () => {
   render(<Footer />);
 
   expect(screen.getByRole("contentinfo")).toHaveTextContent(
-    `© 2031 Christopher Lang · v${packageJson.version}`,
+    `© 2031 Christopher Lang • v${packageJson.version}`,
   );
 });
