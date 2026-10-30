@@ -77,4 +77,4 @@ Summarize the self-review findings and what was fixed in the PR description.
 
 ## Hooks
 
-`.vite-hooks/commit-msg` enforces the commit convention, `.vite-hooks/pre-push` the branch naming. Never bypass hooks with `--no-verify`; fix the cause instead.
+`.vite-hooks/commit-msg` enforces the commit convention, `.vite-hooks/pre-push` the branch naming. `.vite-hooks/post-checkout` and `.vite-hooks/post-merge` run `vp install` when `pnpm-lock.yaml` changes with a branch switch, pull or merge. Never bypass hooks with `--no-verify`; fix the cause instead.
