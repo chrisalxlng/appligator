@@ -150,6 +150,15 @@ test("opens the first job on desktop", async () => {
   );
 });
 
+test("loads the jobs only once when opening the first job", async () => {
+  const api = createFakeJobsApi([jobFixture, olderJob]);
+  renderApp("/jobs");
+
+  await screen.findByRole("heading", { level: 2, name: "Lead Developer Frontend" });
+
+  expect(api.requestsWith("GET").filter(({ path }) => path === "/jobs")).toHaveLength(1);
+});
+
 test("shows the list and an opened job one at a time on medium screens", async () => {
   createFakeJobsApi([jobFixture]);
   const router = renderApp("/jobs", { viewport: "tablet" });
