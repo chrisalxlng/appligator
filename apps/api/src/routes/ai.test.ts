@@ -142,6 +142,22 @@ test("PUT /ai/settings requires a new API key when changing the provider", async
   expect(await storedRow()).toMatchObject({ provider: "openai" });
 });
 
+async function storeUndecryptableApiKey() {
+  await db.update(aiSettings).set({ encryptedApiKey: "v1.unreadable.key.value" });
+}
+
+test("PUT /ai/settings requires a new API key when the stored one cannot be decrypted", async () => {
+  await saveSettings();
+  await storeUndecryptableApiKey();
+
+  const response = await request("PUT", "/ai/settings", {
+    body: { provider: "openai", model: "gpt-6-sol", language: "de" },
+  });
+
+  expect(response.statusCode).toBe(422);
+  expect(response.json()).toEqual({ error: "apiKeyRequired" });
+});
+
 test("PUT /ai/settings changes only the language without verifying the access again", async () => {
   const { accessUpdatedAt } = await saveSettings();
   const { apiKey: _apiKey, ...withoutApiKey } = settingsInput;
@@ -231,6 +247,17 @@ test("POST /ai/job-extraction extracts the job with the stored access", async ()
 });
 
 test("POST /ai/job-extraction responds with 409 without an AI access", async () => {
+  const response = await extractJob();
+
+  expect(response.statusCode).toBe(409);
+  expect(response.json()).toEqual({ error: "notConfigured" });
+  expect(createLanguageModel).not.toHaveBeenCalled();
+});
+
+test("POST /ai/job-extraction responds with 409 when the stored API key cannot be decrypted", async () => {
+  await saveSettings();
+  await storeUndecryptableApiKey();
+
   const response = await extractJob();
 
   expect(response.statusCode).toBe(409);

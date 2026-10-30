@@ -3,11 +3,11 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { jobs } from "../db/schema.ts";
+import { notFoundSchema } from "./notFound.ts";
 
 type JobRow = typeof jobs.$inferSelect;
 
 const jobParamsSchema = z.object({ id: z.uuid() });
-const notFoundSchema = z.object({ error: z.literal("Not Found") });
 
 const defaultPageSize = 30;
 const maxPageSize = 100;

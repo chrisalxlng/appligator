@@ -27,7 +27,6 @@ export const en = {
       title: "More jobs could not be loaded",
       description: "Check your connection and try again.",
     },
-    retry: "Try again",
     empty: {
       title: "No jobs yet",
       description: "Add your first job.",
@@ -97,9 +96,11 @@ export const en = {
       errors: {
         companyRequired: "Please enter a company.",
         positionRequired: "Please enter a position.",
+        tooLong: "This text is too long. Please shorten it.",
         linkInvalid: "Please enter a valid link.",
         salaryIncomplete: "Please enter currency, amount and period.",
         salaryRange: "The minimum must not exceed the maximum.",
+        salaryTooHigh: "This amount is too high.",
       },
     },
     analysis: {
@@ -132,6 +133,7 @@ export const en = {
       update: "Update",
       remove: "Remove {{location}}",
       required: "Please enter a location.",
+      tooLong: "This location is too long. Please shorten it.",
     },
     toast: {
       added: "Job added",
@@ -159,7 +161,7 @@ export const en = {
   },
   profile: {
     account: "Account",
-    logout: "Sign out",
+    logout: "Log out",
   },
   ai: {
     title: "AI features",
@@ -222,6 +224,9 @@ export const en = {
       deleted: "AI access deleted",
       languageUpdated: "AI language updated",
     },
+  },
+  loadError: {
+    retry: "Try again",
   },
   error: {
     title: "Something went wrong",

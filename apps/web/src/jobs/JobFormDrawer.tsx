@@ -133,7 +133,7 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           onValueChange={setValue("link")}
         />
       </Field>
-      <Field label={t("jobs.form.description")}>
+      <Field label={t("jobs.form.description")} error={errorFor("description")}>
         <RichTextEditor
           value={values.description}
           onValueChange={setValue("description")}
@@ -146,7 +146,7 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
         onRetry={() => retry(values.description)}
         onDismiss={dismiss}
       />
-      <Field label={t("jobs.form.summary")}>
+      <Field label={t("jobs.form.summary")} error={errorFor("summary")}>
         <RichTextEditor
           value={values.summary}
           onValueChange={setValue("summary")}

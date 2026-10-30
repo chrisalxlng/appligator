@@ -1,4 +1,10 @@
-import { aiProviders, type AiProvider, type AiSettings } from "@appligator/shared";
+import {
+  aiProviders,
+  detectLanguage,
+  type AiErrorCode,
+  type AiProvider,
+  type AiSettings,
+} from "@appligator/shared";
 import {
   Button,
   Drawer,
@@ -12,7 +18,6 @@ import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../api/apiClient.ts";
-import { detectLanguage } from "../i18n/detectLanguage.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import styles from "./AiSettingsForm.module.css";
 import {
@@ -53,11 +58,16 @@ export function AiAccessDrawer({ settings, open, onOpenChange }: AiAccessDrawerP
   );
 }
 
+const saveErrors = [
+  "apiKeyRequired",
+  "accessRejected",
+  "rateLimited",
+  "providerUnavailable",
+] as const satisfies readonly AiErrorCode[];
+
 function saveError(error: Error) {
   const code = error instanceof ApiError ? error.code : undefined;
-  return code === "accessRejected" || code === "rateLimited" || code === "providerUnavailable"
-    ? code
-    : "saveFailed";
+  return saveErrors.find((saveError) => saveError === code) ?? "saveFailed";
 }
 
 interface AiAccessFormProps {

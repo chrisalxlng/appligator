@@ -3,5 +3,5 @@
   "compilerOptions": {
     "lib": ["es2023"]
   },
-  "include": ["src"]
+  "include": ["src", "vite.config.ts"]
 }

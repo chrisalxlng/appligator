@@ -10,7 +10,7 @@ Monorepo built with [Vite+](https://viteplus.dev).
 | `apps/api`        | Backend: Fastify app with PostgreSQL via Drizzle ORM            |
 | `apps/extension`  | Chrome extension to import job ads from the browser             |
 | `packages/ui`     | UI components based on Base UI and Tiptap, tokens and Storybook |
-| `packages/shared` | Schemas and types shared between web and API                    |
+| `packages/shared` | Schemas, types and helpers shared between the apps              |
 | `tools/release`   | Task that tags the next release                                 |
 
 ## Development
@@ -64,7 +64,7 @@ The [cl-dev](https://github.com/chrisalxlng/cl-dev) setup runs the web app and t
 - `web` serves the build of the web app with nginx. Its URLs come from `apps/web/.env.production` at build time.
 - `api` listens on port 3000, applies the migrations on startup and requires `DATABASE_URL`, `KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID`, `WEB_APP_ORIGIN` and `AI_API_KEY_ENCRYPTION_KEY`.
 
-The version tag is the only source of the version: the web app and the extension read it from `VITE_APP_VERSION` at build time, which is `0.0.0` in development, as are the versions in the `package.json` files. Pushing a tag like `v1.2.3` runs the release workflow: it checks and tests everything, pushes both images for `linux/amd64` and `linux/arm64` tagged with the version and `latest`, and creates a GitHub release with the extension package.
+The version tag is the only source of the version: the web app and the extension read it from `VITE_APP_VERSION` at build time, which is `0.0.0` in development, as are the versions in the `package.json` files. Pushing a tag like `v1.2.3` runs the release workflow: it checks and tests everything, pushes both images for `linux/amd64` and `linux/arm64` tagged with the version tag (e.g. `v1.2.3`) and `latest`, and creates a GitHub release with the extension package.
 
 - Release the current `origin/master`: the task raises the major, minor or patch version of the latest tag, asks for confirmation, then creates and pushes the tag:
 

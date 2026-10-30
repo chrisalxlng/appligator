@@ -1,4 +1,4 @@
-import { jobInputSchema, type Job, type JobExtraction } from "@appligator/shared";
+import { jobInputSchema, jobLimits, type Job, type JobExtraction } from "@appligator/shared";
 import { expect, test } from "vite-plus/test";
 import { fillEmptyFields, toFormValues, validateJobForm, type JobFormValues } from "./jobForm.ts";
 
@@ -88,6 +88,41 @@ test("rejects a minimum salary above the maximum", () => {
   });
 
   expect(validateJobForm(values).errors).toEqual({ salary: "salaryRange" });
+});
+
+test("rejects texts longer than a job allows", () => {
+  const values = valuesWith({
+    company: "x".repeat(jobLimits.textLength + 1),
+    position: "x".repeat(jobLimits.textLength + 1),
+    description: "x".repeat(jobLimits.descriptionLength + 1),
+    summary: "x".repeat(jobLimits.summaryLength + 1),
+  });
+
+  expect(validateJobForm(values).errors).toEqual({
+    company: "tooLong",
+    position: "tooLong",
+    description: "tooLong",
+    summary: "tooLong",
+  });
+});
+
+test("accepts texts up to the length a job allows", () => {
+  const values = valuesWith({
+    company: "x".repeat(jobLimits.textLength),
+    description: "x".repeat(jobLimits.descriptionLength),
+  });
+
+  expect(validateJobForm(values).input).toBeDefined();
+});
+
+test("rejects a salary above the maximum a job allows", () => {
+  const values = valuesWith({
+    salaryCurrency: "EUR",
+    salaryPeriod: "year",
+    salaryMax: jobLimits.salary + 1,
+  });
+
+  expect(validateJobForm(values).errors).toEqual({ salary: "salaryTooHigh" });
 });
 
 const extraction: JobExtraction = {

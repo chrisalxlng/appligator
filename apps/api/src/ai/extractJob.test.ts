@@ -1,4 +1,4 @@
-import type { AiLanguage } from "@appligator/shared";
+import { jobLimits, type AiLanguage } from "@appligator/shared";
 import { expect, test } from "vite-plus/test";
 import { respondingModel } from "../testLanguageModel.ts";
 import { extractJob, extractJobFromPage } from "./extractJob.ts";
@@ -184,4 +184,17 @@ test("limits the page content sent to the model", async () => {
   );
 
   expect(description.match(/<p>/g)).toHaveLength(1);
+});
+
+test("keeps the description within the length a job allows", async () => {
+  const listItems = Array.from({ length: 20_000 }, () => ({
+    kind: "listItem" as const,
+    text: "&",
+  }));
+  const { description } = await extractFromPage(
+    { ...modelOutput, jobAd: { firstBlock: 0, lastBlock: listItems.length - 1 } },
+    { blocks: listItems },
+  );
+
+  expect(description.length).toBeLessThanOrEqual(jobLimits.descriptionLength);
 });

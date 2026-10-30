@@ -1,8 +1,6 @@
 import type { AiSettingsInput } from "@appligator/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { createApiClient } from "../api/apiClient.ts";
-import { useAuth } from "../auth/useAuth.ts";
+import { useApiClient } from "../api/useApiClient.ts";
 import { createAiApi } from "./aiApi.ts";
 
 const aiKeys = {
@@ -11,8 +9,7 @@ const aiKeys = {
 };
 
 export function useAiApi() {
-  const { getToken } = useAuth();
-  return useMemo(() => createAiApi(createApiClient(getToken)), [getToken]);
+  return createAiApi(useApiClient());
 }
 
 export function useAiModels() {

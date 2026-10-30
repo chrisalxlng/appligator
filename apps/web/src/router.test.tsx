@@ -76,10 +76,10 @@ test("shows the logged in user on the profile page", async () => {
   expect(document.title).toBe("Profile • Appligator");
 });
 
-test("signs the user out from the profile page", async () => {
+test("logs the user out from the profile page", async () => {
   renderAt("/profile");
 
-  await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Log out" }));
 
   expect(testAuth.logout).toHaveBeenCalledOnce();
 });

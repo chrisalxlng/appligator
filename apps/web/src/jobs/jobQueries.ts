@@ -1,8 +1,6 @@
 import type { Job, JobInput } from "@appligator/shared";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { createApiClient } from "../api/apiClient.ts";
-import { useAuth } from "../auth/useAuth.ts";
+import { useApiClient } from "../api/useApiClient.ts";
 import { createJobsApi } from "./jobsApi.ts";
 
 const jobKeys = {
@@ -11,8 +9,7 @@ const jobKeys = {
 };
 
 function useJobsApi() {
-  const { getToken } = useAuth();
-  return useMemo(() => createJobsApi(createApiClient(getToken)), [getToken]);
+  return createJobsApi(useApiClient());
 }
 
 export function useJobs() {
