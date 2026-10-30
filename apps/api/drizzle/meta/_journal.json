@@ -15,6 +15,13 @@
       "when": 1793212542499,
       "tag": "0001_create_ai_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793391572492,
+      "tag": "0002_add_job_details",
+      "breakpoints": true
     }
   ]
 }

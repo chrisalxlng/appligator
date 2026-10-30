@@ -7,11 +7,23 @@ import type { JobPage } from "./jobPage.ts";
 const modelOutput = {
   company: " Initech GmbH ",
   position: "Frontend Developer",
+  companyType: "midsize",
+  employeeCount: 1_000.2,
   summary: "Initech builds software.\n\nThe team works <remotely> & in Munich.",
   salary: { currency: "EUR", period: "year", min: 75_000.4, max: 60_000 },
-  locations: ["München", " ", "München", "Hamburg"],
-  workModel: "hybrid",
+  bonuses: ["13. Monatsgehalt", " "],
+  benefits: ["Jobrad"],
   employmentType: "fullTime",
+  workModel: "hybrid",
+  homeOfficePercentage: 79.6,
+  workingHours: { hours: 38.5, period: "week" },
+  locations: ["München", " ", "München", "Hamburg"],
+  vacationDays: 31.4,
+  startDate: "2027-02-01",
+  contractTerm: { kind: "months", months: 24, date: "" },
+  probationMonths: 6,
+  noticePeriod: { amount: 4, unit: "weeks", endOf: "month" },
+  notes: ["Weiterbildungsbudget von 2.000 € <pro Jahr>", "Reisebereitschaft"],
   applicationDeadline: "2026-12-31",
 };
 
@@ -35,12 +47,26 @@ test("returns the extracted job information cleaned up", async () => {
   expect(extraction).toEqual({
     company: "Initech GmbH",
     position: "Frontend Developer",
+    companyType: "midsize",
+    employeeCount: 1_000,
     summary:
       "<p>Initech builds software.</p><p>The team works &lt;remotely&gt; &amp; in Munich.</p>",
     salary: { currency: "EUR", period: "year", min: 60_000, max: 75_000 },
-    locations: ["München", "Hamburg"],
-    workModel: "hybrid",
+    bonuses: ["13. Monatsgehalt"],
+    benefits: ["Jobrad"],
     employmentType: "fullTime",
+    workModel: "hybrid",
+    homeOfficePercentage: 80,
+    workingHours: { hours: 38.5, period: "week" },
+    locations: ["München", "Hamburg"],
+    vacationDays: 31.5,
+    startDate: "2027-02-01",
+    contractTerm: { kind: "months", months: 24 },
+    probationMonths: 6,
+    noticePeriod: { amount: 4, unit: "weeks", endOf: "month" },
+    notes:
+      "<ul><li><p>Weiterbildungsbudget von 2.000 € &lt;pro Jahr&gt;</p></li>" +
+      "<li><p>Reisebereitschaft</p></li></ul>",
     applicationDeadline: "2026-12-31",
   });
 });
@@ -49,25 +75,89 @@ test("returns empty values for missing information", async () => {
   const { extraction } = await extract({
     ...modelOutput,
     company: " ",
-    position: null,
+    position: "",
+    companyType: "unknown",
+    employeeCount: null,
     summary: "",
     salary: null,
+    bonuses: [],
+    benefits: [],
+    employmentType: "unknown",
+    workModel: "unknown",
+    homeOfficePercentage: null,
+    workingHours: null,
     locations: [],
-    workModel: null,
-    employmentType: null,
+    vacationDays: null,
+    startDate: "as soon as possible",
+    contractTerm: { kind: "unknown", months: 0, date: "" },
+    probationMonths: null,
+    noticePeriod: null,
+    notes: [],
     applicationDeadline: "end of November",
   });
 
   expect(extraction).toEqual({
     company: null,
     position: null,
+    companyType: null,
+    employeeCount: null,
     summary: "",
     salary: null,
-    locations: [],
-    workModel: null,
+    bonuses: [],
+    benefits: [],
     employmentType: null,
+    workModel: null,
+    homeOfficePercentage: null,
+    workingHours: null,
+    locations: [],
+    vacationDays: null,
+    startDate: null,
+    contractTerm: null,
+    probationMonths: null,
+    noticePeriod: null,
+    notes: "",
     applicationDeadline: null,
   });
+});
+
+test.each([
+  ["a company without employees", { employeeCount: 0 }],
+  ["a home office share above 100 percent", { homeOfficePercentage: 120 }],
+  ["no working hours", { workingHours: { hours: 0, period: "week" } }],
+  ["negative vacation days", { vacationDays: -5 }],
+  ["a fixed term without duration", { contractTerm: { kind: "months", months: 0, date: "" } }],
+  [
+    "a fixed term with an invalid end",
+    { contractTerm: { kind: "until", months: 0, date: "soon" } },
+  ],
+  [
+    "a notice period without amount",
+    { noticePeriod: { amount: 0, unit: "months", endOf: "none" } },
+  ],
+])("drops %s", async (_case, override) => {
+  const { extraction } = await extract({ ...modelOutput, ...override });
+  const [field] = Object.keys(override) as (keyof typeof extraction)[];
+
+  expect(extraction[field!]).toBeNull();
+});
+
+test("keeps the most valuable benefits only", async () => {
+  const benefits = Array.from({ length: 10 }, (_, index) => `Benefit ${index}`);
+
+  const { extraction } = await extract({ ...modelOutput, benefits });
+
+  expect(extraction.benefits).toEqual(benefits.slice(0, 6));
+});
+
+test("keeps the notes within the length limit", async () => {
+  const notes = Array.from({ length: jobLimits.listItems }, (_, index) =>
+    `${index} `.padEnd(jobLimits.textLength, "x"),
+  );
+
+  const { extraction } = await extract({ ...modelOutput, notes });
+
+  expect(extraction.notes.length).toBeLessThanOrEqual(jobLimits.notesLength);
+  expect(extraction.notes).toMatch(/^<ul>.*<\/ul>$/);
 });
 
 test("drops an implausible salary", async () => {
@@ -87,13 +177,43 @@ test("sends the ad as plain text and asks for the configured language", async ()
 
   const [system, user] = call.prompt;
   expect(system).toMatchObject({ role: "system" });
-  expect(system!.content).toContain("Write the summary and the locations in English");
+  expect(system!.content).toContain(
+    "Write the summary, locations, bonuses, benefits and notes in English",
+  );
   expect(system!.content).toContain("Today is 2026-10-28.");
   expect(user).toMatchObject({
     role: "user",
     content: [{ type: "text", text: "Über uns\nWir bauen Software." }],
   });
   expect(call.responseFormat).toMatchObject({ type: "json" });
+});
+
+interface JsonSchema {
+  type?: string | string[];
+  anyOf?: JsonSchema[];
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+}
+
+function countUnionParameters(schema: JsonSchema): number {
+  const isUnion = Array.isArray(schema.type) || schema.anyOf !== undefined;
+  const children = [
+    ...Object.values(schema.properties ?? {}),
+    ...(schema.items ? [schema.items] : []),
+    ...(schema.anyOf ?? []),
+  ];
+  return (isUnion ? 1 : 0) + children.reduce((sum, child) => sum + countUnionParameters(child), 0);
+}
+
+// Anthropic rejects schemas with more than 16 parameters with union types.
+test.each([
+  ["a job ad", () => extract(modelOutput)],
+  ["a page", () => extractFromPage({ ...modelOutput, jobAd: null })],
+])("sends a schema for %s that Anthropic accepts", async (_case, run) => {
+  const { call } = await run();
+  const responseFormat = call.responseFormat as { schema: JsonSchema };
+
+  expect(countUnionParameters(responseFormat.schema)).toBeLessThanOrEqual(16);
 });
 
 const pageBlocks: JobPage["blocks"] = [
@@ -111,8 +231,9 @@ async function extractFromPage(output: object, page: Partial<JobPage> = {}) {
     language: "de",
     today,
   });
-  const [, user] = model.doGenerateCalls[0]!.prompt;
-  return { ...result, prompt: user!.content };
+  const call = model.doGenerateCalls[0]!;
+  const [, user] = call.prompt;
+  return { ...result, prompt: user!.content, call };
 }
 
 test("sends the numbered page blocks and keeps the blocks of the job ad as description", async () => {

@@ -12,6 +12,12 @@
   font: var(--font-body-m);
 }
 
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
 .saveError {
   color: var(--destructive-text);
 }

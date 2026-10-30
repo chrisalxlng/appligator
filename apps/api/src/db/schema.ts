@@ -1,13 +1,30 @@
 import {
   aiLanguages,
   aiProviders,
+  companyTypes,
   currencies,
   employmentTypes,
   salaryPeriods,
   workModels,
+  type ContractTerm,
+  type NoticePeriod,
+  type WorkingHours,
 } from "@appligator/shared";
-import { date, index, integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  date,
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
+export const companyTypeEnum = pgEnum("company_type", companyTypes);
 export const currencyEnum = pgEnum("currency", currencies);
 export const salaryPeriodEnum = pgEnum("salary_period", salaryPeriods);
 export const workModelEnum = pgEnum("work_model", workModels);
@@ -25,13 +42,33 @@ export const jobs = pgTable(
     summary: text().notNull(),
     company: text().notNull(),
     position: text().notNull(),
+    companyType: companyTypeEnum(),
+    employeeCount: integer(),
     salaryCurrency: currencyEnum(),
     salaryPeriod: salaryPeriodEnum(),
     salaryMin: integer(),
     salaryMax: integer(),
-    locations: text().array().notNull(),
-    workModel: workModelEnum(),
+    bonuses: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    benefits: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
     employmentType: employmentTypeEnum(),
+    workModel: workModelEnum(),
+    homeOfficePercentage: integer(),
+    workingHours: jsonb().$type<WorkingHours>(),
+    locations: text().array().notNull(),
+    commuteDistance: integer(),
+    commuteDuration: integer(),
+    vacationDays: numeric({ precision: 4, scale: 1, mode: "number" }),
+    startDate: date(),
+    contractTerm: jsonb().$type<ContractTerm>(),
+    probationMonths: integer(),
+    noticePeriod: jsonb().$type<NoticePeriod>(),
+    notes: text().notNull().default(""),
     applicationDeadline: date(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),

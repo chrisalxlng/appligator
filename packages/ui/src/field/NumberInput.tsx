@@ -5,14 +5,26 @@ export interface NumberInputProps {
   value: number | null;
   onValueChange: (value: number | null) => void;
   min?: number;
+  max?: number;
+  format?: Intl.NumberFormatOptions;
   locale?: Intl.LocalesArgument;
+  placeholder?: string;
   "aria-label"?: string;
 }
 
-export function NumberInput({ "aria-label": ariaLabel, ...props }: NumberInputProps) {
+export function NumberInput({
+  "aria-label": ariaLabel,
+  format,
+  placeholder,
+  ...props
+}: NumberInputProps) {
   return (
-    <NumberField.Root format={{ maximumFractionDigits: 0 }} {...props}>
-      <NumberField.Input className={styles.singleLine} aria-label={ariaLabel} />
+    <NumberField.Root format={{ maximumFractionDigits: 0, ...format }} {...props}>
+      <NumberField.Input
+        className={styles.singleLine}
+        aria-label={ariaLabel}
+        placeholder={placeholder}
+      />
     </NumberField.Root>
   );
 }

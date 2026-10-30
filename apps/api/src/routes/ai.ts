@@ -222,7 +222,15 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
       const [row] = await app.db
         .insert(jobs)
         .values({
-          ...toColumns({ ...details, link, description, company, position }),
+          ...toColumns({
+            ...details,
+            link,
+            description,
+            company,
+            position,
+            commuteDistance: null,
+            commuteDuration: null,
+          }),
           userId: request.userId,
         })
         .returning();

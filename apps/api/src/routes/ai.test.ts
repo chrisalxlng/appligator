@@ -216,12 +216,24 @@ test.each([
 const extractionOutput = {
   company: "Initech GmbH",
   position: "Frontend Developer",
+  companyType: "startup",
+  employeeCount: 40,
   summary: "Initech sucht eine Frontend-Entwicklerin.",
   salary: null,
-  locations: ["München"],
-  workModel: "remote",
+  bonuses: [],
+  benefits: ["Jobrad"],
   employmentType: "fullTime",
-  applicationDeadline: null,
+  workModel: "remote",
+  homeOfficePercentage: null,
+  workingHours: null,
+  locations: ["München"],
+  vacationDays: 30,
+  startDate: "",
+  contractTerm: { kind: "permanent", months: 0, date: "" },
+  probationMonths: null,
+  noticePeriod: null,
+  notes: [],
+  applicationDeadline: "",
 };
 
 async function extractJob(description = "<p>Frontend Developer at Initech in Munich</p>") {
@@ -238,6 +250,10 @@ test("POST /ai/job-extraction extracts the job with the stored access", async ()
   expect(response.json()).toEqual({
     ...extractionOutput,
     summary: "<p>Initech sucht eine Frontend-Entwicklerin.</p>",
+    startDate: null,
+    contractTerm: { kind: "permanent" },
+    notes: "",
+    applicationDeadline: null,
   });
   expect(createLanguageModel).toHaveBeenCalledWith({
     provider: "openai",
@@ -320,8 +336,11 @@ test("POST /ai/job-import creates the job from the page", async () => {
     summary: "<p>Initech sucht eine Frontend-Entwicklerin.</p>",
     company: "Initech GmbH",
     position: "Frontend Developer",
+    benefits: ["Jobrad"],
     locations: ["München"],
     workModel: "remote",
+    contractTerm: { kind: "permanent" },
+    commuteDistance: null,
   });
   const [row] = await db.select().from(jobs).where(eq(jobs.id, job.id));
   expect(row).toMatchObject({ userId: "user-id", company: "Initech GmbH" });
@@ -330,7 +349,7 @@ test("POST /ai/job-import creates the job from the page", async () => {
 test("POST /ai/job-import uses the page title without a job title", async () => {
   await saveSettings();
   createLanguageModel.mockImplementation(() =>
-    respondingModel(JSON.stringify({ ...extractionOutput, position: null, jobAd: null })),
+    respondingModel(JSON.stringify({ ...extractionOutput, position: "", jobAd: null })),
   );
 
   const response = await importJob();
@@ -342,7 +361,7 @@ test("POST /ai/job-import uses the page title without a job title", async () => 
 test("POST /ai/job-import responds with 422 when the page shows no job ad", async () => {
   await saveSettings();
   createLanguageModel.mockImplementation(() =>
-    respondingModel(JSON.stringify({ ...extractionOutput, company: null, jobAd: null })),
+    respondingModel(JSON.stringify({ ...extractionOutput, company: "", jobAd: null })),
   );
 
   const response = await importJob();

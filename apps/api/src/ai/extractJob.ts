@@ -1,11 +1,20 @@
 import {
+  companyTypes,
+  contractTermKinds,
   currencies,
   employmentTypes,
   jobLimits,
+  maxNoticePeriod,
+  noticePeriodEnds,
+  noticePeriodUnits,
   salaryPeriods,
+  workingHoursPeriods,
   workModels,
   type AiLanguage,
+  type ContractTerm,
   type JobExtraction,
+  type NoticePeriod,
+  type WorkingHours,
 } from "@appligator/shared";
 import { generateText, Output, type LanguageModel } from "ai";
 import { z } from "zod";
@@ -13,20 +22,49 @@ import { escapeHtml, htmlToText } from "./htmlToText.ts";
 import { blocksToHtml, type Block, type JobPage } from "./jobPage.ts";
 
 const maxPromptLength = 50_000;
+const maxBenefits = 6;
 
 const languageNames: Record<AiLanguage, string> = { de: "German", en: "English" };
 
+// Anthropic rejects schemas with more than 16 nullable or union-typed parameters, so missing
+// texts and choices are empty or "unknown" instead of null.
+const unknown = "unknown";
+
+function enumWithUnknown<const Values extends readonly string[]>(values: Values) {
+  return z.enum([...values, unknown]);
+}
+
+function known<Value extends string>(value: Value) {
+  return value === unknown ? null : (value as Exclude<Value, typeof unknown>);
+}
+
 const extractionSchema = z.object({
-  company: z.string().nullable().describe("Name of the hiring company as stated in the ad."),
+  company: z.string().describe("Name of the hiring company as stated in the ad."),
   position: z
     .string()
+    .describe(
+      "Job title as stated in the ad, without gender markers such as (m/w/d) and without " +
+        "recruiting phrases around it such as 'Werde', 'Wir suchen dich als' or 'Join us as'.",
+    ),
+  companyType: enumWithUnknown(companyTypes).describe(
+    "midsize is a small or medium-sized company such as a German Mittelstand company, " +
+      "corporation a large company or group, publicSector a public authority or institution. " +
+      "Only if the ad states it or makes it evident.",
+  ),
+  employeeCount: z
+    .number()
     .nullable()
-    .describe("Job title as stated in the ad, without gender markers such as (m/w/d)."),
+    .describe(
+      "Number of employees of the company, for 'over 1,000' 1000, only if the ad states it.",
+    ),
   summary: z
     .string()
     .describe(
-      "Summary of the role, tasks, requirements and benefits in 3 to 5 sentences of plain prose. " +
-        "No bullet points, headings or markdown.",
+      "Summary of the role, tasks, requirements, team and company in 3 to 5 sentences of plain " +
+        "prose. Leave out what the other fields cover, such as company type and size, salary, " +
+        "bonuses, benefits, work model, home office, working hours, locations, vacation days, " +
+        "start date, contract term, probation, notice period and deadline. No bullet points, " +
+        "headings or markdown.",
     ),
   salary: z
     .object({
@@ -37,17 +75,64 @@ const extractionSchema = z.object({
     })
     .nullable()
     .describe("Only if the ad states an amount in one of the supported currencies."),
+  bonuses: z
+    .array(z.string())
+    .describe("Pay on top of the salary, such as a 13th salary or profit sharing, as short items."),
+  benefits: z
+    .array(z.string())
+    .describe(
+      `At most ${maxBenefits} perks with a tangible value, such as a job bike, a company pension, a public ` +
+        "transport ticket, a sabbatical or childcare, the most valuable first, each in 1 to 4 " +
+        "words. Leave out vague or common perks such as flat hierarchies, a modern office, free " +
+        "drinks, fruit or team events, and what another field covers, such as bonuses, home " +
+        "office, working hours or vacation days.",
+    ),
+  employmentType: enumWithUnknown(employmentTypes).describe(
+    "workingStudent is a part-time job for enrolled students.",
+  ),
+  workModel: enumWithUnknown(workModels),
+  homeOfficePercentage: z
+    .number()
+    .nullable()
+    .describe("Share of the working time that can be spent working from home, from 0 to 100."),
+  workingHours: z
+    .object({ hours: z.number(), period: z.enum(workingHoursPeriods) })
+    .nullable()
+    .describe("Regular working hours, for a range the upper bound."),
   locations: z
     .array(z.string())
     .describe("Cities or regions the job is based in. Do not list remote as a location."),
-  workModel: z.enum(workModels).nullable(),
-  employmentType: z
-    .enum(employmentTypes)
-    .nullable()
-    .describe("workingStudent is a part-time job for enrolled students."),
+  vacationDays: z.number().nullable().describe("Vacation days per year, may include a half day."),
+  startDate: z
+    .string()
+    .describe(
+      "Start date as YYYY-MM-DD, only if the ad states a date rather than 'as soon as possible'.",
+    ),
+  contractTerm: z.object({
+    kind: enumWithUnknown(contractTermKinds).describe(
+      "Whether the contract is permanent or fixed-term, only if the ad states it.",
+    ),
+    months: z.number().describe("Duration in months for kind months, else 0."),
+    date: z.string().describe("End date as YYYY-MM-DD for kind until, else empty."),
+  }),
+  probationMonths: z.number().nullable().describe("Probation period in months."),
+  noticePeriod: z
+    .object({
+      amount: z.number(),
+      unit: z.enum(noticePeriodUnits),
+      endOf: z
+        .enum([...noticePeriodEnds, "none"])
+        .describe("For a notice period that ends at the end of a month or quarter."),
+    })
+    .nullable(),
+  notes: z
+    .array(z.string())
+    .describe(
+      "Other facts that matter for deciding on or applying for the job and fit no other field, " +
+        "such as a training budget, travel or required documents, as short sentences.",
+    ),
   applicationDeadline: z
     .string()
-    .nullable()
     .describe("Deadline for applications as YYYY-MM-DD, only if the ad states one."),
 });
 
@@ -71,15 +156,17 @@ function instructions(language: AiLanguage, today: string) {
   const languageName = languageNames[language];
   return [
     "You extract information from job ads for a job application tracker.",
-    "Only use information the ad states. Use null or an empty list for anything it does not state.",
-    `Write the summary and the locations in ${languageName}, even if the ad uses another language.`,
-    "Keep the company name and the job title as written in the ad.",
+    "Only use information the ad states. For anything it does not state, use an empty text, " +
+      `an empty list, ${unknown} or null.`,
+    `Write the summary, locations, bonuses, benefits and notes in ${languageName}, ` +
+      "even if the ad uses another language.",
+    "Keep the company name and the job title in the wording of the ad.",
     `Today is ${today}. Resolve deadlines without a year relative to today.`,
   ].join("\n");
 }
 
-function cleanText(value: string | null) {
-  const text = value?.trim();
+function cleanText(value: string) {
+  const text = value.trim();
   return text ? text.slice(0, jobLimits.textLength) : null;
 }
 
@@ -93,13 +180,66 @@ function cleanSalary(salary: Extraction["salary"]) {
   return isPlausible ? { currency: salary.currency, period: salary.period, min, max } : null;
 }
 
-function cleanLocations(locations: string[]) {
-  const unique = new Set(locations.map(cleanText).filter((location) => location !== null));
-  return [...unique].slice(0, jobLimits.locations);
+function cleanTextList(items: string[]) {
+  const unique = new Set(items.map(cleanText).filter((item) => item !== null));
+  return [...unique].slice(0, jobLimits.listItems);
 }
 
-function cleanDate(date: string | null) {
-  return z.iso.date().safeParse(date?.trim()).data ?? null;
+function cleanDate(date: string) {
+  return z.iso.date().safeParse(date.trim()).data ?? null;
+}
+
+function cleanInteger(value: number | null, min: number, max: number) {
+  if (value === null) return null;
+  const integer = Math.round(value);
+  return integer >= min && integer <= max ? integer : null;
+}
+
+function cleanVacationDays(vacationDays: number | null) {
+  if (vacationDays === null) return null;
+  const halfDays = Math.round(vacationDays * 2) / 2;
+  return halfDays >= 0 && halfDays <= jobLimits.vacationDays ? halfDays : null;
+}
+
+function cleanWorkingHours(workingHours: Extraction["workingHours"]): WorkingHours | null {
+  if (!workingHours) return null;
+
+  const hours = Math.round(workingHours.hours * 100) / 100;
+  const isPlausible = hours > 0 && hours <= jobLimits.workingHours;
+  return isPlausible ? { hours, period: workingHours.period } : null;
+}
+
+function cleanContractTerm(contractTerm: Extraction["contractTerm"]): ContractTerm | null {
+  switch (contractTerm.kind) {
+    case "permanent":
+      return { kind: "permanent" };
+    case "months": {
+      const months = cleanInteger(contractTerm.months, 1, jobLimits.months);
+      return months === null ? null : { kind: "months", months };
+    }
+    case "until": {
+      const date = cleanDate(contractTerm.date);
+      return date === null ? null : { kind: "until", date };
+    }
+    default:
+      return null;
+  }
+}
+
+function cleanNoticePeriod(noticePeriod: Extraction["noticePeriod"]): NoticePeriod | null {
+  if (!noticePeriod) return null;
+
+  const { unit, endOf } = noticePeriod;
+  const amount = cleanInteger(noticePeriod.amount, 1, maxNoticePeriod(unit));
+  return amount === null ? null : { amount, unit, endOf: endOf === "none" ? null : endOf };
+}
+
+function toBulletList(items: string[]) {
+  let length = "<ul></ul>".length;
+  const listItems = cleanTextList(items)
+    .map((item) => `<li><p>${escapeHtml(item)}</p></li>`)
+    .filter((listItem) => (length += listItem.length) <= jobLimits.notesLength);
+  return listItems.length > 0 ? `<ul>${listItems.join("")}</ul>` : "";
 }
 
 function toParagraphs(text: string) {
@@ -116,10 +256,22 @@ function toJobExtraction(extraction: Extraction): JobExtraction {
     summary: toParagraphs(extraction.summary),
     company: cleanText(extraction.company),
     position: cleanText(extraction.position),
+    companyType: known(extraction.companyType),
+    employeeCount: cleanInteger(extraction.employeeCount, 1, jobLimits.employeeCount),
     salary: cleanSalary(extraction.salary),
-    locations: cleanLocations(extraction.locations),
-    workModel: extraction.workModel,
-    employmentType: extraction.employmentType,
+    bonuses: cleanTextList(extraction.bonuses),
+    benefits: cleanTextList(extraction.benefits).slice(0, maxBenefits),
+    employmentType: known(extraction.employmentType),
+    workModel: known(extraction.workModel),
+    homeOfficePercentage: cleanInteger(extraction.homeOfficePercentage, 0, 100),
+    workingHours: cleanWorkingHours(extraction.workingHours),
+    locations: cleanTextList(extraction.locations),
+    vacationDays: cleanVacationDays(extraction.vacationDays),
+    startDate: cleanDate(extraction.startDate),
+    contractTerm: cleanContractTerm(extraction.contractTerm),
+    probationMonths: cleanInteger(extraction.probationMonths, 0, jobLimits.months),
+    noticePeriod: cleanNoticePeriod(extraction.noticePeriod),
+    notes: toBulletList(extraction.notes),
     applicationDeadline: cleanDate(extraction.applicationDeadline),
   };
 }
