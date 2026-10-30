@@ -10,6 +10,7 @@ import { useJobs } from "../jobs/jobQueries.ts";
 import { LoadError } from "../jobs/LoadError.tsx";
 import { PageSpinner } from "../loading/PageSpinner.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
+import { DocumentTitle } from "../shell/DocumentTitle.tsx";
 import { FloatingActions } from "../shell/FloatingActions.tsx";
 import { useIsDesktop } from "../shell/useMediaQuery.ts";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
@@ -30,6 +31,7 @@ export function JobsPage() {
   useAltShortcut("N", () => setIsAdding(true));
 
   const title = t("navigation.jobs");
+  const documentTitle = <DocumentTitle title={title} />;
   const addButton = (
     <ShortcutTooltip hint={shortcutHints?.alt("N")}>
       <Button onClick={() => setIsAdding(true)} aria-keyshortcuts="Alt+N">
@@ -51,12 +53,18 @@ export function JobsPage() {
   const canLoadMore = jobs.hasNextPage && !jobs.isFetchingNextPage && !jobs.isFetchNextPageError;
 
   if (jobs.isPending || showSpinner) {
-    return <Page title={title}>{showSpinner && <PageSpinner label={t("jobs.loading")} />}</Page>;
+    return (
+      <Page title={title}>
+        {documentTitle}
+        {showSpinner && <PageSpinner label={t("jobs.loading")} />}
+      </Page>
+    );
   }
 
   if (jobs.isError && !jobs.isFetchNextPageError) {
     return (
       <Page title={title} hideHeader={isDesktop}>
+        {documentTitle}
         <LoadError
           title={t("jobs.loadError.title")}
           description={t("jobs.loadError.description")}
@@ -69,6 +77,7 @@ export function JobsPage() {
   if (jobs.data.length === 0 && !jobId) {
     return (
       <Page title={title} hideHeader={isDesktop} className={styles.empty}>
+        {documentTitle}
         <EmptyState
           illustration={<img src={emptyIllustration} alt="" width={210} height={281} />}
           title={t("jobs.empty.title")}
@@ -84,6 +93,7 @@ export function JobsPage() {
   return (
     <div className={styles.layout} data-detail-open={jobId ? "" : undefined}>
       <Page title={title} actions={isDesktop && addButton} className={styles.list}>
+        {!jobId && documentTitle}
         <JobList jobs={jobs.data} onEndReached={canLoadMore ? loadMore : undefined} />
         {jobs.isFetchingNextPage && (
           <div className={styles.loadingMore}>

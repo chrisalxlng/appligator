@@ -3,6 +3,7 @@ import { IconLogout } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { AiSettingsSection } from "../ai/AiSettingsSection.tsx";
 import { useAuth } from "../auth/useAuth.ts";
+import { DocumentTitle } from "../shell/DocumentTitle.tsx";
 import { Page } from "./Page.tsx";
 import styles from "./ProfilePage.module.css";
 
@@ -10,8 +11,11 @@ export function ProfilePage() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
 
+  const title = t("navigation.profile");
+
   return (
-    <Page title={t("navigation.profile")}>
+    <Page title={title}>
+      <DocumentTitle title={title} />
       <section className={styles.account} aria-label={t("profile.account")}>
         <div className={styles.user}>
           <p className={styles.name}>{user.name}</p>

@@ -9,6 +9,7 @@ import { useJob } from "../jobs/jobQueries.ts";
 import { LoadError } from "../jobs/LoadError.tsx";
 import { PageSpinner } from "../loading/PageSpinner.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
+import { DocumentTitle } from "../shell/DocumentTitle.tsx";
 import { useIsWide } from "../shell/useMediaQuery.ts";
 import styles from "./JobDetailPage.module.css";
 import { Page } from "./Page.tsx";
@@ -19,6 +20,8 @@ export function JobDetailPage() {
   const isWide = useIsWide();
   const { jobId } = useParams({ from: "/shell/jobs/$jobId" });
   const job = useJob(jobId);
+  const documentTitle =
+    job.data?.position ?? t(isNotFound(job.error) ? "jobs.notFound.title" : "navigation.jobs");
 
   const closeButton = (
     <IconButton
@@ -38,6 +41,7 @@ export function JobDetailPage() {
       hideHeader={isWide}
       className={styles.page}
     >
+      <DocumentTitle title={documentTitle} />
       <JobDetailContent job={job} />
     </Page>
   );
@@ -51,7 +55,7 @@ function JobDetailContent({ job }: { job: ReturnType<typeof useJob> }) {
     return showSpinner && <PageSpinner label={t("jobs.loadingJob")} />;
   }
 
-  if (job.error instanceof ApiError && job.error.status === 404) {
+  if (isNotFound(job.error)) {
     return (
       <div className={styles.notFound}>
         <EmptyState
@@ -80,4 +84,8 @@ function JobDetailContent({ job }: { job: ReturnType<typeof useJob> }) {
   }
 
   return <JobDetail job={job.data} />;
+}
+
+function isNotFound(error: Error | null) {
+  return error instanceof ApiError && error.status === 404;
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Brand } from "../shell/Brand.tsx";
+import { DocumentTitle } from "../shell/DocumentTitle.tsx";
 import styles from "./StatusPage.module.css";
 
 interface StatusPageProps {
@@ -12,6 +13,7 @@ interface StatusPageProps {
 export function StatusPage({ illustration, title, description, action }: StatusPageProps) {
   return (
     <div className={styles.page}>
+      <DocumentTitle title={title} />
       <Brand />
       <main className={styles.content}>
         <img src={illustration} alt="" width={225} height={224} />
