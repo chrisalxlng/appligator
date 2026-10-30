@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vp build --watch --mode development",
     "build": "vp build",
-    "zip": "vp build && cd dist && zip -qr ../appligator-extension.zip .",
     "test": "vp test"
   },
   "dependencies": {

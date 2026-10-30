@@ -54,6 +54,15 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  run: {
+    tasks: {
+      zip: {
+        command:
+          "vp build && rm -f appligator-extension.zip && cd dist && zip -qr ../appligator-extension.zip .",
+        cache: false,
+      },
+    },
+  },
   test: {
     env: loadEnv("development", import.meta.dirname),
     environment: "jsdom",
