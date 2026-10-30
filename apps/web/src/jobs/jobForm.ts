@@ -60,7 +60,8 @@ export type JobFormError =
   | "salaryTooHigh"
   | "contractTermMonthsRequired"
   | "contractTermDateRequired"
-  | "noticePeriodTooLong";
+  | "noticePeriodTooLong"
+  | "vacationDaysNotHalf";
 
 export type JobFormErrors = Partial<
   Record<
@@ -72,6 +73,7 @@ export type JobFormErrors = Partial<
     | "salary"
     | "contractTerm"
     | "noticePeriod"
+    | "vacationDays"
     | "notes",
     JobFormError
   >
@@ -180,6 +182,10 @@ function parseNoticePeriod(values: JobFormValues): NoticePeriod | null | JobForm
   return amount > maxNoticePeriod(unit) ? "noticePeriodTooLong" : { amount, unit, endOf };
 }
 
+function isHalfStep(value: number | null) {
+  return value === null || Number.isInteger(value * 2);
+}
+
 function isError(result: object | null | JobFormError) {
   return typeof result === "string";
 }
@@ -210,6 +216,7 @@ export function validateJobForm(values: JobFormValues): ValidationResult {
     salary: isError(salary) ? salary : undefined,
     contractTerm: isError(contractTerm) ? contractTerm : undefined,
     noticePeriod: isError(noticePeriod) ? noticePeriod : undefined,
+    vacationDays: isHalfStep(values.vacationDays) ? undefined : "vacationDaysNotHalf",
     notes: richTextError(values.notes, jobLimits.notesLength),
   };
 

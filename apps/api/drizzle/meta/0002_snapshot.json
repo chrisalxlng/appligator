@@ -1,5 +1,5 @@
 {
-  "id": "9276b3be-79d6-4708-9b2d-33dd979813bf",
+  "id": "eabad1ec-aa1b-4ec4-b5a9-b9a746be3e22",
   "prevId": "13fda2b0-db61-4784-ac69-9c0110a800df",
   "version": "7",
   "dialect": "postgresql",
@@ -196,7 +196,7 @@
         },
         "vacation_days": {
           "name": "vacation_days",
-          "type": "integer",
+          "type": "numeric(4, 1)",
           "primaryKey": false,
           "notNull": false
         },

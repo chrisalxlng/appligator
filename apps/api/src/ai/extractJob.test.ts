@@ -16,7 +16,7 @@ const modelOutput = {
   homeOfficePercentage: 79.6,
   workingHours: { hours: 38.5, period: "week" },
   locations: ["München", " ", "München", "Hamburg"],
-  vacationDays: 30,
+  vacationDays: 31.4,
   startDate: "2027-02-01",
   contractTerm: { kind: "months", months: 24, date: null },
   probationMonths: 6,
@@ -55,7 +55,7 @@ test("returns the extracted job information cleaned up", async () => {
     homeOfficePercentage: 80,
     workingHours: { hours: 38.5, period: "week" },
     locations: ["München", "Hamburg"],
-    vacationDays: 30,
+    vacationDays: 31.5,
     startDate: "2027-02-01",
     contractTerm: { kind: "months", months: 24 },
     probationMonths: 6,
@@ -127,6 +127,14 @@ test.each([
   const [field] = Object.keys(override) as (keyof typeof extraction)[];
 
   expect(extraction[field!]).toBeNull();
+});
+
+test("keeps the most valuable benefits only", async () => {
+  const benefits = Array.from({ length: 10 }, (_, index) => `Benefit ${index}`);
+
+  const { extraction } = await extract({ ...modelOutput, benefits });
+
+  expect(extraction.benefits).toEqual(benefits.slice(0, 6));
 });
 
 test("keeps the notes within the length limit", async () => {

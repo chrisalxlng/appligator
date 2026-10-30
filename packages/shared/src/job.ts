@@ -92,7 +92,7 @@ export const jobInputSchema = z.object({
   locations: textList,
   commuteDistance: z.int().min(0).max(jobLimits.commuteDistance).nullable(),
   commuteDuration: z.int().min(0).max(jobLimits.commuteDuration).nullable(),
-  vacationDays: z.int().min(0).max(jobLimits.vacationDays).nullable(),
+  vacationDays: z.number().min(0).max(jobLimits.vacationDays).multipleOf(0.5).nullable(),
   startDate: z.iso.date().nullable(),
   contractTerm: contractTermSchema.nullable(),
   probationMonths: z.int().min(0).max(jobLimits.months).nullable(),

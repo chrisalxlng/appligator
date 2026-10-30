@@ -93,6 +93,13 @@ test("ignores the period of working hours without hours", () => {
   expect(input?.workingHours).toBeNull();
 });
 
+test.each([
+  [31.5, undefined],
+  [31.3, { vacationDays: "vacationDaysNotHalf" }],
+])("accepts only whole or half vacation days like %d", (vacationDays, errors) => {
+  expect(validateJobForm(valuesWith({ vacationDays })).errors).toEqual(errors);
+});
+
 test("rejects a notice period longer than its unit allows", () => {
   const values = valuesWith({ noticePeriodAmount: jobLimits.weeks + 1, noticePeriodUnit: "weeks" });
 

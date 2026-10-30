@@ -316,9 +316,10 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           />
         </div>
       </Fieldset>
-      <Field label={t("jobs.form.vacationDays")}>
+      <Field label={t("jobs.form.vacationDays")} error={errorFor("vacationDays")}>
         <NumberInput
           locale={i18n.language}
+          format={{ maximumFractionDigits: 1 }}
           min={0}
           max={jobLimits.vacationDays}
           value={values.vacationDays}

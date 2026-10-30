@@ -21,6 +21,7 @@ import { escapeHtml, htmlToText } from "./htmlToText.ts";
 import { blocksToHtml, type Block, type JobPage } from "./jobPage.ts";
 
 const maxPromptLength = 50_000;
+const maxBenefits = 6;
 
 const languageNames: Record<AiLanguage, string> = { de: "German", en: "English" };
 
@@ -51,8 +52,11 @@ const extractionSchema = z.object({
   benefits: z
     .array(z.string())
     .describe(
-      "Other perks such as a job bike or a company pension, as short items. Leave out what " +
-        "another field covers, such as bonuses, home office, working hours or vacation days.",
+      `At most ${maxBenefits} perks with a tangible value, such as a job bike, a company pension, a public ` +
+        "transport ticket, a sabbatical or childcare, the most valuable first, each in 1 to 4 " +
+        "words. Leave out vague or common perks such as flat hierarchies, a modern office, free " +
+        "drinks, fruit or team events, and what another field covers, such as bonuses, home " +
+        "office, working hours or vacation days.",
     ),
   employmentType: z
     .enum(employmentTypes)
@@ -70,7 +74,7 @@ const extractionSchema = z.object({
   locations: z
     .array(z.string())
     .describe("Cities or regions the job is based in. Do not list remote as a location."),
-  vacationDays: z.number().nullable().describe("Vacation days per year."),
+  vacationDays: z.number().nullable().describe("Vacation days per year, may include a half day."),
   startDate: z
     .string()
     .nullable()
@@ -166,6 +170,12 @@ function cleanInteger(value: number | null, min: number, max: number) {
   return integer >= min && integer <= max ? integer : null;
 }
 
+function cleanVacationDays(vacationDays: number | null) {
+  if (vacationDays === null) return null;
+  const halfDays = Math.round(vacationDays * 2) / 2;
+  return halfDays >= 0 && halfDays <= jobLimits.vacationDays ? halfDays : null;
+}
+
 function cleanWorkingHours(workingHours: Extraction["workingHours"]): WorkingHours | null {
   if (!workingHours) return null;
 
@@ -223,13 +233,13 @@ function toJobExtraction(extraction: Extraction): JobExtraction {
     position: cleanText(extraction.position),
     salary: cleanSalary(extraction.salary),
     bonuses: cleanTextList(extraction.bonuses),
-    benefits: cleanTextList(extraction.benefits),
+    benefits: cleanTextList(extraction.benefits).slice(0, maxBenefits),
     employmentType: extraction.employmentType,
     workModel: extraction.workModel,
     homeOfficePercentage: cleanInteger(extraction.homeOfficePercentage, 0, 100),
     workingHours: cleanWorkingHours(extraction.workingHours),
     locations: cleanTextList(extraction.locations),
-    vacationDays: cleanInteger(extraction.vacationDays, 0, jobLimits.vacationDays),
+    vacationDays: cleanVacationDays(extraction.vacationDays),
     startDate: cleanDate(extraction.startDate),
     contractTerm: cleanContractTerm(extraction.contractTerm),
     probationMonths: cleanInteger(extraction.probationMonths, 0, jobLimits.months),

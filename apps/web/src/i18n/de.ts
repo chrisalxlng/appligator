@@ -181,6 +181,7 @@ export const de: Translations = {
         contractTermMonthsRequired: "Bitte gib die Dauer an.",
         contractTermDateRequired: "Bitte gib das Enddatum an.",
         noticePeriodTooLong: "Diese Kündigungsfrist ist zu lang.",
+        vacationDaysNotHalf: "Bitte gib ganze oder halbe Tage an.",
       },
     },
     analysis: {

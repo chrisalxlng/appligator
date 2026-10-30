@@ -179,6 +179,7 @@ export const en = {
         contractTermMonthsRequired: "Please enter the duration.",
         contractTermDateRequired: "Please enter the end date.",
         noticePeriodTooLong: "This notice period is too long.",
+        vacationDaysNotHalf: "Please enter whole or half days.",
       },
     },
     analysis: {

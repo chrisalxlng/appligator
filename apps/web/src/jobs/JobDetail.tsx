@@ -2,6 +2,7 @@ import type { ContractTerm, Job, NoticePeriod, NoticePeriodUnit } from "@appliga
 import { RichText } from "@appligator/ui";
 import {
   IconBasketHeart,
+  IconBeach,
   IconBuilding,
   IconCalendar,
   IconClock,
@@ -17,7 +18,6 @@ import {
   IconNote,
   IconRocket,
   IconRoute,
-  IconSwimming,
   type Icon,
 } from "@tabler/icons-react";
 import { useId, type ReactNode } from "react";
@@ -160,7 +160,7 @@ function useDetails(job: Job): Detail[] {
       value: commute.join(", "),
     },
     job.vacationDays !== null && {
-      icon: IconSwimming,
+      icon: IconBeach,
       label: t("jobs.properties.vacationDays"),
       value: formatNumber(job.vacationDays, locale),
     },
