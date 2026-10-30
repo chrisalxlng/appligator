@@ -34,8 +34,10 @@ const extractionSchema = z.object({
   summary: z
     .string()
     .describe(
-      "Summary of the role, tasks, requirements and benefits in 3 to 5 sentences of plain prose. " +
-        "No bullet points, headings or markdown.",
+      "Summary of the role, tasks, requirements, team and company in 3 to 5 sentences of plain " +
+        "prose. Leave out what the other fields cover, such as salary, bonuses, benefits, work " +
+        "model, home office, working hours, locations, vacation days, start date, contract term, " +
+        "probation, notice period and deadline. No bullet points, headings or markdown.",
     ),
   salary: z
     .object({
