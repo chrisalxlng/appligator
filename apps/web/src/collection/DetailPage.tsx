@@ -18,7 +18,7 @@ interface Message {
   description: string;
 }
 
-export interface DetailTexts {
+interface DetailTexts {
   loading: string;
   notFound: Message & { back: string };
   loadError: Message;

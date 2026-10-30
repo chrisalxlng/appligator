@@ -827,10 +827,12 @@ test("links an applied job to its application and locks it", async () => {
   ).toBeInTheDocument();
 
   await userEvent.click(within(detail).getByRole("button", { name: "More actions" }));
-  expect(await screen.findByRole("menuitem", { name: "Delete" })).toHaveAttribute(
-    "aria-disabled",
-    "true",
-  );
+  const deleteItem = await screen.findByRole("menuitem", { name: "Delete" });
+  expect(deleteItem).toHaveAttribute("aria-disabled", "true");
+  await userEvent.hover(deleteItem);
+  expect(
+    await screen.findByText("Jobs you applied for can no longer be deleted."),
+  ).toBeInTheDocument();
 });
 
 test("does not open the edit drawer of an applied job with Alt+E", async () => {

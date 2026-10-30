@@ -42,7 +42,7 @@ Summarize the self-review findings and what was fixed in the PR description.
 # UI Conventions
 
 - **Load errors:** When content cannot be loaded, show `LoadError` (error illustration, title, description and a retry button) — also for a section within a page. Failed saves show an inline `role="alert"` message above the submit button; invalid input shows the error of its `Field`.
-- **Colors are semantic:** Deep Teal is for interactive and active elements, Royal Purple for highlights (e.g. AI hints), Burgundy Red for destructive actions and errors, Teal Gray for neutral surfaces. Use the semantic tokens from `packages/ui/src/styles/tokens.css`, not palette colors directly.
+- **Colors are semantic:** Deep Teal is for interactive and active elements, Royal Purple for highlights (e.g. AI hints), Forest Green for positive states (e.g. an applied job), Burgundy Red for destructive actions and errors, Teal Gray for neutral surfaces. Use the semantic tokens from `packages/ui/src/styles/tokens.css`, not palette colors directly.
 - **Colored surfaces:** Elements on a colored surface (e.g. a button in an error box) use a different shade of the same palette, never gray.
 
 # Git Workflow

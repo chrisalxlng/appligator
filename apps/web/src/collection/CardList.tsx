@@ -50,7 +50,7 @@ function useTabStop(items: CardItem[], openedId: string | undefined) {
   return { tabStopId, focusItem: setFocusedId, leaveList };
 }
 
-export interface CardLinkProps {
+interface CardLinkProps {
   className: string;
   tabIndex: number;
   onFocus: () => void;

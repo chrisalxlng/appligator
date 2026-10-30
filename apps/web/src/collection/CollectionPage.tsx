@@ -16,7 +16,7 @@ interface Message {
   description: string;
 }
 
-export interface CollectionTexts {
+interface CollectionTexts {
   loading: string;
   loadingMore: string;
   loadError: Message;
@@ -24,7 +24,7 @@ export interface CollectionTexts {
   empty: Message;
 }
 
-export interface CollectionQuery<Item> {
+interface CollectionQuery<Item> {
   data: Item[] | undefined;
   isPending: boolean;
   isError: boolean;

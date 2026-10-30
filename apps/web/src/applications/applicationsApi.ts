@@ -7,7 +7,7 @@ import {
   type ApplicationStatus,
 } from "@appligator/shared";
 import type { ApiClient } from "../api/apiClient.ts";
-import { listPath } from "../collection/listPath.ts";
+import { listPath } from "../api/listPath.ts";
 
 export function createApplicationsApi(api: ApiClient) {
   return {

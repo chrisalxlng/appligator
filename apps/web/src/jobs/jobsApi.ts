@@ -6,9 +6,9 @@ import {
   type JobStatus,
 } from "@appligator/shared";
 import type { ApiClient } from "../api/apiClient.ts";
-import { listPath } from "../collection/listPath.ts";
+import { listPath } from "../api/listPath.ts";
 
-export interface JobListParams {
+interface JobListParams {
   cursor?: string | null;
   status?: JobStatus | null;
   search?: string;

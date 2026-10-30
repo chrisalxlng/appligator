@@ -20,28 +20,16 @@ export function Menu({ trigger, children }: MenuProps) {
   );
 }
 
-export interface MenuItemProps {
+export interface MenuItemProps extends Omit<BaseMenu.Item.Props, "className" | "onClick"> {
   icon?: ReactNode;
   variant?: "default" | "destructive";
-  disabled?: boolean;
   onClick: () => void;
   children: ReactNode;
 }
 
-export function MenuItem({
-  icon,
-  variant = "default",
-  disabled,
-  onClick,
-  children,
-}: MenuItemProps) {
+export function MenuItem({ icon, variant = "default", children, ...props }: MenuItemProps) {
   return (
-    <BaseMenu.Item
-      className={styles.item}
-      data-variant={variant}
-      disabled={disabled}
-      onClick={onClick}
-    >
+    <BaseMenu.Item className={styles.item} data-variant={variant} {...props}>
       {icon}
       {children}
     </BaseMenu.Item>
