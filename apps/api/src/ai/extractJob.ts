@@ -12,7 +12,7 @@ import { z } from "zod";
 import { escapeHtml, htmlToText } from "./htmlToText.ts";
 import { blocksToHtml, type Block, type JobPage } from "./jobPage.ts";
 
-const maxDescriptionLength = 50_000;
+const maxPromptLength = 50_000;
 
 const languageNames: Record<AiLanguage, string> = { de: "German", en: "English" };
 
@@ -88,9 +88,9 @@ function cleanSalary(salary: Extraction["salary"]) {
 
   const min = Math.round(Math.min(salary.min, salary.max));
   const max = Math.round(Math.max(salary.min, salary.max));
-  if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max > jobLimits.salary)
-    return null;
-  return { currency: salary.currency, period: salary.period, min, max };
+  const isPlausible =
+    Number.isFinite(min) && Number.isFinite(max) && min >= 0 && max <= jobLimits.salary;
+  return isPlausible ? { currency: salary.currency, period: salary.period, min, max } : null;
 }
 
 function cleanLocations(locations: string[]) {
@@ -140,7 +140,7 @@ async function generateExtraction<Result>(
     model,
     output: Output.object({ schema }),
     system: instructions(language, today.toISOString().slice(0, 10)),
-    prompt: prompt.slice(0, maxDescriptionLength),
+    prompt: prompt.slice(0, maxPromptLength),
     timeout: 90_000,
     abortSignal,
   });
@@ -165,7 +165,7 @@ function limitBlocks(blocks: Block[]) {
   return blocks.filter(({ text }) => {
     textLength += text.length + 1;
     htmlLength += escapeHtml(text).length + maxBlockMarkupLength;
-    return textLength <= maxDescriptionLength && htmlLength <= jobLimits.descriptionLength;
+    return textLength <= maxPromptLength && htmlLength <= jobLimits.descriptionLength;
   });
 }
 
