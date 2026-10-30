@@ -20,7 +20,7 @@ const modelOutput = {
   locations: ["München", " ", "München", "Hamburg"],
   vacationDays: 31.4,
   startDate: "2027-02-01",
-  contractTerm: { kind: "months", months: 24, date: null },
+  contractTerm: { kind: "months", months: 24, date: "" },
   probationMonths: 6,
   noticePeriod: { amount: 4, unit: "weeks", endOf: "month" },
   notes: ["Weiterbildungsbudget von 2.000 € <pro Jahr>", "Reisebereitschaft"],
@@ -75,21 +75,21 @@ test("returns empty values for missing information", async () => {
   const { extraction } = await extract({
     ...modelOutput,
     company: " ",
-    position: null,
-    companyType: null,
+    position: "",
+    companyType: "unknown",
     employeeCount: null,
     summary: "",
     salary: null,
     bonuses: [],
     benefits: [],
-    employmentType: null,
-    workModel: null,
+    employmentType: "unknown",
+    workModel: "unknown",
     homeOfficePercentage: null,
     workingHours: null,
     locations: [],
     vacationDays: null,
     startDate: "as soon as possible",
-    contractTerm: null,
+    contractTerm: { kind: "unknown", months: 0, date: "" },
     probationMonths: null,
     noticePeriod: null,
     notes: [],
@@ -125,12 +125,15 @@ test.each([
   ["a home office share above 100 percent", { homeOfficePercentage: 120 }],
   ["no working hours", { workingHours: { hours: 0, period: "week" } }],
   ["negative vacation days", { vacationDays: -5 }],
-  ["a fixed term without duration", { contractTerm: { kind: "months", months: null, date: null } }],
+  ["a fixed term without duration", { contractTerm: { kind: "months", months: 0, date: "" } }],
   [
     "a fixed term with an invalid end",
-    { contractTerm: { kind: "until", months: null, date: "soon" } },
+    { contractTerm: { kind: "until", months: 0, date: "soon" } },
   ],
-  ["a notice period without amount", { noticePeriod: { amount: 0, unit: "months", endOf: null } }],
+  [
+    "a notice period without amount",
+    { noticePeriod: { amount: 0, unit: "months", endOf: "none" } },
+  ],
 ])("drops %s", async (_case, override) => {
   const { extraction } = await extract({ ...modelOutput, ...override });
   const [field] = Object.keys(override) as (keyof typeof extraction)[];
@@ -185,6 +188,34 @@ test("sends the ad as plain text and asks for the configured language", async ()
   expect(call.responseFormat).toMatchObject({ type: "json" });
 });
 
+interface JsonSchema {
+  type?: string | string[];
+  anyOf?: JsonSchema[];
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+}
+
+function countUnionParameters(schema: JsonSchema): number {
+  const isUnion = Array.isArray(schema.type) || schema.anyOf !== undefined;
+  const children = [
+    ...Object.values(schema.properties ?? {}),
+    ...(schema.items ? [schema.items] : []),
+    ...(schema.anyOf ?? []),
+  ];
+  return (isUnion ? 1 : 0) + children.reduce((sum, child) => sum + countUnionParameters(child), 0);
+}
+
+// Anthropic rejects schemas with more than 16 parameters with union types.
+test.each([
+  ["a job ad", () => extract(modelOutput)],
+  ["a page", () => extractFromPage({ ...modelOutput, jobAd: null })],
+])("sends a schema for %s that Anthropic accepts", async (_case, run) => {
+  const { call } = await run();
+  const responseFormat = call.responseFormat as { schema: JsonSchema };
+
+  expect(countUnionParameters(responseFormat.schema)).toBeLessThanOrEqual(16);
+});
+
 const pageBlocks: JobPage["blocks"] = [
   { kind: "paragraph", text: "Cookies akzeptieren" },
   { kind: "heading", text: "Frontend Developer" },
@@ -200,8 +231,9 @@ async function extractFromPage(output: object, page: Partial<JobPage> = {}) {
     language: "de",
     today,
   });
-  const [, user] = model.doGenerateCalls[0]!.prompt;
-  return { ...result, prompt: user!.content };
+  const call = model.doGenerateCalls[0]!;
+  const [, user] = call.prompt;
+  return { ...result, prompt: user!.content, call };
 }
 
 test("sends the numbered page blocks and keeps the blocks of the job ad as description", async () => {

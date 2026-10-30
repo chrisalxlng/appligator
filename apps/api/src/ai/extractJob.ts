@@ -26,20 +26,28 @@ const maxBenefits = 6;
 
 const languageNames: Record<AiLanguage, string> = { de: "German", en: "English" };
 
+// Anthropic rejects schemas with more than 16 nullable or union-typed parameters, so missing
+// texts and choices are empty or "unknown" instead of null.
+const unknown = "unknown";
+
+function enumWithUnknown<const Values extends readonly string[]>(values: Values) {
+  return z.enum([...values, unknown]);
+}
+
+function known<Value extends string>(value: Value) {
+  return value === unknown ? null : (value as Exclude<Value, typeof unknown>);
+}
+
 const extractionSchema = z.object({
-  company: z.string().nullable().describe("Name of the hiring company as stated in the ad."),
+  company: z.string().describe("Name of the hiring company as stated in the ad."),
   position: z
     .string()
-    .nullable()
     .describe("Job title as stated in the ad, without gender markers such as (m/w/d)."),
-  companyType: z
-    .enum(companyTypes)
-    .nullable()
-    .describe(
-      "midsize is a small or medium-sized company such as a German Mittelstand company, " +
-        "corporation a large company or group, publicSector a public authority or institution. " +
-        "Only if the ad states it or makes it evident.",
-    ),
+  companyType: enumWithUnknown(companyTypes).describe(
+    "midsize is a small or medium-sized company such as a German Mittelstand company, " +
+      "corporation a large company or group, publicSector a public authority or institution. " +
+      "Only if the ad states it or makes it evident.",
+  ),
   employeeCount: z
     .number()
     .nullable()
@@ -50,9 +58,10 @@ const extractionSchema = z.object({
     .string()
     .describe(
       "Summary of the role, tasks, requirements, team and company in 3 to 5 sentences of plain " +
-        "prose. Leave out what the other fields cover, such as salary, bonuses, benefits, work " +
-        "model, home office, working hours, locations, vacation days, start date, contract term, " +
-        "probation, notice period and deadline. No bullet points, headings or markdown.",
+        "prose. Leave out what the other fields cover, such as company type and size, salary, " +
+        "bonuses, benefits, work model, home office, working hours, locations, vacation days, " +
+        "start date, contract term, probation, notice period and deadline. No bullet points, " +
+        "headings or markdown.",
     ),
   salary: z
     .object({
@@ -75,11 +84,10 @@ const extractionSchema = z.object({
         "drinks, fruit or team events, and what another field covers, such as bonuses, home " +
         "office, working hours or vacation days.",
     ),
-  employmentType: z
-    .enum(employmentTypes)
-    .nullable()
-    .describe("workingStudent is a part-time job for enrolled students."),
-  workModel: z.enum(workModels).nullable(),
+  employmentType: enumWithUnknown(employmentTypes).describe(
+    "workingStudent is a part-time job for enrolled students.",
+  ),
+  workModel: enumWithUnknown(workModels),
   homeOfficePercentage: z
     .number()
     .nullable()
@@ -94,27 +102,24 @@ const extractionSchema = z.object({
   vacationDays: z.number().nullable().describe("Vacation days per year, may include a half day."),
   startDate: z
     .string()
-    .nullable()
     .describe(
       "Start date as YYYY-MM-DD, only if the ad states a date rather than 'as soon as possible'.",
     ),
-  contractTerm: z
-    .object({
-      kind: z.enum(contractTermKinds),
-      months: z.number().nullable().describe("Duration of a fixed-term contract in months."),
-      date: z.string().nullable().describe("End date of a fixed-term contract as YYYY-MM-DD."),
-    })
-    .nullable()
-    .describe("Whether the contract is permanent or fixed-term, only if the ad states it."),
+  contractTerm: z.object({
+    kind: enumWithUnknown(contractTermKinds).describe(
+      "Whether the contract is permanent or fixed-term, only if the ad states it.",
+    ),
+    months: z.number().describe("Duration in months for kind months, else 0."),
+    date: z.string().describe("End date as YYYY-MM-DD for kind until, else empty."),
+  }),
   probationMonths: z.number().nullable().describe("Probation period in months."),
   noticePeriod: z
     .object({
       amount: z.number(),
       unit: z.enum(noticePeriodUnits),
       endOf: z
-        .enum(noticePeriodEnds)
-        .nullable()
-        .describe("Set for a notice period that ends at the end of a month or quarter."),
+        .enum([...noticePeriodEnds, "none"])
+        .describe("For a notice period that ends at the end of a month or quarter."),
     })
     .nullable(),
   notes: z
@@ -125,7 +130,6 @@ const extractionSchema = z.object({
     ),
   applicationDeadline: z
     .string()
-    .nullable()
     .describe("Deadline for applications as YYYY-MM-DD, only if the ad states one."),
 });
 
@@ -149,7 +153,8 @@ function instructions(language: AiLanguage, today: string) {
   const languageName = languageNames[language];
   return [
     "You extract information from job ads for a job application tracker.",
-    "Only use information the ad states. Use null or an empty list for anything it does not state.",
+    "Only use information the ad states. For anything it does not state, use an empty text, " +
+      `an empty list, ${unknown} or null.`,
     `Write the summary, locations, bonuses, benefits and notes in ${languageName}, ` +
       "even if the ad uses another language.",
     "Keep the company name and the job title as written in the ad.",
@@ -157,8 +162,8 @@ function instructions(language: AiLanguage, today: string) {
   ].join("\n");
 }
 
-function cleanText(value: string | null) {
-  const text = value?.trim();
+function cleanText(value: string) {
+  const text = value.trim();
   return text ? text.slice(0, jobLimits.textLength) : null;
 }
 
@@ -177,8 +182,8 @@ function cleanTextList(items: string[]) {
   return [...unique].slice(0, jobLimits.listItems);
 }
 
-function cleanDate(date: string | null) {
-  return z.iso.date().safeParse(date?.trim()).data ?? null;
+function cleanDate(date: string) {
+  return z.iso.date().safeParse(date.trim()).data ?? null;
 }
 
 function cleanInteger(value: number | null, min: number, max: number) {
@@ -202,7 +207,7 @@ function cleanWorkingHours(workingHours: Extraction["workingHours"]): WorkingHou
 }
 
 function cleanContractTerm(contractTerm: Extraction["contractTerm"]): ContractTerm | null {
-  switch (contractTerm?.kind) {
+  switch (contractTerm.kind) {
     case "permanent":
       return { kind: "permanent" };
     case "months": {
@@ -223,7 +228,7 @@ function cleanNoticePeriod(noticePeriod: Extraction["noticePeriod"]): NoticePeri
 
   const { unit, endOf } = noticePeriod;
   const amount = cleanInteger(noticePeriod.amount, 1, maxNoticePeriod(unit));
-  return amount === null ? null : { amount, unit, endOf };
+  return amount === null ? null : { amount, unit, endOf: endOf === "none" ? null : endOf };
 }
 
 function toBulletList(items: string[]) {
@@ -248,13 +253,13 @@ function toJobExtraction(extraction: Extraction): JobExtraction {
     summary: toParagraphs(extraction.summary),
     company: cleanText(extraction.company),
     position: cleanText(extraction.position),
-    companyType: extraction.companyType,
+    companyType: known(extraction.companyType),
     employeeCount: cleanInteger(extraction.employeeCount, 1, jobLimits.employeeCount),
     salary: cleanSalary(extraction.salary),
     bonuses: cleanTextList(extraction.bonuses),
     benefits: cleanTextList(extraction.benefits).slice(0, maxBenefits),
-    employmentType: extraction.employmentType,
-    workModel: extraction.workModel,
+    employmentType: known(extraction.employmentType),
+    workModel: known(extraction.workModel),
     homeOfficePercentage: cleanInteger(extraction.homeOfficePercentage, 0, 100),
     workingHours: cleanWorkingHours(extraction.workingHours),
     locations: cleanTextList(extraction.locations),

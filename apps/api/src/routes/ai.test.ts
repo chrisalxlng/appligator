@@ -228,12 +228,12 @@ const extractionOutput = {
   workingHours: null,
   locations: ["München"],
   vacationDays: 30,
-  startDate: null,
-  contractTerm: { kind: "permanent", months: null, date: null },
+  startDate: "",
+  contractTerm: { kind: "permanent", months: 0, date: "" },
   probationMonths: null,
   noticePeriod: null,
   notes: [],
-  applicationDeadline: null,
+  applicationDeadline: "",
 };
 
 async function extractJob(description = "<p>Frontend Developer at Initech in Munich</p>") {
@@ -250,8 +250,10 @@ test("POST /ai/job-extraction extracts the job with the stored access", async ()
   expect(response.json()).toEqual({
     ...extractionOutput,
     summary: "<p>Initech sucht eine Frontend-Entwicklerin.</p>",
+    startDate: null,
     contractTerm: { kind: "permanent" },
     notes: "",
+    applicationDeadline: null,
   });
   expect(createLanguageModel).toHaveBeenCalledWith({
     provider: "openai",
@@ -347,7 +349,7 @@ test("POST /ai/job-import creates the job from the page", async () => {
 test("POST /ai/job-import uses the page title without a job title", async () => {
   await saveSettings();
   createLanguageModel.mockImplementation(() =>
-    respondingModel(JSON.stringify({ ...extractionOutput, position: null, jobAd: null })),
+    respondingModel(JSON.stringify({ ...extractionOutput, position: "", jobAd: null })),
   );
 
   const response = await importJob();
@@ -359,7 +361,7 @@ test("POST /ai/job-import uses the page title without a job title", async () => 
 test("POST /ai/job-import responds with 422 when the page shows no job ad", async () => {
   await saveSettings();
   createLanguageModel.mockImplementation(() =>
-    respondingModel(JSON.stringify({ ...extractionOutput, company: null, jobAd: null })),
+    respondingModel(JSON.stringify({ ...extractionOutput, company: "", jobAd: null })),
   );
 
   const response = await importJob();
