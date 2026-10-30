@@ -10,6 +10,8 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -18,22 +20,14 @@ jobs:
           node-version: "24"
           cache: true
 
-      # The web app and the extension show the version of their package.json.
-      - name: Check app versions match the tag
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          for file in apps/*/package.json; do
-            version="v$(jq -r .version "$file")"
-            if [ "$version" != "$TAG" ]; then
-              echo "::error file=$file::Version $version does not match tag $TAG"
-              exit 1
-            fi
-          done
+      - id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - run: vp check
       - run: vp test
       - run: vp run @appligator/extension#zip
+        env:
+          VITE_APP_VERSION: ${{ steps.version.outputs.version }}
 
       - uses: actions/upload-artifact@v7.0.2
         with:
@@ -65,6 +59,7 @@ jobs:
         with:
           context: .
           target: ${{ matrix.app }}
+          build-args: VITE_APP_VERSION=${{ needs.verify.outputs.version }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |

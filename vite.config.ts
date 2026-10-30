@@ -23,5 +23,8 @@ export default defineConfig({
   },
   run: {
     cache: true,
+    tasks: {
+      release: { command: "node tools/release/src/release.ts", cache: false },
+    },
   },
 });

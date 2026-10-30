@@ -13,7 +13,8 @@ RUN pnpm exec vp run @appligator/api#build
 RUN pnpm deploy --filter @appligator/api --prod /deploy
 
 FROM dependencies AS web-build
-RUN pnpm exec vp run @appligator/web#build
+ARG VITE_APP_VERSION
+RUN : "${VITE_APP_VERSION:?build argument is required}" && pnpm exec vp run @appligator/web#build
 
 FROM node:24-alpine AS api
 ENV HOST=0.0.0.0
