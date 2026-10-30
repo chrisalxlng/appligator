@@ -13,6 +13,7 @@ const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? "localhost";
 const keycloakIssuer = requireEnv("KEYCLOAK_ISSUER");
 const keycloakClientId = requireEnv("KEYCLOAK_CLIENT_ID");
+const webAppOrigin = requireEnv("WEB_APP_ORIGIN");
 const apiKeyCipher = createApiKeyCipher(requireEnv("AI_API_KEY_ENCRYPTION_KEY"));
 const pool = new Pool({
   connectionString: requireEnv("DATABASE_URL"),
@@ -29,6 +30,7 @@ const app = buildApp({
   },
   db,
   ai: { apiKeyCipher, modelCatalog: createModelCatalog(), createLanguageModel },
+  webAppOrigin,
   apiDocs: process.env.API_DOCS === "true",
 });
 

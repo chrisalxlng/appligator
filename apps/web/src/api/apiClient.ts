@@ -36,7 +36,7 @@ export function createApiClient(getToken: () => Promise<string>) {
     const headers = new Headers({ authorization: `Bearer ${await getToken()}` });
     if (body !== undefined) headers.set("content-type", "application/json");
 
-    const response = await fetch(`/api${path}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),

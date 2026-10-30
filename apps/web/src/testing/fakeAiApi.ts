@@ -81,7 +81,7 @@ export function createFakeAiApi(initialSettings: AiSettings | null = null) {
   vi.stubGlobal(
     "fetch",
     vi.fn((url: string, init?: RequestInit) => {
-      const path = url.replace(/^\/api/, "");
+      const path = url.replace(import.meta.env.VITE_API_URL, "");
       return path.startsWith("/ai/") ? handle(path, init) : otherFetch(url, init);
     }),
   );

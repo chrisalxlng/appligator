@@ -10,15 +10,10 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    proxy: {
-      "/api": {
-        target: "http://localhost:3000",
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
   },
   test: {
     environment: "jsdom",
     setupFiles: ["./test-setup.ts"],
+    env: { VITE_API_URL: "http://api.test" },
   },
 });
