@@ -1,4 +1,9 @@
-import { aiProviders, type AiProvider, type AiSettings } from "@appligator/shared";
+import {
+  aiProviders,
+  type AiErrorCode,
+  type AiProvider,
+  type AiSettings,
+} from "@appligator/shared";
 import {
   Button,
   Drawer,
@@ -53,11 +58,16 @@ export function AiAccessDrawer({ settings, open, onOpenChange }: AiAccessDrawerP
   );
 }
 
+const saveErrors = [
+  "apiKeyRequired",
+  "accessRejected",
+  "rateLimited",
+  "providerUnavailable",
+] as const satisfies readonly AiErrorCode[];
+
 function saveError(error: Error) {
   const code = error instanceof ApiError ? error.code : undefined;
-  return code === "accessRejected" || code === "rateLimited" || code === "providerUnavailable"
-    ? code
-    : "saveFailed";
+  return saveErrors.find((saveError) => saveError === code) ?? "saveFailed";
 }
 
 interface AiAccessFormProps {

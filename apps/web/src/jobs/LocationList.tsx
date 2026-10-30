@@ -1,3 +1,4 @@
+import { jobLimits } from "@appligator/shared";
 import {
   Button,
   Drawer,
@@ -60,15 +61,17 @@ export function LocationList({ locations, onChange }: LocationListProps) {
           ))}
         </ul>
       )}
-      <button
-        type="button"
-        className={styles.addButton}
-        aria-label={t("jobs.location.addTitle")}
-        onClick={() => setDrawer({ open: true, index: null })}
-      >
-        <IconPlus size={20} stroke={2.4} aria-hidden />
-        {t("jobs.location.add")}
-      </button>
+      {locations.length < jobLimits.locations && (
+        <button
+          type="button"
+          className={styles.addButton}
+          aria-label={t("jobs.location.addTitle")}
+          onClick={() => setDrawer({ open: true, index: null })}
+        >
+          <IconPlus size={20} stroke={2.4} aria-hidden />
+          {t("jobs.location.add")}
+        </button>
+      )}
       <Drawer
         title={t(drawer.index === null ? "jobs.location.addTitle" : "jobs.location.editTitle")}
         closeLabel={t("jobs.close")}
@@ -87,6 +90,13 @@ export function LocationList({ locations, onChange }: LocationListProps) {
   );
 }
 
+type LocationError = "required" | "tooLong";
+
+function locationError(location: string): LocationError | undefined {
+  if (!location) return "required";
+  return location.length > jobLimits.textLength ? "tooLong" : undefined;
+}
+
 interface LocationFormProps {
   inputRef: RefObject<HTMLInputElement | null>;
   initialValue: string;
@@ -97,7 +107,7 @@ interface LocationFormProps {
 function LocationForm({ inputRef, initialValue, isEditing, onSave }: LocationFormProps) {
   const { t } = useTranslation();
   const [value, setValue] = useState(initialValue);
-  const [showError, setShowError] = useState(false);
+  const [error, setError] = useState<LocationError>();
   const shortcutHints = useShortcutHints();
 
   function submit(event: FormEvent) {
@@ -105,16 +115,14 @@ function LocationForm({ inputRef, initialValue, isEditing, onSave }: LocationFor
     // The drawer is portaled, but React still bubbles the submit to the surrounding job form.
     event.stopPropagation();
     const location = value.trim();
-    if (location) onSave(location);
-    else setShowError(true);
+    const invalid = locationError(location);
+    if (invalid) setError(invalid);
+    else onSave(location);
   }
 
   return (
     <form className={styles.form} onSubmit={submit} noValidate>
-      <Field
-        label={t("jobs.location.label")}
-        error={showError ? t("jobs.location.required") : undefined}
-      >
+      <Field label={t("jobs.location.label")} error={error && t(`jobs.location.${error}`)}>
         <TextInput ref={inputRef} value={value} onValueChange={setValue} />
       </Field>
       <Button

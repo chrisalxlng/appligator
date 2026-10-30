@@ -97,9 +97,11 @@ export const en = {
       errors: {
         companyRequired: "Please enter a company.",
         positionRequired: "Please enter a position.",
+        tooLong: "This text is too long. Please shorten it.",
         linkInvalid: "Please enter a valid link.",
         salaryIncomplete: "Please enter currency, amount and period.",
         salaryRange: "The minimum must not exceed the maximum.",
+        salaryTooHigh: "This amount is too high.",
       },
     },
     analysis: {
@@ -132,6 +134,7 @@ export const en = {
       update: "Update",
       remove: "Remove {{location}}",
       required: "Please enter a location.",
+      tooLong: "This location is too long. Please shorten it.",
     },
     toast: {
       added: "Job added",

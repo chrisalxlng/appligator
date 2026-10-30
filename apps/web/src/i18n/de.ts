@@ -99,9 +99,11 @@ export const de: Translations = {
       errors: {
         companyRequired: "Bitte gib eine Firma an.",
         positionRequired: "Bitte gib eine Position an.",
+        tooLong: "Dieser Text ist zu lang. Bitte kürze ihn.",
         linkInvalid: "Bitte gib einen gültigen Link an.",
         salaryIncomplete: "Bitte gib Währung, Betrag und Zeitraum an.",
         salaryRange: "Der Mindestbetrag darf den Höchstbetrag nicht übersteigen.",
+        salaryTooHigh: "Dieser Betrag ist zu hoch.",
       },
     },
     analysis: {
@@ -137,6 +139,7 @@ export const de: Translations = {
       update: "Aktualisieren",
       remove: "{{location}} entfernen",
       required: "Bitte gib einen Standort an.",
+      tooLong: "Dieser Standort ist zu lang. Bitte kürze ihn.",
     },
     toast: {
       added: "Stelle hinzugefügt",

@@ -126,6 +126,18 @@ test("shows why the provider rejected the AI access", async () => {
   );
 });
 
+test("asks for the key again when the stored one is no longer usable", async () => {
+  const api = createFakeAiApi(aiSettingsFixture);
+  api.failWith("PUT /ai/settings", 422, "apiKeyRequired");
+  renderApp("/profile");
+
+  const drawer = await openEditDrawer();
+  await choose(drawer, "Model", "gpt-6-sol");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Update" }));
+
+  expect(await within(drawer).findByRole("alert")).toHaveTextContent("Please enter the key.");
+});
+
 test("edits the model while keeping the stored key", async () => {
   const api = createFakeAiApi(aiSettingsFixture);
   renderApp("/profile");

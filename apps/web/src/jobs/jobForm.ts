@@ -1,12 +1,13 @@
-import type {
-  Currency,
-  EmploymentType,
-  Job,
-  JobExtraction,
-  JobInput,
-  Salary,
-  SalaryPeriod,
-  WorkModel,
+import {
+  jobLimits,
+  type Currency,
+  type EmploymentType,
+  type Job,
+  type JobExtraction,
+  type JobInput,
+  type Salary,
+  type SalaryPeriod,
+  type WorkModel,
 } from "@appligator/shared";
 
 export interface JobFormValues {
@@ -28,12 +29,14 @@ export interface JobFormValues {
 export type JobFormError =
   | "companyRequired"
   | "positionRequired"
+  | "tooLong"
   | "linkInvalid"
   | "salaryIncomplete"
-  | "salaryRange";
+  | "salaryRange"
+  | "salaryTooHigh";
 
 export type JobFormErrors = Partial<
-  Record<"company" | "position" | "link" | "salary", JobFormError>
+  Record<"description" | "summary" | "company" | "position" | "link" | "salary", JobFormError>
 >;
 
 type ValidationResult =
@@ -86,22 +89,35 @@ function parseSalary(values: JobFormValues): Salary | null | JobFormError {
     return "salaryIncomplete";
   }
   if (min > max) return "salaryRange";
+  if (max > jobLimits.salary) return "salaryTooHigh";
   return { currency, period, min, max };
 }
 
+function requiredTextError(text: string, missingError: JobFormError) {
+  if (!text) return missingError;
+  return text.length > jobLimits.textLength ? "tooLong" : undefined;
+}
+
+function richTextError(html: string, maxLength: number) {
+  return html.length > maxLength ? "tooLong" : undefined;
+}
+
 export function validateJobForm(values: JobFormValues): ValidationResult {
-  const errors: JobFormErrors = {};
   const company = values.company.trim();
   const position = values.position.trim();
   const link = parseLink(values.link);
   const salary = parseSalary(values);
 
-  if (!company) errors.company = "companyRequired";
-  if (!position) errors.position = "positionRequired";
-  if (link === undefined) errors.link = "linkInvalid";
-  if (typeof salary === "string") errors.salary = salary;
+  const errors: JobFormErrors = {
+    description: richTextError(values.description, jobLimits.descriptionLength),
+    summary: richTextError(values.summary, jobLimits.summaryLength),
+    company: requiredTextError(company, "companyRequired"),
+    position: requiredTextError(position, "positionRequired"),
+    link: link === undefined ? "linkInvalid" : undefined,
+    salary: typeof salary === "string" ? salary : undefined,
+  };
 
-  if (Object.keys(errors).length > 0 || typeof salary === "string") return { errors };
+  if (Object.values(errors).some(Boolean) || typeof salary === "string") return { errors };
 
   return {
     input: {

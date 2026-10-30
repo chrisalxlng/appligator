@@ -1,3 +1,4 @@
+import { jobLimits } from "@appligator/shared";
 import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, onTestFinished, test, vi } from "vite-plus/test";
@@ -388,6 +389,32 @@ test("adds, edits and removes locations in a nested drawer", async () => {
   expect(api.requestsWith("PUT")).toHaveLength(0);
   await userEvent.click(within(drawer).getByRole("button", { name: "Update" }));
   await waitFor(() => expect(api.requestsWith("PUT")[0]?.body?.locations).toEqual(["Bonn"]));
+});
+
+test("rejects a location longer than a job allows", async () => {
+  createFakeJobsApi([olderJob]);
+  renderApp(`/jobs/${olderJob.id}`);
+  const drawer = await openEditDrawer();
+
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add location" }));
+  const addLocation = await screen.findByRole("dialog", { name: "Add location" });
+  await userEvent.click(within(addLocation).getByRole("textbox", { name: "Location" }));
+  await userEvent.paste("x".repeat(jobLimits.textLength + 1));
+  await userEvent.click(within(addLocation).getByRole("button", { name: "Add" }));
+
+  expect(
+    within(addLocation).getByText("This location is too long. Please shorten it."),
+  ).toBeInTheDocument();
+});
+
+test("offers no further location once a job has the most locations it allows", async () => {
+  const locations = Array.from({ length: jobLimits.locations }, (_, index) => `City ${index}`);
+  createFakeJobsApi([{ ...olderJob, locations }]);
+  renderApp(`/jobs/${olderJob.id}`);
+  const drawer = await openEditDrawer();
+
+  expect(within(drawer).getByRole("button", { name: "City 0" })).toBeInTheDocument();
+  expect(within(drawer).queryByRole("button", { name: "Add location" })).not.toBeInTheDocument();
 });
 
 test("edits a job", async () => {
