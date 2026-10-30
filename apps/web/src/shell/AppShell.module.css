@@ -4,6 +4,8 @@
   min-height: 100dvh;
   /* Keeps the bars that scroll away on mobile from extending the scrollable page. */
   overflow-y: clip;
+  /* Keeps z-indexes inside the app, so drawers and dialogs portaled to the body stay on top. */
+  isolation: isolate;
 
   @media (width >= 768px) {
     flex-direction: row;
