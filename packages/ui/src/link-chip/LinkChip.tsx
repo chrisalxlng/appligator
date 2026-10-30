@@ -18,8 +18,8 @@ export function LinkChip({ badge, render, children, ...props }: LinkChipProps) {
         children: (
           <>
             <span className={styles.label}>
-              <IconArrowUpRight size={14} stroke={2} aria-hidden />
-              {children}
+              <IconArrowUpRight className={styles.icon} size={14} stroke={2} aria-hidden />
+              <span className={styles.text}>{children}</span>
             </span>
             {badge}
           </>
