@@ -9,6 +9,7 @@ import { respondingModel } from "./testLanguageModel.ts";
 
 const issuer = "http://keycloak.test/realms/apps";
 const clientId = "appligator-app";
+export const testWebAppOrigin = "http://app.test";
 const { privateKey, publicKey } = await generateKeyPair("RS256");
 const keys = createLocalJWKSet({ keys: [{ ...(await exportJWK(publicKey)), alg: "RS256" }] });
 const testDatabase = await createTestDatabase();
@@ -26,7 +27,13 @@ export function buildTestApp({
   ai = {},
   apiDocs = false,
 }: { db?: Database; ai?: Partial<AiOptions>; apiDocs?: boolean } = {}) {
-  return buildApp({ auth: { issuer, clientId, keys }, db, ai: { ...testAi, ...ai }, apiDocs });
+  return buildApp({
+    auth: { issuer, clientId, keys },
+    db,
+    ai: { ...testAi, ...ai },
+    webAppOrigin: testWebAppOrigin,
+    apiDocs,
+  });
 }
 
 export function signToken(

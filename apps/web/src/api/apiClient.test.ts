@@ -15,7 +15,7 @@ test("sends authenticated requests to the API", async () => {
   await expect(api.request("/jobs", identity)).resolves.toEqual({ ok: true });
 
   const [url, init] = fetchMock.mock.calls[0]!;
-  expect(url).toBe("/api/jobs");
+  expect(url).toBe("http://api.test/jobs");
   expect(new Headers(init?.headers).get("authorization")).toBe("Bearer token");
 });
 

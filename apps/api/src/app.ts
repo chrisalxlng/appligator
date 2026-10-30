@@ -1,3 +1,4 @@
+import fastifyCors from "@fastify/cors";
 import Fastify from "fastify";
 import {
   serializerCompiler,
@@ -21,10 +22,11 @@ export interface AppOptions {
   auth: AuthOptions;
   db: Database;
   ai: AiOptions;
+  webAppOrigin: string;
   apiDocs?: boolean;
 }
 
-export function buildApp({ auth, db, ai, apiDocs = false }: AppOptions) {
+export function buildApp({ auth, db, ai, webAppOrigin, apiDocs = false }: AppOptions) {
   const app = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
@@ -32,6 +34,7 @@ export function buildApp({ auth, db, ai, apiDocs = false }: AppOptions) {
 
   app.decorate("db", db);
 
+  app.register(fastifyCors, { origin: webAppOrigin, methods: ["GET", "POST", "PUT", "DELETE"] });
   requireAuthentication(app, auth);
   if (apiDocs) serveApiDocs(app, auth);
 

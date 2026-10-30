@@ -41,7 +41,7 @@ export function createFakeJobsApi(initialJobs: Job[] = []) {
 
   async function handle(url: string, init?: RequestInit): Promise<Response> {
     const method = init?.method ?? "GET";
-    const path = url.replace(/^\/api/, "");
+    const path = url.replace(import.meta.env.VITE_API_URL, "");
     const { pathname, searchParams } = new URL(path, location.origin);
     const body = typeof init?.body === "string" ? (JSON.parse(init.body) as JobInput) : undefined;
     requests.push({ method, path, body });
