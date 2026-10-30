@@ -47,7 +47,7 @@ test("renders the not found page for unknown routes", async () => {
 
   expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Open home page" })).toHaveAttribute("href", "/");
-  expect(document.title).toBe("Page not found · Appligator");
+  expect(document.title).toBe("Page not found • Appligator");
 });
 
 test("links the app logo to the home page", async () => {
@@ -63,7 +63,7 @@ test("renders German texts when the language is German", async () => {
   renderAt("/jobs");
 
   expect(await screen.findByRole("heading", { name: "Stellen" })).toBeInTheDocument();
-  expect(document.title).toBe("Stellen · Appligator");
+  expect(document.title).toBe("Stellen • Appligator");
 });
 
 test("shows the logged in user on the profile page", async () => {
@@ -73,7 +73,7 @@ test("shows the logged in user on the profile page", async () => {
 
   expect(account).toHaveTextContent("Jane Doe");
   expect(account).toHaveTextContent("jane@example.com");
-  expect(document.title).toBe("Profile · Appligator");
+  expect(document.title).toBe("Profile • Appligator");
 });
 
 test("signs the user out from the profile page", async () => {
@@ -90,7 +90,7 @@ test("shows the error page when the authentication fails", async () => {
 
   expect(await screen.findByRole("heading", { name: "Something went wrong" })).toBeInTheDocument();
   expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
-  expect(document.title).toBe("Something went wrong · Appligator");
+  expect(document.title).toBe("Something went wrong • Appligator");
 });
 
 test("shows the error page when a page fails to render", async () => {

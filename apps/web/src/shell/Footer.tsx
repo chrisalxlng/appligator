@@ -6,7 +6,7 @@ export function Footer({ className }: { className?: string }) {
 
   return (
     <footer className={`${styles.footer} ${className ?? ""}`}>
-      © {year} Christopher Lang · v{import.meta.env.VITE_APP_VERSION}
+      © {year} Christopher Lang • v{import.meta.env.VITE_APP_VERSION}
     </footer>
   );
 }

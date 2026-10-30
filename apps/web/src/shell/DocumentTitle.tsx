@@ -1,3 +1,3 @@
 export function DocumentTitle({ title }: { title: string }) {
-  return <title>{`${title} · Appligator`}</title>;
+  return <title>{`${title} • Appligator`}</title>;
 }

@@ -48,7 +48,7 @@ test("lists the jobs with their creation day", async () => {
 
   expect(newest).toHaveTextContent("Lead Developer FrontendRandstad Digital Germany AGToday");
   expect(older).toHaveTextContent("Frontend DeveloperInitech GmbHYesterday");
-  expect(document.title).toBe("Jobs · Appligator");
+  expect(document.title).toBe("Jobs • Appligator");
 });
 
 function manyJobs(count: number) {
@@ -194,7 +194,7 @@ test("shows the details of a job", async () => {
   expect(property("Work model")).toHaveTextContent("Hybrid");
   expect(property("Employment type")).toHaveTextContent("Full-time");
   expect(property("Application deadline")).toHaveTextContent("Dec 31, 2026");
-  expect(document.title).toBe("Lead Developer Frontend · Appligator");
+  expect(document.title).toBe("Lead Developer Frontend • Appligator");
   expect(within(detail).getByText("Lead position with a focus on Angular.")).toBeInTheDocument();
   expect(within(detail).getByRole("heading", { name: "Introduction" })).toBeInTheDocument();
   expect(within(detail).getByRole("link", { name: "stepstone.de" })).toHaveAttribute(
@@ -219,7 +219,7 @@ test("shows that a job does not exist", async () => {
 
   expect(await screen.findByRole("heading", { name: "Job not found" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Back to jobs" })).toHaveAttribute("href", "/jobs");
-  expect(document.title).toBe("Job not found · Appligator");
+  expect(document.title).toBe("Job not found • Appligator");
 });
 
 test("retries loading the jobs after an error", async () => {
@@ -242,13 +242,13 @@ test("shows the list on mobile and closes an opened job", async () => {
 
   await userEvent.click(await screen.findByRole("link", { name: /Lead Developer Frontend/ }));
   expect(await screen.findByRole("article")).toBeInTheDocument();
-  expect(document.title).toBe("Lead Developer Frontend · Appligator");
+  expect(document.title).toBe("Lead Developer Frontend • Appligator");
 
   await userEvent.click(screen.getByRole("button", { name: "Close" }));
 
   await waitFor(() => expect(router.state.location.pathname).toBe("/jobs"));
   expect(screen.queryByRole("article")).not.toBeInTheDocument();
-  expect(document.title).toBe("Jobs · Appligator");
+  expect(document.title).toBe("Jobs • Appligator");
 });
 
 test("adds a job and opens it", async () => {
