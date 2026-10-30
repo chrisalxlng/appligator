@@ -22,7 +22,7 @@ export function LoadError({ title, description, onRetry }: LoadErrorProps) {
         action={
           <Button onClick={onRetry}>
             <IconRefresh size={20} stroke={2.4} aria-hidden />
-            {t("jobs.retry")}
+            {t("loadError.retry")}
           </Button>
         }
       />

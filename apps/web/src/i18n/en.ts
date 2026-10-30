@@ -27,7 +27,6 @@ export const en = {
       title: "More jobs could not be loaded",
       description: "Check your connection and try again.",
     },
-    retry: "Try again",
     empty: {
       title: "No jobs yet",
       description: "Add your first job.",
@@ -162,7 +161,7 @@ export const en = {
   },
   profile: {
     account: "Account",
-    logout: "Sign out",
+    logout: "Log out",
   },
   ai: {
     title: "AI features",
@@ -225,6 +224,9 @@ export const en = {
       deleted: "AI access deleted",
       languageUpdated: "AI language updated",
     },
+  },
+  loadError: {
+    retry: "Try again",
   },
   error: {
     title: "Something went wrong",

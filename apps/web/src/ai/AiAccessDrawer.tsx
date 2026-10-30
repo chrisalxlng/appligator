@@ -1,5 +1,6 @@
 import {
   aiProviders,
+  detectLanguage,
   type AiErrorCode,
   type AiProvider,
   type AiSettings,
@@ -17,7 +18,6 @@ import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../api/apiClient.ts";
-import { detectLanguage } from "../i18n/detectLanguage.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import styles from "./AiSettingsForm.module.css";
 import {

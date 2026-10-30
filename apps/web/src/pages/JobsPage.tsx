@@ -7,7 +7,7 @@ import emptyIllustration from "../assets/jobs-empty.svg";
 import { JobFormDrawer } from "../jobs/JobFormDrawer.tsx";
 import { JobList } from "../jobs/JobList.tsx";
 import { useJobs } from "../jobs/jobQueries.ts";
-import { LoadError } from "../jobs/LoadError.tsx";
+import { LoadError } from "../loading/LoadError.tsx";
 import { PageSpinner } from "../loading/PageSpinner.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { DocumentTitle } from "../shell/DocumentTitle.tsx";

@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { detectLanguage } from "./detectLanguage.ts";
+import { detectLanguage } from "./language.ts";
 
 test.each(["de", "de-DE", "de-AT", "DE-ch"])("uses German for %s", (browserLanguage) => {
   expect(detectLanguage(browserLanguage)).toBe("de");

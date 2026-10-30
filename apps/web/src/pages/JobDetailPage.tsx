@@ -6,7 +6,7 @@ import { ApiError } from "../api/apiClient.ts";
 import notFoundIllustration from "../assets/not-found.svg";
 import { JobDetail } from "../jobs/JobDetail.tsx";
 import { useJob } from "../jobs/jobQueries.ts";
-import { LoadError } from "../jobs/LoadError.tsx";
+import { LoadError } from "../loading/LoadError.tsx";
 import { PageSpinner } from "../loading/PageSpinner.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { DocumentTitle } from "../shell/DocumentTitle.tsx";

@@ -22,6 +22,7 @@ import { verifyLanguageModel, type CreateLanguageModel } from "../ai/languageMod
 import type { ModelCatalog } from "../ai/modelCatalog.ts";
 import { aiSettings, jobs } from "../db/schema.ts";
 import { toColumns, toJob } from "./jobs.ts";
+import { notFoundSchema } from "./notFound.ts";
 
 export interface AiOptions {
   apiKeyCipher: ApiKeyCipher;
@@ -31,7 +32,6 @@ export interface AiOptions {
 
 type AiSettingsRow = typeof aiSettings.$inferSelect;
 
-const notFoundSchema = z.object({ error: z.literal("Not Found") });
 const aiErrorResponses = { 409: aiErrorSchema, 422: aiErrorSchema, 502: aiErrorSchema };
 const maxJobPageBytes = maxJobPageLength * 2;
 

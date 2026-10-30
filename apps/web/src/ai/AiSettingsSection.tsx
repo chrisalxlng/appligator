@@ -4,7 +4,7 @@ import { IconChevronRight, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { capitalize, formatRelativeTime } from "../i18n/formatRelativeTime.ts";
-import { LoadError } from "../jobs/LoadError.tsx";
+import { LoadError } from "../loading/LoadError.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { AiAccessDrawer } from "./AiAccessDrawer.tsx";

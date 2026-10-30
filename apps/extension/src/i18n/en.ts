@@ -14,10 +14,10 @@ export const en = {
     unsupportedPage: "Jobs cannot be submitted from this page.",
     logout: "Log out",
     errors: {
-      notConfigured: "Set up an AI access in your Appligator profile first.",
+      notConfigured: "Set up AI access in your Appligator profile first.",
       accessRejected: "The provider rejected your AI access. Check it in your profile.",
       rateLimited:
-        "Your key has reached its limit. Check your credit and limits with the provider.",
+        "Your key has reached its limit. Check your balance and limits with the provider.",
       providerUnavailable: "The provider is currently unavailable. Please try again later.",
       extractionFailed: "The AI response could not be processed. Please try again.",
       noJobFound: "No job ad was found on this page.",

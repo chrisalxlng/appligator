@@ -29,7 +29,6 @@ export const de: Translations = {
       title: "Weitere Stellen konnten nicht geladen werden",
       description: "Prüfe deine Verbindung und versuche es erneut.",
     },
-    retry: "Erneut versuchen",
     empty: {
       title: "Noch keine Stellen",
       description: "Füge deine erste Stelle hinzu.",
@@ -232,6 +231,9 @@ export const de: Translations = {
       deleted: "KI-Zugang gelöscht",
       languageUpdated: "KI-Sprache aktualisiert",
     },
+  },
+  loadError: {
+    retry: "Erneut versuchen",
   },
   error: {
     title: "Etwas ist schiefgelaufen",

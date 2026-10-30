@@ -13,6 +13,7 @@ export {
   type AiSettings,
   type AiSettingsInput,
 } from "./ai.ts";
+export { detectLanguage } from "./language.ts";
 export { healthResponseSchema, type HealthResponse } from "./health.ts";
 export {
   currencies,
