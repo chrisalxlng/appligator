@@ -56,6 +56,20 @@ vp run storybook
 vp run ready
 ```
 
+## Deployment
+
+The [cl-dev](https://github.com/chrisalxlng/cl-dev) setup runs the web app and the API in production from the images `ghcr.io/chrisalxlng/appligator-web` and `ghcr.io/chrisalxlng/appligator-api`. Both are built from the `Dockerfile` in the root (targets `web` and `api`):
+
+- `web` serves the build of the web app with nginx. Its URLs come from `apps/web/.env.production` at build time.
+- `api` listens on port 3000, applies the migrations on startup and requires `DATABASE_URL`, `KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID`, `WEB_APP_ORIGIN` and `AI_API_KEY_ENCRYPTION_KEY`.
+
+Pushing a version tag runs the release workflow: it checks that the tag matches the versions in `apps/*/package.json`, checks and tests everything, pushes both images for `linux/amd64` and `linux/arm64` tagged with the version and `latest`, and creates a GitHub release with the extension package. To release, raise the versions in `apps/*/package.json` via a pull request and tag its merge commit:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
 ## Chrome extension
 
 The extension submits the job ad in the active tab to the API (`POST /ai/job-import`). The API reduces the page to the job ad (the schema.org `JobPosting` data if the page has one, otherwise numbered text blocks of which the AI picks the job ad), lets the AI extract the job and creates it. Pages can be several megabytes, so a reverse proxy in front of the API must accept request bodies of up to 20 MB on this route. Users log in with the `appligator-app` Keycloak client, which must allow the redirect URI `chrome-extension://ikefecjehkhnchneifagjlnepkmikdan/auth-callback.html`. The `key` in the manifest (`apps/extension/vite.config.ts`) pins this extension ID for every installation.
@@ -78,7 +92,7 @@ vp run @appligator/extension#zip
 
 The extension is not published in the Chrome Web Store. To install it in Chrome (or Edge, Brave and other Chromium browsers):
 
-1. Unzip `appligator-extension.zip` into a folder that stays in place, as the browser loads the extension from there.
+1. Download `appligator-extension.zip` from the latest [GitHub release](https://github.com/chrisalxlng/appligator/releases/latest) and unzip it into a folder that stays in place, as the browser loads the extension from there.
 2. Open `chrome://extensions` and turn on **Developer mode** in the top right corner.
 3. Click **Load unpacked** and select the unzipped folder (or `apps/extension/dist` during development).
 4. Pin Appligator via the puzzle icon in the toolbar, click it and log in.

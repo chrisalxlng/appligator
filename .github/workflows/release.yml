@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: "24"
+          cache: true
+
+      # The web app and the extension show the version of their package.json.
+      - name: Check app versions match the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          for file in apps/*/package.json; do
+            version="v$(jq -r .version "$file")"
+            if [ "$version" != "$TAG" ]; then
+              echo "::error file=$file::Version $version does not match tag $TAG"
+              exit 1
+            fi
+          done
+
+      - run: vp check
+      - run: vp test
+      - run: vp run @appligator/extension#zip
+
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: extension
+          path: apps/extension/appligator-extension.zip
+          if-no-files-found: error
+
+  image:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        app: [api, web]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: docker/setup-buildx-action@v4.4.1
+
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          target: ${{ matrix.app }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/appligator-${{ matrix.app }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/appligator-${{ matrix.app }}:latest
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+  release:
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: extension
+
+      - uses: softprops/action-gh-release@v3.0.3
+        with:
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+          files: appligator-extension.zip
