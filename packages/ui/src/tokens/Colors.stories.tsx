@@ -40,6 +40,8 @@ const semanticTokens = [
   "highlight-fill",
   "highlight-fill-hover",
   "highlight-fill-press",
+  "success-fill",
+  "success-text-primary",
   "destructive-fill",
   "destructive-fill-hover",
   "destructive-fill-press",

@@ -1,6 +1,7 @@
 import {
   aiLanguages,
   aiProviders,
+  applicationStatuses,
   companyTypes,
   currencies,
   employmentTypes,
@@ -29,19 +30,12 @@ export const currencyEnum = pgEnum("currency", currencies);
 export const salaryPeriodEnum = pgEnum("salary_period", salaryPeriods);
 export const workModelEnum = pgEnum("work_model", workModels);
 export const employmentTypeEnum = pgEnum("employment_type", employmentTypes);
+export const applicationStatusEnum = pgEnum("application_status", applicationStatuses);
 export const aiProviderEnum = pgEnum("ai_provider", aiProviders);
 export const aiLanguageEnum = pgEnum("ai_language", aiLanguages);
 
-export const jobs = pgTable(
-  "jobs",
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    userId: text().notNull(),
-    link: text(),
-    description: text().notNull(),
-    summary: text().notNull(),
-    company: text().notNull(),
-    position: text().notNull(),
+function jobDetailColumns() {
+  return {
     companyType: companyTypeEnum(),
     employeeCount: integer(),
     salaryCurrency: currencyEnum(),
@@ -69,7 +63,41 @@ export const jobs = pgTable(
     probationMonths: integer(),
     noticePeriod: jsonb().$type<NoticePeriod>(),
     notes: text().notNull().default(""),
+  };
+}
+
+export const jobs = pgTable(
+  "jobs",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text().notNull(),
+    link: text(),
+    description: text().notNull(),
+    summary: text().notNull(),
+    company: text().notNull(),
+    position: text().notNull(),
+    ...jobDetailColumns(),
     applicationDeadline: date(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index().on(table.userId, table.createdAt)],
+);
+
+export const applications = pgTable(
+  "applications",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text().notNull(),
+    jobId: uuid()
+      .notNull()
+      .unique()
+      .references(() => jobs.id, { onDelete: "restrict" }),
+    status: applicationStatusEnum().notNull(),
+    appliedAt: date().notNull(),
+    company: text().notNull(),
+    position: text().notNull(),
+    ...jobDetailColumns(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },

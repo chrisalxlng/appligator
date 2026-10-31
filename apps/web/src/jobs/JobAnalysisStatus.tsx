@@ -70,7 +70,7 @@ function StatusContent({ analysis, onRetry, onDismiss }: StatusContentProps) {
   }
 
   const fieldList = new Intl.ListFormat(i18n.language).format(
-    analysis.filledFields.map((field) => t(`jobs.form.${field}`)),
+    analysis.filledFields.map((field) => t(`fields.${field}`)),
   );
 
   return (

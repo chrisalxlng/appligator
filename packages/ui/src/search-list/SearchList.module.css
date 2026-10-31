@@ -1,0 +1,60 @@
+.inputGroup {
+  position: relative;
+  flex-shrink: 0;
+  padding: var(--spacing-3) 0;
+  border-bottom: var(--border-width-s) solid var(--separator);
+}
+
+.inputGroup .input {
+  padding-left: var(--spacing-10);
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-3);
+  color: var(--text-secondary);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Keeps the neighbors of the highlighted item in view while navigating with the arrow keys. */
+.list {
+  min-height: 0;
+  padding-top: var(--spacing-2);
+  overflow-y: auto;
+  outline: none;
+  scroll-padding-block: var(--spacing-10);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-0-5);
+  padding: var(--spacing-3);
+  border-top: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-m);
+  cursor: pointer;
+  outline: none;
+
+  &:first-child,
+  &[data-highlighted],
+  &[data-highlighted] + & {
+    border-top-color: transparent;
+  }
+
+  &[data-highlighted] {
+    background: var(--surface-hover);
+  }
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-6) var(--spacing-4);
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+  text-align: center;
+}

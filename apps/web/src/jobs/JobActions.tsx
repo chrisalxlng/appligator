@@ -1,22 +1,42 @@
 import type { Job } from "@appligator/shared";
-import { Button, ConfirmDialog, IconButton, Menu, MenuItem, useSuccessToast } from "@appligator/ui";
-import { IconDots, IconPencil, IconTrash } from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
+import { Button, ConfirmDialog, LinkButton, MenuItem, useSuccessToast } from "@appligator/ui";
+import { IconArrowUpRight, IconPencil, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FloatingActions } from "../shell/FloatingActions.tsx";
-import { useIsDesktop } from "../shell/useMediaQuery.ts";
+import { useApply } from "../applications/applicationQueries.ts";
+import { DetailActions } from "../collection/DetailActions.tsx";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { JobFormDrawer } from "./JobFormDrawer.tsx";
-import styles from "./JobActions.module.css";
 import { useDeleteJob } from "./jobQueries.ts";
 
 export function JobActions({ job }: { job: Job }) {
+  return job.application ? (
+    <DetailActions
+      buttons={[<ApplicationLink key="application" applicationId={job.application.id} />]}
+    />
+  ) : (
+    <OpenJobActions job={job} />
+  );
+}
+
+function ApplicationLink({ applicationId }: { applicationId: string }) {
+  const { t } = useTranslation();
+
+  return (
+    <LinkButton render={<Link to="/applications/$applicationId" params={{ applicationId }} />}>
+      <IconArrowUpRight size={20} stroke={2.4} aria-hidden />
+      {t("jobs.openApplication")}
+    </LinkButton>
+  );
+}
+
+function OpenJobActions({ job }: { job: Job }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
+  const apply = useApply();
   const deleteJob = useDeleteJob(job.id);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -34,48 +54,45 @@ export function JobActions({ job }: { job: Job }) {
     });
   }
 
-  const menu = (
-    <Menu
-      trigger={
-        <IconButton variant="surface" label={t("jobs.moreActions")}>
-          <IconDots size={20} stroke={2.4} aria-hidden />
-        </IconButton>
+  const applyButton = (
+    <Button
+      pending={apply.isPending}
+      onClick={() =>
+        apply.mutate(job.id, { onSuccess: () => showSuccess(t("applications.toast.created")) })
       }
     >
-      <MenuItem
-        variant="destructive"
-        icon={<IconTrash size={18} stroke={2} aria-hidden />}
-        onClick={() => {
-          deleteJob.reset();
-          setIsConfirmingDelete(true);
-        }}
-      >
-        {t("jobs.delete.action")}
-      </MenuItem>
-    </Menu>
+      <IconPlayerPlay size={20} stroke={2.4} aria-hidden />
+      {t("jobs.apply")}
+    </Button>
   );
   const editButton = (
     <ShortcutTooltip hint={shortcutHints?.alt("E")}>
-      <Button onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
+      <Button variant="surface" onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
         <IconPencil size={20} stroke={2.4} aria-hidden />
         {t("jobs.edit")}
       </Button>
     </ShortcutTooltip>
   );
+  const deleteItem = (
+    <MenuItem
+      variant="destructive"
+      icon={<IconTrash size={18} stroke={2} aria-hidden />}
+      onClick={() => {
+        deleteJob.reset();
+        setIsConfirmingDelete(true);
+      }}
+    >
+      {t("jobs.delete.action")}
+    </MenuItem>
+  );
 
   return (
     <>
-      {isDesktop ? (
-        <div className={styles.actions}>
-          {editButton}
-          {menu}
-        </div>
-      ) : (
-        <FloatingActions>
-          {menu}
-          {editButton}
-        </FloatingActions>
-      )}
+      <DetailActions
+        buttons={[applyButton, editButton]}
+        menuItems={deleteItem}
+        error={apply.isError && t("applications.createError")}
+      />
       <JobFormDrawer job={job} open={isEditing} onOpenChange={setIsEditing} />
       <ConfirmDialog
         open={isConfirmingDelete}

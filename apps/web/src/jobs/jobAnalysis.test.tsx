@@ -2,7 +2,7 @@ import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test } from "vite-plus/test";
 import { aiSettingsFixture, createFakeAiApi } from "../testing/fakeAiApi.ts";
-import { createFakeJobsApi, jobWith } from "../testing/fakeJobsApi.ts";
+import { createFakeApi, jobWith } from "../testing/fakeApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
 
 const jobAd =
@@ -10,7 +10,7 @@ const jobAd =
   "You build our React apps remotely and earn 60,000 to 70,000 EUR per year.";
 
 beforeEach(() => {
-  createFakeJobsApi();
+  createFakeApi();
 });
 
 async function openAddDrawer() {
@@ -67,7 +67,7 @@ test("does not overwrite fields the user already filled in", async () => {
 });
 
 test("tells the user when all fields were already filled in", async () => {
-  createFakeJobsApi([jobWith({ description: "" })]);
+  createFakeApi([jobWith({ description: "" })]);
   createFakeAiApi(aiSettingsFixture);
   renderApp("/jobs");
   await userEvent.click(await screen.findByRole("button", { name: "Edit" }));

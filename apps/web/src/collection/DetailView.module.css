@@ -1,0 +1,94 @@
+.detail {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  width: 100%;
+  max-width: 720px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.company {
+  color: var(--text-secondary);
+}
+
+.position {
+  font: var(--font-heading-l);
+  letter-spacing: var(--tracking-heading-l);
+}
+
+.properties {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  margin: 0;
+}
+
+.meta {
+  @container (width >= 600px) {
+    margin-top: var(--spacing-4);
+  }
+}
+
+.property {
+  display: grid;
+  grid-template-columns: 154px minmax(0, 1fr);
+  gap: var(--spacing-4);
+
+  @container (width >= 600px) {
+    grid-template-columns: 234px minmax(0, 1fr);
+  }
+}
+
+.propertyLabel {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  gap: var(--spacing-2);
+  color: var(--text-secondary);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+
+  & svg {
+    flex-shrink: 0;
+  }
+}
+
+.propertyLabelText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.propertyValue {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-6);
+}
+
+.sectionTitle {
+  padding-bottom: var(--spacing-3);
+  border-bottom: var(--border-width-s) solid var(--separator);
+  font: var(--font-heading-s);
+  letter-spacing: var(--tracking-heading-s);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

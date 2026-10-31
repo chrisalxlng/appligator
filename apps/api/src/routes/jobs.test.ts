@@ -1,8 +1,8 @@
 import type { JobInput, JobListPage } from "@appligator/shared";
 import { eq, sql } from "drizzle-orm";
 import { beforeEach, expect, test } from "vite-plus/test";
-import { jobs } from "../db/schema.ts";
-import { toColumns } from "./jobs.ts";
+import { applications, jobs } from "../db/schema.ts";
+import { toSalaryColumns } from "./salaryColumns.ts";
 import { createTestDatabase } from "../testDatabase.ts";
 import { buildTestApp, signToken } from "../testAuth.ts";
 
@@ -64,6 +64,7 @@ const emptyInput: JobInput = {
 };
 
 beforeEach(async () => {
+  await db.delete(applications);
   await db.delete(jobs);
 });
 
@@ -85,6 +86,13 @@ async function createJob(input: JobInput = jobInput, userId?: string) {
   return response.json();
 }
 
+async function applyTo(jobId: string) {
+  const response = await request("POST", "/applications", {
+    body: { jobId, appliedAt: "2026-10-30" },
+  });
+  return response.json();
+}
+
 test("POST /jobs creates a job", async () => {
   const response = await request("POST", "/jobs", { body: jobInput });
 
@@ -92,6 +100,8 @@ test("POST /jobs creates a job", async () => {
   expect(response.json()).toEqual({
     ...jobInput,
     id: expect.any(String),
+    status: "open",
+    application: null,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
   });
@@ -128,8 +138,8 @@ test.each([
   expect(response.statusCode).toBe(400);
 });
 
-function toListItem({ id, company, position, createdAt }: Record<string, unknown>) {
-  return { id, company, position, createdAt };
+function toListItem({ id, company, position, status, createdAt }: Record<string, unknown>) {
+  return { id, company, position, status, createdAt };
 }
 
 async function insertJobs(count: number, createdAt: string) {
@@ -137,7 +147,7 @@ async function insertJobs(count: number, createdAt: string) {
     .insert(jobs)
     .values(
       Array.from({ length: count }, () => ({
-        ...toColumns(emptyInput),
+        ...toSalaryColumns(emptyInput),
         userId: "user-id",
         createdAt: sql`${createdAt}::timestamptz`,
       })),
@@ -199,6 +209,55 @@ test.each([
   expect(response.statusCode).toBe(400);
 });
 
+test("GET /jobs filters the jobs by status", async () => {
+  const open = await createJob(emptyInput);
+  const applied = await createJob();
+  await applyTo(applied.id);
+
+  const openJobs = (await request("GET", "/jobs?status=open")).json();
+  const appliedJobs = (await request("GET", "/jobs?status=applied")).json();
+
+  expect(openJobs.items).toEqual([toListItem(open)]);
+  expect(appliedJobs.items).toEqual([{ ...toListItem(applied), status: "applied" }]);
+});
+
+test.each([
+  ["the company", "randstad", ["Lead Developer Frontend"]],
+  ["the position", "FRONTEND DEV", ["Frontend Developer"]],
+  ["a wildcard as text", "%", []],
+])("GET /jobs searches %s", async (_, search, positions) => {
+  await createJob(emptyInput);
+  await createJob();
+
+  const response = await request("GET", `/jobs?search=${encodeURIComponent(search)}`);
+
+  expect(response.json().items.map((item: { position: string }) => item.position)).toEqual(
+    positions,
+  );
+});
+
+test("GET /jobs/status-counts counts the user's jobs by status", async () => {
+  await createJob(emptyInput);
+  await createJob(emptyInput);
+  await applyTo((await createJob()).id);
+  await createJob(jobInput, "other-user");
+
+  const response = await request("GET", "/jobs/status-counts");
+
+  expect(response.json()).toEqual([
+    { status: "open", count: 2 },
+    { status: "applied", count: 1 },
+  ]);
+});
+
+test("GET /jobs/status-counts leaves out statuses without jobs", async () => {
+  await createJob();
+
+  expect((await request("GET", "/jobs/status-counts")).json()).toEqual([
+    { status: "open", count: 1 },
+  ]);
+});
+
 test("GET /jobs/:id returns the job", async () => {
   const job = await createJob();
 
@@ -218,6 +277,32 @@ test("PUT /jobs/:id replaces the job", async () => {
   expect(response.statusCode).toBe(200);
   expect(response.json()).toMatchObject({ ...emptyInput, id: job.id, createdAt: job.createdAt });
   expect(new Date(response.json().updatedAt).getTime()).toBeGreaterThan(lastUpdate.getTime());
+});
+
+test("GET /jobs/:id links the application", async () => {
+  const job = await createJob();
+  const application = await applyTo(job.id);
+
+  const response = await request("GET", `/jobs/${job.id}`);
+
+  expect(response.json()).toMatchObject({
+    status: "applied",
+    application: { id: application.id, position: "Lead Developer Frontend", status: "applied" },
+  });
+});
+
+test.each([
+  ["PUT", emptyInput],
+  ["DELETE", undefined],
+] as const)("%s /jobs/:id refuses to change a job with an application", async (method, body) => {
+  const job = await createJob();
+  await applyTo(job.id);
+
+  const response = await request(method, `/jobs/${job.id}`, { body });
+
+  expect(response.statusCode).toBe(409);
+  expect(response.json()).toEqual({ error: "applied" });
+  expect((await request("GET", `/jobs/${job.id}`)).json()).toMatchObject(jobInput);
 });
 
 test("DELETE /jobs/:id deletes the job", async () => {

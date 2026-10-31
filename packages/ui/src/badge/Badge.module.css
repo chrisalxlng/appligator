@@ -1,0 +1,24 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-0-5) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+  white-space: nowrap;
+
+  &[data-tone="neutral"] {
+    background: var(--fill);
+    color: var(--text-primary);
+  }
+
+  &[data-tone="success"] {
+    background: var(--success-fill);
+    color: var(--success-text-primary);
+  }
+
+  &[data-tone="active"] {
+    background: var(--active-surface-press);
+    color: var(--active-text-primary);
+  }
+}

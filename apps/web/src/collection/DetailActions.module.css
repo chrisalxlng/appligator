@@ -2,3 +2,7 @@
   display: flex;
   gap: var(--spacing-3);
 }
+
+.error {
+  color: var(--destructive-text);
+}

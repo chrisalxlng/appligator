@@ -6,7 +6,7 @@ import {
   formatSalaryRange,
   formatUnit,
   hostname,
-} from "./formatJob.ts";
+} from "./format.ts";
 
 const now = new Date(2026, 9, 28, 9, 0);
 

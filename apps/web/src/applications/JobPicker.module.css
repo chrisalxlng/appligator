@@ -1,0 +1,20 @@
+.position {
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+}
+
+.meta {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+}
+
+.statusTitle {
+  color: var(--text-primary);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+}
+
+.error {
+  padding-top: var(--spacing-2);
+  color: var(--destructive-text);
+}

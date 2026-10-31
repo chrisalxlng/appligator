@@ -1,0 +1,80 @@
+import type { Application } from "@appligator/shared";
+import { Button, ConfirmDialog, MenuItem, useSuccessToast } from "@appligator/ui";
+import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { DetailActions } from "../collection/DetailActions.tsx";
+import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
+import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
+import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { ApplicationFormDrawer } from "./ApplicationFormDrawer.tsx";
+import { useDeleteApplication } from "./applicationQueries.ts";
+
+export function ApplicationActions({ application }: { application: Application }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const deleteApplication = useDeleteApplication(application);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const showSuccess = useSuccessToast();
+  const shortcutHints = useShortcutHints();
+  useAltShortcut("E", () => setIsEditing(true));
+
+  function confirmDelete() {
+    deleteApplication.mutate(undefined, {
+      onSuccess: () => {
+        setIsConfirmingDelete(false);
+        showSuccess(t("applications.toast.deleted"));
+        void navigate({ to: "/applications" });
+      },
+    });
+  }
+
+  const deleteItem = (
+    <MenuItem
+      variant="destructive"
+      icon={<IconTrash size={18} stroke={2} aria-hidden />}
+      onClick={() => {
+        deleteApplication.reset();
+        setIsConfirmingDelete(true);
+      }}
+    >
+      {t("applications.delete.action")}
+    </MenuItem>
+  );
+  const editButton = (
+    <ShortcutTooltip hint={shortcutHints?.alt("E")}>
+      <Button onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
+        <IconPencil size={20} stroke={2.4} aria-hidden />
+        {t("applications.edit")}
+      </Button>
+    </ShortcutTooltip>
+  );
+
+  return (
+    <>
+      <DetailActions buttons={[editButton]} menuItems={deleteItem} />
+      <ApplicationFormDrawer
+        application={application}
+        open={isEditing}
+        onOpenChange={setIsEditing}
+      />
+      <ConfirmDialog
+        open={isConfirmingDelete}
+        onOpenChange={setIsConfirmingDelete}
+        title={t("applications.delete.title")}
+        description={t("applications.delete.description", {
+          position: application.position,
+          company: application.company,
+        })}
+        confirmLabel={t("applications.delete.confirm")}
+        cancelLabel={t("applications.delete.cancel")}
+        onConfirm={confirmDelete}
+        pending={deleteApplication.isPending}
+        error={deleteApplication.isError ? t("applications.delete.error") : undefined}
+        confirmShortcutHint={shortcutHints?.submit}
+      />
+    </>
+  );
+}

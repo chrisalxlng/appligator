@@ -8,8 +8,10 @@ import {
   type RouterHistory,
 } from "@tanstack/react-router";
 import { createQueryClient } from "./api/queryClient.ts";
+import { ApplicationsIndex } from "./applications/ApplicationsIndex.tsx";
 import type { Auth } from "./auth/authenticate.ts";
 import { JobsIndex } from "./jobs/JobsIndex.tsx";
+import { ApplicationDetailPage } from "./pages/ApplicationDetailPage.tsx";
 import { ApplicationsPage } from "./pages/ApplicationsPage.tsx";
 import { ErrorPage } from "./pages/ErrorPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
@@ -66,6 +68,18 @@ const applicationsRoute = createRoute({
   component: ApplicationsPage,
 });
 
+const applicationsIndexRoute = createRoute({
+  getParentRoute: () => applicationsRoute,
+  path: "/",
+  component: ApplicationsIndex,
+});
+
+const applicationDetailRoute = createRoute({
+  getParentRoute: () => applicationsRoute,
+  path: "$applicationId",
+  component: ApplicationDetailPage,
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/profile",
@@ -76,7 +90,7 @@ const routeTree = rootRoute.addChildren([
   shellRoute.addChildren([
     homeRoute,
     jobsRoute.addChildren([jobsIndexRoute, jobDetailRoute]),
-    applicationsRoute,
+    applicationsRoute.addChildren([applicationsIndexRoute, applicationDetailRoute]),
     profileRoute,
   ]),
 ]);
