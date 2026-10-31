@@ -207,7 +207,7 @@ test("shows the details of a job", async () => {
 
   const detail = await screen.findByRole("article");
   const property = (name: string) =>
-    within(detail).getByText(name, { selector: "dt" }).nextElementSibling;
+    within(detail).getByText(name, { selector: "dt > span" }).parentElement!.nextElementSibling;
 
   expect(within(detail).getByText("Randstad Digital Germany AG")).toBeInTheDocument();
   expect(property("Application deadline")).toHaveTextContent("December 31, 2026");
@@ -266,8 +266,8 @@ test("marks missing details as not specified", async () => {
 
   const detail = await screen.findByRole("article");
 
-  expect(within(detail).getByText("Application deadline", { selector: "dt" })).toBeVisible();
-  expect(within(detail).getByText("Application", { selector: "dt" })).toBeVisible();
+  expect(within(detail).getByText("Application deadline", { selector: "dt > span" })).toBeVisible();
+  expect(within(detail).getByText("Application", { selector: "dt > span" })).toBeVisible();
   expect(within(detail).getAllByText("Not specified")).toHaveLength(2);
   expect(within(detail).queryByRole("region")).not.toBeInTheDocument();
   expect(within(detail).queryByRole("link")).not.toBeInTheDocument();
@@ -302,7 +302,7 @@ test.each([
 
     const detail = await screen.findByRole("article");
     const property = (name: string) =>
-      within(detail).getByText(name, { selector: "dt" }).nextElementSibling;
+      within(detail).getByText(name, { selector: "dt > span" }).parentElement!.nextElementSibling;
 
     expect(property("Contract term")).toHaveTextContent(term);
     expect(property("Notice period")).toHaveTextContent(notice);
@@ -774,7 +774,7 @@ test("applies for a job from its detail view", async () => {
   renderApp(`/jobs/${jobFixture.id}`);
   const detail = await screen.findByRole("article");
   const property = (name: string) =>
-    within(detail).getByText(name, { selector: "dt" }).nextElementSibling;
+    within(detail).getByText(name, { selector: "dt > span" }).parentElement!.nextElementSibling;
   expect(property("Status")).toHaveTextContent("Open");
 
   await userEvent.click(within(detail).getByRole("button", { name: "Apply" }));

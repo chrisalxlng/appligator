@@ -40,7 +40,7 @@ export function Property({ icon: PropertyIcon, label, children }: PropertyProps)
     <div className={styles.property}>
       <dt className={styles.propertyLabel}>
         <PropertyIcon size={20} stroke={2} aria-hidden />
-        {label}
+        <span className={styles.propertyLabelText}>{label}</span>
       </dt>
       <dd className={styles.propertyValue}>{children}</dd>
     </div>

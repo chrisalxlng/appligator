@@ -1,7 +1,7 @@
 .inputGroup {
   position: relative;
   flex-shrink: 0;
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3) 0;
   border-bottom: var(--border-width-s) solid var(--separator);
 }
 
@@ -12,16 +12,19 @@
 .searchIcon {
   position: absolute;
   top: 50%;
-  left: calc(var(--spacing-4) + var(--spacing-3));
+  left: var(--spacing-3);
   color: var(--text-secondary);
   transform: translateY(-50%);
   pointer-events: none;
 }
 
+/* Keeps the neighbors of the highlighted item in view while navigating with the arrow keys. */
 .list {
-  padding: var(--spacing-2);
+  min-height: 0;
+  padding-top: var(--spacing-2);
   overflow-y: auto;
   outline: none;
+  scroll-padding-block: var(--spacing-10);
 }
 
 .item {

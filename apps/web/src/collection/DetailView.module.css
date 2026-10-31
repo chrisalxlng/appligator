@@ -59,6 +59,12 @@
   }
 }
 
+.propertyLabelText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .propertyValue {
   margin: 0;
   overflow-wrap: anywhere;

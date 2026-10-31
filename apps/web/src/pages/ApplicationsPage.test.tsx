@@ -49,7 +49,7 @@ test("shows the details of an application", async () => {
 
   const detail = await screen.findByRole("article");
   const property = (name: string) =>
-    within(detail).getByText(name, { selector: "dt" }).nextElementSibling;
+    within(detail).getByText(name, { selector: "dt > span" }).parentElement!.nextElementSibling;
 
   expect(within(detail).getByRole("heading", { name: "Lead Developer Frontend" })).toBeVisible();
   expect(property("Status")).toHaveTextContent("Applied");

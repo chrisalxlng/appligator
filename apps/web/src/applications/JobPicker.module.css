@@ -15,6 +15,6 @@
 }
 
 .error {
-  padding: 0 var(--spacing-4) var(--spacing-4);
+  padding-top: var(--spacing-2);
   color: var(--destructive-text);
 }

@@ -2,7 +2,7 @@ import type { ApplicationStatus } from "@appligator/shared";
 import type { BadgeTone } from "@appligator/ui";
 import { useTranslation } from "react-i18next";
 
-const tones: Record<ApplicationStatus, BadgeTone> = { applied: "success" };
+const tones: Record<ApplicationStatus, BadgeTone> = { applied: "neutral" };
 
 export function useApplicationStatus() {
   const { t } = useTranslation();
