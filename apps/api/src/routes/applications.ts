@@ -45,6 +45,7 @@ function jobDetailColumns({
   description: _description,
   summary: _summary,
   applicationDeadline: _applicationDeadline,
+  viewedAt: _viewedAt,
   createdAt: _createdAt,
   updatedAt: _updatedAt,
   ...columns
