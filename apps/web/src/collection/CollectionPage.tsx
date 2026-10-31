@@ -7,6 +7,7 @@ import { PageSpinner } from "../loading/PageSpinner.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { Page } from "../pages/Page.tsx";
 import { DocumentTitle } from "../shell/DocumentTitle.tsx";
+import { ScrollToTop } from "../shell/ScrollToTop.tsx";
 import { FloatingActions } from "../shell/FloatingActions.tsx";
 import { useIsDesktop } from "../shell/useMediaQuery.ts";
 import styles from "./CollectionPage.module.css";
@@ -123,6 +124,7 @@ export function CollectionPage<Item>({
             onRetry={loadMore}
           />
         )}
+        <ScrollToTop scrollsWith="parent" />
       </Page>
       <Outlet />
       {!openedId && floatingAction}

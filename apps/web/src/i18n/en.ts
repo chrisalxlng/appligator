@@ -11,13 +11,14 @@ export const en = {
   },
   common: {
     close: "Close",
-    moreActions: "More actions",
+    moreActions: "Show more actions",
     today: "Today",
     yesterday: "Yesterday",
     notSpecified: "Not specified",
     newHint: "Not viewed yet",
     new: "New",
     allStatuses: "All",
+    scrollToTop: "Scroll to top",
     statusFilter: "Filter by status",
   },
   jobs: {

@@ -1,0 +1,31 @@
+.button {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      opacity 200ms ease,
+      scale 200ms ease;
+
+    @starting-style {
+      opacity: 0;
+      scale: 0.8;
+    }
+  }
+}
+
+/* A zero-height sticky box at the end of its scroll container, which keeps the button in the corner. */
+.parent {
+  display: none;
+
+  @media (width >= 1200px) {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    height: 0;
+    margin-top: calc(-1 * var(--page-gap));
+
+    & > .button {
+      position: absolute;
+      bottom: var(--spacing-6);
+    }
+  }
+}

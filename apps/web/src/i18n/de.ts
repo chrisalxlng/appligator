@@ -13,13 +13,14 @@ export const de: Translations = {
   },
   common: {
     close: "Schließen",
-    moreActions: "Weitere Aktionen",
+    moreActions: "Weitere Aktionen anzeigen",
     today: "Heute",
     yesterday: "Gestern",
     notSpecified: "Keine Angabe",
     newHint: "Noch nicht angesehen",
     new: "Neu",
     allStatuses: "Alle",
+    scrollToTop: "Nach oben scrollen",
     statusFilter: "Nach Status filtern",
   },
   jobs: {

@@ -27,3 +27,9 @@
     display: none;
   }
 }
+
+.scrollToTop {
+  position: fixed;
+  right: var(--spacing-6);
+  bottom: var(--spacing-6);
+}
