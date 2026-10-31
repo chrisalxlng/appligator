@@ -1,5 +1,6 @@
 .spinner {
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
 }
 
 .label {
