@@ -1,5 +1,7 @@
 import {
+  activityLimits,
   activityTypeFields,
+  type Attachment,
   type Activity,
   type ActivityInput,
   type ActivityType,
@@ -19,7 +21,10 @@ import {
   type ActivityPrefill,
   type ActivityFormValues,
 } from "./activityFormValues.ts";
-import { AttachmentList } from "./AttachmentList.tsx";
+import { AttachmentList } from "../attachments/AttachmentList.tsx";
+import { DropZone } from "../attachments/DropZone.tsx";
+import { useAddFiles } from "../attachments/useAddFiles.ts";
+import { useFileCleanup } from "../attachments/useFileCleanup.ts";
 import { TermsField } from "./TermsField.tsx";
 
 interface ActivityFormProps<Result> {
@@ -46,6 +51,11 @@ export function ActivityForm<Result>({
   const { t } = useTranslation();
   const [values, setValues] = useState(() => toActivityFormValues(activity, prefill));
   const [errors, setErrors] = useState<ActivityFormErrors>({});
+  const files = useFileCleanup(values.attachments);
+  const addedFiles = useAddFiles(
+    activityLimits.attachments - values.attachments.length,
+    (attachments) => updateAttachments((current) => [...current, ...attachments]),
+  );
   const shortcutHints = useShortcutHints();
   const fields = activityTypeFields[type];
   const clearLabel = t("fields.clear");
@@ -53,6 +63,14 @@ export function ActivityForm<Result>({
   function setValue<Key extends keyof ActivityFormValues>(key: Key) {
     return (value: ActivityFormValues[Key]) =>
       setValues((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateAttachments(update: (attachments: Attachment[]) => Attachment[]) {
+    setValues((current) => {
+      const attachments = update(current.attachments).slice(0, activityLimits.attachments);
+      files.track(attachments);
+      return { ...current, attachments };
+    });
   }
 
   function errorFor(field: keyof ActivityFormErrors) {
@@ -64,70 +82,80 @@ export function ActivityForm<Result>({
     event.preventDefault();
     const result = validateActivityForm(type, values);
     setErrors(result.errors ?? {});
+    if (!result.input) return;
     // Unlike the callbacks of mutate, the promise also settles when saving unmounts the form,
     // e.g. when applying turns the actions of the job into a link to the application.
-    if (result.input) save.mutateAsync(result.input).then(onSaved, () => {});
+    files.save(result.input.attachments, save.mutateAsync(result.input)).then(onSaved, () => {});
   }
 
   return (
-    <form className={formStyles.form} onSubmit={submitForm} noValidate>
-      {header}
-      <Field label={t("activities.form.occurredAt")} error={errorFor("occurredAt")}>
-        <DateInput value={values.occurredAt} onValueChange={setValue("occurredAt")} withTime />
-      </Field>
-      {fields.includes("appointmentAt") && (
-        <Field label={t("activities.form.appointmentAt")}>
-          <DateInput
-            value={values.appointmentAt}
-            onValueChange={setValue("appointmentAt")}
-            withTime
-            clearable
-            clearLabel={clearLabel}
-          />
+    <DropZone label={t("attachments.dropHere")} onFiles={addedFiles.addFiles}>
+      <form className={formStyles.form} onSubmit={submitForm} noValidate>
+        {header}
+        <Field label={t("activities.form.occurredAt")} error={errorFor("occurredAt")}>
+          <DateInput value={values.occurredAt} onValueChange={setValue("occurredAt")} withTime />
         </Field>
-      )}
-      {fields.includes("dueDate") && (
-        <Field label={t("activities.form.dueDate")}>
-          <DateInput
-            value={values.dueDate}
-            onValueChange={setValue("dueDate")}
-            clearable
-            clearLabel={clearLabel}
-          />
-        </Field>
-      )}
-      {fields.includes("responseDeadline") && (
-        <Field label={t("activities.form.responseDeadline")}>
-          <DateInput
-            value={values.responseDeadline}
-            onValueChange={setValue("responseDeadline")}
-            clearable
-            clearLabel={clearLabel}
-          />
-        </Field>
-      )}
-      {fields.includes("terms") && <TermsField terms={values.terms} onChange={setValue("terms")} />}
-      <NotesField
-        value={values.notes}
-        onValueChange={setValue("notes")}
-        error={errorFor("notes")}
-      />
-      <AttachmentList attachments={values.attachments} onChange={setValue("attachments")} />
-      {save.isError && (
-        <p role="alert" className={formStyles.saveError}>
-          {t("activities.form.saveError")}
-        </p>
-      )}
-      <Button
-        type="submit"
-        pending={save.isPending}
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        <SubmitIcon size={20} stroke={2.4} aria-hidden />
-        {submitLabel}
-      </Button>
-      {footer}
-    </form>
+        {fields.includes("appointmentAt") && (
+          <Field label={t("activities.form.appointmentAt")}>
+            <DateInput
+              value={values.appointmentAt}
+              onValueChange={setValue("appointmentAt")}
+              withTime
+              clearable
+              clearLabel={clearLabel}
+            />
+          </Field>
+        )}
+        {fields.includes("dueDate") && (
+          <Field label={t("activities.form.dueDate")}>
+            <DateInput
+              value={values.dueDate}
+              onValueChange={setValue("dueDate")}
+              clearable
+              clearLabel={clearLabel}
+            />
+          </Field>
+        )}
+        {fields.includes("responseDeadline") && (
+          <Field label={t("activities.form.responseDeadline")}>
+            <DateInput
+              value={values.responseDeadline}
+              onValueChange={setValue("responseDeadline")}
+              clearable
+              clearLabel={clearLabel}
+            />
+          </Field>
+        )}
+        {fields.includes("terms") && (
+          <TermsField terms={values.terms} onChange={setValue("terms")} />
+        )}
+        <NotesField
+          value={values.notes}
+          onValueChange={setValue("notes")}
+          error={errorFor("notes")}
+        />
+        <AttachmentList
+          attachments={values.attachments}
+          uploads={addedFiles.uploads}
+          error={addedFiles.error}
+          onChange={updateAttachments}
+        />
+        {save.isError && (
+          <p role="alert" className={formStyles.saveError}>
+            {t("activities.form.saveError")}
+          </p>
+        )}
+        <Button
+          type="submit"
+          pending={save.isPending}
+          shortcutHint={shortcutHints?.submit}
+          aria-keyshortcuts={submitKeyShortcuts}
+        >
+          <SubmitIcon size={20} stroke={2.4} aria-hidden />
+          {submitLabel}
+        </Button>
+        {footer}
+      </form>
+    </DropZone>
   );
 }

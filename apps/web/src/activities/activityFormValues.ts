@@ -15,6 +15,7 @@ import {
   type DetailsFormValues,
   type FieldError,
 } from "../details/detailsForm.ts";
+import { toIsoDateTime, toLocalDateTime } from "../details/localDateTime.ts";
 
 export interface ActivityFormValues {
   occurredAt: string;
@@ -31,20 +32,6 @@ export type ActivityFormErrors = Partial<Record<"occurredAt" | "notes", FieldErr
 type ValidationResult =
   | { input: ActivityInput; errors?: never }
   | { input?: never; errors: ActivityFormErrors };
-
-function padded(value: number) {
-  return String(value).padStart(2, "0");
-}
-
-function toLocalDateTime(isoDateTime: string) {
-  const date = new Date(isoDateTime);
-  const day = `${date.getFullYear()}-${padded(date.getMonth() + 1)}-${padded(date.getDate())}`;
-  return `${day}T${padded(date.getHours())}:${padded(date.getMinutes())}`;
-}
-
-function toIsoDateTime(localDateTime: string) {
-  return new Date(localDateTime).toISOString();
-}
 
 export type ActivityPrefill = Pick<ActivityInput, "terms" | "notes">;
 

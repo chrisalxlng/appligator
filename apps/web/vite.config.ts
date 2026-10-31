@@ -10,6 +10,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./test-setup.ts"],
-    env: { VITE_API_URL: "http://api.test", VITE_APP_VERSION: "1.2.3" },
+    env: {
+      VITE_API_URL: "http://api.test",
+      VITE_STASH_URL: "http://stash.test",
+      VITE_APP_VERSION: "1.2.3",
+    },
   },
 });

@@ -1,0 +1,21 @@
+.dropZone {
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  inset: calc(-1 * var(--spacing-2));
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  border: var(--border-width-m) dashed var(--active-separator);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--active-surface) 97%, transparent);
+  color: var(--active-text-primary);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+  pointer-events: none;
+}

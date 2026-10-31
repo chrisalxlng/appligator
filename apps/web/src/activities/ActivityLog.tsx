@@ -7,17 +7,16 @@ import {
   IconId,
   IconNote,
   IconSend,
-  IconWorld,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Property, PropertyList, Section } from "../collection/DetailView.tsx";
 import { useDetails, type Detail } from "../details/DetailsSection.tsx";
-import { formatDateTime, formatIsoDate, hostname } from "../details/format.ts";
+import { formatDateTime, formatIsoDate } from "../details/format.ts";
+import { AttachmentCards } from "../attachments/AttachmentCards.tsx";
 import { LoadError } from "../loading/LoadError.tsx";
 import { useActivities } from "./activityQueries.ts";
 import styles from "./ActivityLog.module.css";
-import { attachmentTitle } from "./AttachmentList.tsx";
 import { EditActivityDrawer } from "./EditActivityDrawer.tsx";
 import { useActivityDateLabel } from "./useActivityDateLabel.ts";
 
@@ -128,26 +127,7 @@ function ActivityEntry({ applicationId, activity, isLatest }: ActivityEntryProps
           </PropertyList>
         </div>
       )}
-      {activity.attachments.length > 0 && (
-        <ul className={styles.attachments}>
-          {activity.attachments.map((attachment, index) => (
-            <li key={`${index}-${attachment.url}`}>
-              <a
-                className={styles.attachment}
-                href={attachment.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <IconWorld size={20} stroke={2} aria-hidden />
-                <span className={styles.attachmentText}>
-                  <span className={styles.attachmentTitle}>{attachmentTitle(attachment)}</span>
-                  <span className={styles.attachmentMeta}>{hostname(attachment.url)}</span>
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+      {activity.attachments.length > 0 && <AttachmentCards attachments={activity.attachments} />}
       <EditActivityDrawer
         applicationId={applicationId}
         activity={activity}

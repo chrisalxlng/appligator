@@ -17,6 +17,7 @@
     "@tanstack/react-router": "catalog:",
     "i18next": "catalog:",
     "keycloak-js": "catalog:",
+    "postal-mime": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-i18next": "catalog:"
