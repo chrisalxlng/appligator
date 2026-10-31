@@ -13,12 +13,12 @@ export const de: Translations = {
   },
   common: {
     close: "Schließen",
-    moreActions: "Weitere Aktionen",
+    moreActions: "Weitere Aktionen anzeigen",
     today: "Heute",
     yesterday: "Gestern",
     notSpecified: "Keine Angabe",
     allStatuses: "Alle",
-    scrollToTop: "Nach oben",
+    scrollToTop: "Nach oben scrollen",
     statusFilter: "Nach Status filtern",
   },
   jobs: {

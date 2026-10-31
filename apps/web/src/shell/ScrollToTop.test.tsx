@@ -40,7 +40,7 @@ function scrollElementTo(element: HTMLElement, position: number) {
   return scrollTo;
 }
 
-const backToTop = () => screen.queryByRole("button", { name: "Back to top" });
+const scrollToTopButton = () => screen.queryByRole("button", { name: "Scroll to top" });
 
 test.each(["mobile", "tablet"] as const)(
   "offers to scroll back to the top only after two screen heights on %s",
@@ -50,14 +50,14 @@ test.each(["mobile", "tablet"] as const)(
     forgetRouterScrolling();
 
     scrollWindowTo(2 * screenHeight);
-    expect(backToTop()).toBeNull();
+    expect(scrollToTopButton()).toBeNull();
 
     scrollWindowTo(2 * screenHeight + 1);
-    await userEvent.click(backToTop()!);
+    await userEvent.click(scrollToTopButton()!);
 
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "instant" });
     scrollWindowTo(0);
-    expect(backToTop()).toBeNull();
+    expect(scrollToTopButton()).toBeNull();
   },
 );
 
@@ -71,7 +71,7 @@ test("scrolls smoothly unless motion is reduced", async () => {
   forgetRouterScrolling();
 
   scrollWindowTo(3 * screenHeight);
-  await userEvent.click(backToTop()!);
+  await userEvent.click(scrollToTopButton()!);
 
   expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
 });
@@ -85,12 +85,12 @@ test("scrolls the list and the opened job on their own on wide screens", async (
   forgetRouterScrolling();
 
   const scrollDetail = scrollElementTo(detail, 3 * screenHeight);
-  await userEvent.click(backToTop()!);
+  await userEvent.click(scrollToTopButton()!);
   expect(scrollDetail).toHaveBeenCalledWith({ top: 0, behavior: "instant" });
 
   scrollElementTo(detail, 0);
   const scrollList = scrollElementTo(list, 3 * screenHeight);
-  await userEvent.click(backToTop()!);
+  await userEvent.click(scrollToTopButton()!);
   expect(scrollList).toHaveBeenCalledWith({ top: 0, behavior: "instant" });
   expect(window.scrollTo).not.toHaveBeenCalled();
 });
