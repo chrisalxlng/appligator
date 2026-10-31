@@ -47,6 +47,11 @@ export function useSaveActivity(applicationId: string, id: string) {
   );
 }
 
+export function useReviewDetails(applicationId: string, id: string) {
+  const activitiesApi = useActivitiesApi();
+  return useActivityMutation(applicationId, () => activitiesApi.reviewDetails(applicationId, id));
+}
+
 export function useDeleteActivity(applicationId: string, id: string) {
   const activitiesApi = useActivitiesApi();
   return useActivityMutation(applicationId, () => activitiesApi.remove(applicationId, id));

@@ -1,0 +1,40 @@
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  cursor: pointer;
+}
+
+.box {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  padding: 0;
+  border: var(--border-width-m) solid var(--text-secondary);
+  border-radius: var(--spacing-1);
+  background: var(--surface);
+  color: var(--interactive-text-primary);
+  cursor: pointer;
+
+  &[data-checked] {
+    border-color: var(--interactive-fill);
+    background: var(--interactive-fill);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.indicator {
+  display: flex;
+}
+
+.label {
+  min-width: 0;
+}

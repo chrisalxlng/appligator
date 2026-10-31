@@ -1,5 +1,5 @@
 import { activityInputSchema, activityListSchema, activitySchema } from "@appligator/shared";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { activities, applications } from "../db/schema.ts";
@@ -82,13 +82,42 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
         return reply.code(404).send({ error: "Not Found" });
       }
 
+      const { terms } = request.body;
       const [row] = await app.db
         .update(activities)
-        .set({ ...toActivityColumns(request.body), updatedAt: new Date() })
+        .set({
+          ...toActivityColumns(request.body),
+          detailsReviewed: sql`case when ${activities.terms} is not distinct from ${terms && JSON.stringify(terms)}::jsonb then ${activities.detailsReviewed} else false end`,
+          updatedAt: new Date(),
+        })
         .where(activityOf(id, activityId))
         .returning();
       if (!row) return reply.code(404).send({ error: "Not Found" });
       return toActivity(row);
+    },
+  );
+
+  app.put(
+    "/applications/:id/activities/:activityId/details-review",
+    {
+      schema: {
+        params: activityParamsSchema,
+        response: { 204: z.null(), 404: notFoundSchema },
+      },
+    },
+    async (request, reply) => {
+      const { id, activityId } = request.params;
+      if (!(await ownsApplication(id, request.userId))) {
+        return reply.code(404).send({ error: "Not Found" });
+      }
+
+      const [row] = await app.db
+        .update(activities)
+        .set({ detailsReviewed: true })
+        .where(activityOf(id, activityId))
+        .returning({ id: activities.id });
+      if (!row) return reply.code(404).send({ error: "Not Found" });
+      return reply.code(204).send(null);
     },
   );
 

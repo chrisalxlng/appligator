@@ -25,6 +25,7 @@ import { Property, PropertyList, Section } from "../collection/DetailView.tsx";
 import { formatIsoDate, formatNumber, formatSalaryRange, formatUnit } from "./format.ts";
 
 export interface Detail {
+  key: string;
   icon: Icon;
   label: string;
   value: ReactNode;
@@ -74,11 +75,13 @@ export function useDetails(details: JobDetails | null): Detail[] {
 
   const entries: (Detail | false)[] = [
     companySize.length > 0 && {
+      key: "companySize",
       icon: IconBuildingSkyscraper,
       label: t("details.properties.companySize"),
       value: companySize.join(" • "),
     },
     details.salary !== null && {
+      key: "salary",
       icon: IconCurrencyDollar,
       label: t("details.properties.salary"),
       value: t(`details.salaryPerPeriod.${details.salary.period}`, {
@@ -86,31 +89,37 @@ export function useDetails(details: JobDetails | null): Detail[] {
       }),
     },
     details.bonuses.length > 0 && {
+      key: "bonuses",
       icon: IconCoins,
       label: t("details.properties.bonuses", { count: details.bonuses.length }),
       value: details.bonuses.join(", "),
     },
     details.benefits.length > 0 && {
+      key: "benefits",
       icon: IconBasketHeart,
       label: t("details.properties.benefits", { count: details.benefits.length }),
       value: details.benefits.join(", "),
     },
     details.employmentType !== null && {
+      key: "employmentType",
       icon: IconContract,
       label: t("details.properties.employmentType"),
       value: t(`details.employmentType.${details.employmentType}`),
     },
     details.workModel !== null && {
+      key: "workModel",
       icon: IconBuilding,
       label: t("details.properties.workModel"),
       value: t(`details.workModel.${details.workModel}`),
     },
     details.homeOfficePercentage !== null && {
+      key: "homeOfficePercentage",
       icon: IconHome,
       label: t("details.properties.homeOffice"),
       value: formatUnit(details.homeOfficePercentage, "percent", locale),
     },
     details.workingHours !== null && {
+      key: "workingHours",
       icon: IconClock,
       label: t("details.properties.workingHours"),
       value: t(`details.workingHoursPerPeriod.${details.workingHours.period}`, {
@@ -118,41 +127,49 @@ export function useDetails(details: JobDetails | null): Detail[] {
       }),
     },
     details.locations.length > 0 && {
+      key: "locations",
       icon: IconMapPin,
       label: t("details.properties.locations", { count: details.locations.length }),
       value: details.locations.join(", "),
     },
     commute.length > 0 && {
+      key: "commute",
       icon: IconRoute,
       label: t("details.properties.commute"),
       value: commute.join(", "),
     },
     details.vacationDays !== null && {
+      key: "vacationDays",
       icon: IconBeach,
       label: t("details.properties.vacationDays"),
       value: formatNumber(details.vacationDays, locale),
     },
     details.startDate !== null && {
+      key: "startDate",
       icon: IconRocket,
       label: t("details.properties.startDate"),
       value: formatIsoDate(details.startDate, locale),
     },
     details.contractTerm !== null && {
+      key: "contractTerm",
       icon: IconHourglass,
       label: t("details.properties.contractTerm"),
       value: formatContractTerm(details.contractTerm),
     },
     details.probationMonths !== null && {
+      key: "probationMonths",
       icon: IconFlask,
       label: t("details.properties.probation"),
       value: formatDuration({ amount: details.probationMonths, unit: "months" }),
     },
     details.noticePeriod !== null && {
+      key: "noticePeriod",
       icon: IconHandStop,
       label: t("details.properties.noticePeriod"),
       value: formatNoticePeriod(details.noticePeriod),
     },
     Boolean(details.notes) && {
+      key: "notes",
       icon: IconNote,
       label: t("details.properties.notes"),
       value: <RichText html={details.notes} />,
@@ -171,8 +188,8 @@ export function DetailsSection({ details }: { details: JobDetails }) {
   return (
     <Section title={t("sections.details")}>
       <PropertyList>
-        {entries.map(({ icon, label, value }) => (
-          <Property key={label} icon={icon} label={label}>
+        {entries.map(({ key, icon, label, value }) => (
+          <Property key={key} icon={icon} label={label}>
             {value}
           </Property>
         ))}

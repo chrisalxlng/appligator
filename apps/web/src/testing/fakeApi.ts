@@ -91,6 +91,7 @@ export function activityWith(overrides: Partial<Activity> = {}): Activity {
     responseDeadline: null,
     notes: "",
     attachments: [],
+    detailsReviewed: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
@@ -309,7 +310,7 @@ export function createFakeApi(
   ) {
     const now = new Date().toISOString();
     const current = activitiesOf(applicationId);
-    const [, activityId] = action.split("/");
+    const [, activityId, activityAction] = action.split("/");
     if (method === "GET") return json(current);
     if (method === "POST") {
       const created = activityWith({ ...body!, createdAt: now, updatedAt: now });
@@ -318,6 +319,15 @@ export function createFakeApi(
     }
     const activity = current.find(({ id }) => id === activityId);
     if (!activity) return json({ error: "Not Found" }, 404);
+    if (activityAction === "details-review") {
+      activities.set(
+        applicationId,
+        current.map((other) =>
+          other.id === activityId ? { ...other, detailsReviewed: true } : other,
+        ),
+      );
+      return new Response(null, { status: 204 });
+    }
     if (method === "PUT") {
       const updated = { ...activity, ...body!, updatedAt: now };
       activities.set(

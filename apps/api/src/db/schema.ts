@@ -121,6 +121,7 @@ export const activities = pgTable(
     type: activityTypeEnum().notNull(),
     occurredAt: timestamp({ withTimezone: true }).notNull(),
     terms: jsonb().$type<ActivityTerms>(),
+    detailsReviewed: boolean().notNull().default(false),
     appointmentAt: timestamp({ withTimezone: true }),
     dueDate: date(),
     responseDeadline: date(),

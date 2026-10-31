@@ -40,7 +40,7 @@ export function ApplicationDetail({ application }: { application: Application })
       }
     >
       <DetailsSection details={application} />
-      <ActivityLog applicationId={application.id} />
+      <ActivityLog application={application} />
     </DetailView>
   );
 }

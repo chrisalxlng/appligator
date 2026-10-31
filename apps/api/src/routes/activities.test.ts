@@ -115,6 +115,7 @@ test("POST /applications/:id/activities adds an activity with its fields", async
   expect(response.json()).toEqual({
     ...offer,
     id: expect.any(String),
+    detailsReviewed: false,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
   });
@@ -196,6 +197,41 @@ test("PUT /applications/:id/activities/:activityId changes the activity", async 
   });
 });
 
+async function addOffer(applicationId: string) {
+  return (
+    await request("POST", `/applications/${applicationId}/activities`, { body: offer })
+  ).json();
+}
+
+async function review(applicationId: string, activityId: string) {
+  return request("PUT", `/applications/${applicationId}/activities/${activityId}/details-review`);
+}
+
+test("PUT /applications/:id/activities/:activityId/details-review marks the terms as reviewed", async () => {
+  const applicationId = await createApplication();
+  const { id } = await addOffer(applicationId);
+
+  expect((await review(applicationId, id)).statusCode).toBe(204);
+
+  const [reviewed] = await listActivities(applicationId);
+  expect(reviewed).toMatchObject({ id, detailsReviewed: true });
+});
+
+test("PUT /applications/:id/activities/:activityId keeps the review unless the terms change", async () => {
+  const applicationId = await createApplication();
+  const { id } = await addOffer(applicationId);
+  await review(applicationId, id);
+  const path = `/applications/${applicationId}/activities/${id}`;
+
+  const withNotes = await request("PUT", path, { body: { ...offer, notes: "<p>Call HR</p>" } });
+  expect(withNotes.json()).toMatchObject({ detailsReviewed: true });
+
+  const changedTerms = { ...offer, terms: { ...offer.terms!, vacationDays: 28 } };
+  expect((await request("PUT", path, { body: changedTerms })).json()).toMatchObject({
+    detailsReviewed: false,
+  });
+});
+
 test("DELETE /applications/:id/activities/:activityId deletes the activity", async () => {
   const applicationId = await createApplication();
   const [submission] = await listActivities(applicationId);
@@ -225,6 +261,7 @@ test.each([
   ["POST", "", activityInput],
   ["PUT", "/:activityId", activityInput],
   ["DELETE", "/:activityId", undefined],
+  ["PUT", "/:activityId/details-review", undefined],
 ] as const)(
   "%s /applications/:id/activities%s does not reveal activities of other users",
   async (method, path, body) => {

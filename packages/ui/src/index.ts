@@ -3,6 +3,7 @@ export { Button, type ButtonProps } from "./button/Button.tsx";
 export type { ButtonVariant } from "./button/buttonClassName.ts";
 export { IconButton, type IconButtonProps } from "./button/IconButton.tsx";
 export { LinkButton, type LinkButtonProps } from "./button/LinkButton.tsx";
+export { Checkbox, type CheckboxProps } from "./checkbox/Checkbox.tsx";
 export { ConfirmDialog, type ConfirmDialogProps } from "./dialog/ConfirmDialog.tsx";
 export { Drawer, type DrawerProps } from "./drawer/Drawer.tsx";
 export { EmptyState, type EmptyStateProps } from "./empty-state/EmptyState.tsx";

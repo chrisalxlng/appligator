@@ -293,6 +293,20 @@ export const en = {
       editTitle: "Edit terms",
       remove: "Remove terms",
     },
+    adopt: {
+      hint_one: "{{count}} value differs from the details",
+      hint_other: "{{count}} values differ from the details",
+      action: "Take over values",
+      title: "Take over values",
+      description:
+        "Choose which values of the activity to take over into the details of the application.",
+      becomes: "becomes",
+      submit_one: "Take over {{count}} value",
+      submit_other: "Take over {{count}} values",
+      ignore: "Ignore",
+      error: "The values could not be taken over. Please try again.",
+      toast: "Values taken over",
+    },
     toast: {
       added: "Activity added",
       updated: "Activity updated",

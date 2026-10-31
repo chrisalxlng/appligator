@@ -1,0 +1,1 @@
+ALTER TABLE "activities" ADD COLUMN "details_reviewed" boolean DEFAULT false NOT NULL;
