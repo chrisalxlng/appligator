@@ -21,9 +21,9 @@ export function useActivities(applicationId: string) {
   });
 }
 
-function useActivityMutation<Variables>(
+function useActivityMutation<Variables, Result>(
   applicationId: string,
-  mutationFn: (variables: Variables) => Promise<unknown>,
+  mutationFn: (variables: Variables) => Promise<Result>,
 ) {
   const queryClient = useQueryClient();
   return useMutation({

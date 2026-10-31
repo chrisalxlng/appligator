@@ -6,42 +6,65 @@ import { useTranslation } from "react-i18next";
 import { useSaveApplication } from "../applications/applicationQueries.ts";
 import { NotSpecified } from "../collection/DetailView.tsx";
 import { useDetails } from "../details/DetailsSection.tsx";
+import formStyles from "../details/form.module.css";
 import { useReviewDetails } from "./activityQueries.ts";
 import styles from "./AdoptTerms.module.css";
-import type { TermsDifference } from "./termsDifferences.ts";
+import { termsDifferences, type TermsDifference } from "./termsDifferences.ts";
 
 interface AdoptTermsProps {
   application: Application;
   activity: Activity;
-  differences: TermsDifference[];
+}
+
+function differencesOf({ application, activity }: AdoptTermsProps) {
+  return activity.terms ? termsDifferences(activity.terms, application) : [];
 }
 
 export function AdoptTermsHint(props: AdoptTermsProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const count = differencesOf(props).length;
+
+  if (count === 0) return null;
 
   return (
     <div className={styles.hint}>
       <IconArrowsDiff size={20} stroke={2} aria-hidden />
-      <p className={styles.hintText}>
-        {t("activities.adopt.hint", { count: props.differences.length })}
-      </p>
+      <p className={styles.hintText}>{t("activities.adopt.hint", { count })}</p>
       <Button variant="highlightSecondary" onClick={() => setOpen(true)}>
         {t("activities.adopt.action")}
       </Button>
-      <Drawer
-        title={t("activities.adopt.title")}
-        closeLabel={t("common.close")}
-        open={open}
-        onOpenChange={setOpen}
-      >
-        <AdoptTermsForm {...props} onDone={() => setOpen(false)} />
-      </Drawer>
+      <AdoptTermsDrawer {...props} open={open} onOpenChange={setOpen} />
     </div>
   );
 }
 
+interface AdoptTermsDrawerProps extends AdoptTermsProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/** Opens only while values of the details would change; values for empty details are taken over anyway. */
+export function AdoptTermsDrawer({ open, onOpenChange, ...props }: AdoptTermsDrawerProps) {
+  const { t } = useTranslation();
+  const differences = differencesOf(props);
+
+  return (
+    <Drawer
+      title={t("activities.adopt.title")}
+      closeLabel={t("common.close")}
+      open={open && differences.length > 0}
+      onOpenChange={onOpenChange}
+    >
+      {differences.length > 0 && (
+        <AdoptTermsForm {...props} differences={differences} onDone={() => onOpenChange(false)} />
+      )}
+    </Drawer>
+  );
+}
+
 interface AdoptTermsFormProps extends AdoptTermsProps {
+  differences: TermsDifference[];
   onDone: () => void;
 }
 
@@ -120,21 +143,23 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
           {t("activities.adopt.error")}
         </p>
       )}
-      <Button
-        pending={isPending}
-        disabled={selected.size === 0}
-        onClick={() => void adopt().catch(() => {})}
-      >
-        <IconCheck size={20} stroke={2.4} aria-hidden />
-        {t("activities.adopt.submit", { count: selected.size })}
-      </Button>
-      <Button
-        variant="secondary"
-        disabled={isPending}
-        onClick={() => void review.mutateAsync(undefined).then(onDone, () => {})}
-      >
-        {t("activities.adopt.ignore")}
-      </Button>
+      <div className={formStyles.actions}>
+        <Button
+          variant="secondary"
+          disabled={isPending}
+          onClick={() => void review.mutateAsync(undefined).then(onDone, () => {})}
+        >
+          {t("activities.adopt.ignore")}
+        </Button>
+        <Button
+          pending={isPending}
+          disabled={selected.size === 0}
+          onClick={() => void adopt().catch(() => {})}
+        >
+          <IconCheck size={20} stroke={2.4} aria-hidden />
+          {t("activities.adopt.submit", { count: selected.size })}
+        </Button>
+      </div>
     </div>
   );
 }

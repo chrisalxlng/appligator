@@ -16,6 +16,12 @@ test("ignores terms that are not specified", () => {
   expect(termsDifferences(terms, details)).toEqual([]);
 });
 
+test("ignores details that are not specified", () => {
+  const terms = { ...sameTerms, startDate: "2027-03-01" };
+
+  expect(termsDifferences(terms, { ...details, startDate: null })).toEqual([]);
+});
+
 test("lists the changed fields in the order of the details", () => {
   const salary = { currency: "EUR" as const, period: "year" as const, min: 80_000, max: 80_000 };
   const terms = { ...sameTerms, vacationDays: 28, salary, position: "Staff Engineer" };

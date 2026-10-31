@@ -1,5 +1,6 @@
 import {
   applicationStatuses,
+  isSpecifiedDetail,
   jobStatuses,
   type Activity,
   type ActivityInput,
@@ -302,6 +303,25 @@ export function createFakeApi(
     return { ...application, appliedAt: submissions.at(-1)?.occurredAt ?? null };
   }
 
+  function fillEmptyDetails(applicationId: string, terms: Activity["terms"]) {
+    if (!terms) return;
+    const { position: _position, ...detailTerms } = terms;
+    applications = applications.map((application) =>
+      application.id === applicationId
+        ? {
+            ...application,
+            ...Object.fromEntries(
+              Object.entries(detailTerms).filter(
+                ([field, value]) =>
+                  isSpecifiedDetail(value) &&
+                  !isSpecifiedDetail(application[field as keyof Application]),
+              ),
+            ),
+          }
+        : application,
+    );
+  }
+
   function handleActivities(
     method: string,
     action: string,
@@ -315,6 +335,7 @@ export function createFakeApi(
     if (method === "POST") {
       const created = activityWith({ ...body!, createdAt: now, updatedAt: now });
       activities.set(applicationId, [...current, created]);
+      fillEmptyDetails(applicationId, created.terms);
       return json(created, 201);
     }
     const activity = current.find(({ id }) => id === activityId);
@@ -329,7 +350,14 @@ export function createFakeApi(
       return new Response(null, { status: 204 });
     }
     if (method === "PUT") {
-      const updated = { ...activity, ...body!, updatedAt: now };
+      const termsChanged = JSON.stringify(activity.terms) !== JSON.stringify(body!.terms);
+      const updated = {
+        ...activity,
+        ...body!,
+        detailsReviewed: activity.detailsReviewed && !termsChanged,
+        updatedAt: now,
+      };
+      fillEmptyDetails(applicationId, updated.terms);
       activities.set(
         applicationId,
         current.map((other) => (other.id === activityId ? updated : other)),

@@ -110,6 +110,10 @@ export const activitySchema = activityInputSchema.safeExtend({
   updatedAt: z.iso.datetime(),
 });
 
+export function isSpecifiedDetail(value: unknown) {
+  return value !== null && value !== undefined && !(Array.isArray(value) && value.length === 0);
+}
+
 export const activityListSchema = z.array(activitySchema);
 
 export type ActivityType = (typeof activityTypes)[number];

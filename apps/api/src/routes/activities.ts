@@ -4,6 +4,7 @@ import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { activities, applications } from "../db/schema.ts";
 import { toActivity, toActivityColumns } from "./activityRows.ts";
+import { fillEmptyDetails } from "./detailFills.ts";
 import { notFoundSchema } from "./notFound.ts";
 
 const applicationParamsSchema = z.object({ id: z.uuid() });
@@ -59,11 +60,15 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
         return reply.code(404).send({ error: "Not Found" });
       }
 
-      const [row] = await app.db
-        .insert(activities)
-        .values({ ...toActivityColumns(request.body), applicationId: id })
-        .returning();
-      return reply.code(201).send(toActivity(row!));
+      const row = await app.db.transaction(async (tx) => {
+        const [inserted] = await tx
+          .insert(activities)
+          .values({ ...toActivityColumns(request.body), applicationId: id })
+          .returning();
+        if (request.body.terms) await fillEmptyDetails(tx, id, request.body.terms);
+        return inserted!;
+      });
+      return reply.code(201).send(toActivity(row));
     },
   );
 
@@ -83,15 +88,19 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
       }
 
       const { terms } = request.body;
-      const [row] = await app.db
-        .update(activities)
-        .set({
-          ...toActivityColumns(request.body),
-          detailsReviewed: sql`case when ${activities.terms} is not distinct from ${terms && JSON.stringify(terms)}::jsonb then ${activities.detailsReviewed} else false end`,
-          updatedAt: new Date(),
-        })
-        .where(activityOf(id, activityId))
-        .returning();
+      const row = await app.db.transaction(async (tx) => {
+        const [updated] = await tx
+          .update(activities)
+          .set({
+            ...toActivityColumns(request.body),
+            detailsReviewed: sql`case when ${activities.terms} is not distinct from ${terms && JSON.stringify(terms)}::jsonb then ${activities.detailsReviewed} else false end`,
+            updatedAt: new Date(),
+          })
+          .where(activityOf(id, activityId))
+          .returning();
+        if (updated && terms) await fillEmptyDetails(tx, id, terms);
+        return updated;
+      });
       if (!row) return reply.code(404).send({ error: "Not Found" });
       return toActivity(row);
     },

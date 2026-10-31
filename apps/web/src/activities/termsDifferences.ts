@@ -1,4 +1,4 @@
-import type { ActivityTerms, ApplicationInput } from "@appligator/shared";
+import { isSpecifiedDetail, type ActivityTerms, type ApplicationInput } from "@appligator/shared";
 
 type TermsField = keyof ActivityTerms;
 
@@ -27,18 +27,18 @@ export interface TermsDifference {
   changes: Partial<ActivityTerms>;
 }
 
-function isSpecified(value: unknown) {
-  return value !== null && !(Array.isArray(value) && value.length === 0);
-}
-
 function isEqual(a: unknown, b: unknown) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/** Lists the terms that would replace other values in the details; empty details take them over anyway. */
 export function termsDifferences(terms: ActivityTerms, details: ApplicationInput) {
   return termsGroups.flatMap(({ key, fields }): TermsDifference[] => {
     const changed = fields.filter(
-      (field) => isSpecified(terms[field]) && !isEqual(terms[field], details[field]),
+      (field) =>
+        isSpecifiedDetail(terms[field]) &&
+        isSpecifiedDetail(details[field]) &&
+        !isEqual(terms[field], details[field]),
     );
     if (changed.length === 0) return [];
     return [{ key, changes: Object.fromEntries(changed.map((field) => [field, terms[field]])) }];

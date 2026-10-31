@@ -1,4 +1,4 @@
-import type { Activity } from "@appligator/shared";
+import type { Activity, Application } from "@appligator/shared";
 import { Button, ConfirmDialog, Drawer, useSuccessToast } from "@appligator/ui";
 import { IconPencil, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
@@ -8,24 +8,26 @@ import { useDeleteFiles } from "../attachments/useFileCleanup.ts";
 import { formatDate } from "../details/format.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { ActivityForm } from "./ActivityForm.tsx";
+import { AdoptTermsDrawer } from "./AdoptTerms.tsx";
 import { useDeleteActivity, useSaveActivity } from "./activityQueries.ts";
 
 interface EditActivityDrawerProps {
-  applicationId: string;
+  application: Application;
   activity: Activity;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function EditActivityDrawer({
-  applicationId,
+  application,
   activity,
   open,
   onOpenChange,
 }: EditActivityDrawerProps) {
   const { t, i18n } = useTranslation();
-  const save = useSaveActivity(applicationId, activity.id);
-  const deleteActivity = useDeleteActivity(applicationId, activity.id);
+  const save = useSaveActivity(application.id, activity.id);
+  const deleteActivity = useDeleteActivity(application.id, activity.id);
+  const [isAdopting, setIsAdopting] = useState(false);
   const deleteFiles = useDeleteFiles();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const showSuccess = useSuccessToast();
@@ -57,12 +59,13 @@ export function EditActivityDrawer({
           type={activity.type}
           activity={activity}
           save={save}
-          onSaved={() => {
+          onSaved={(saved) => {
             onOpenChange(false);
             showSuccess(t("activities.toast.updated"));
+            setIsAdopting(!saved.detailsReviewed);
           }}
           submit={{ label: t("activities.form.update"), icon: IconPencil }}
-          footer={
+          secondaryAction={
             <Button
               type="button"
               variant="destructiveSecondary"
@@ -77,6 +80,12 @@ export function EditActivityDrawer({
           }
         />
       </Drawer>
+      <AdoptTermsDrawer
+        application={application}
+        activity={activity}
+        open={isAdopting}
+        onOpenChange={setIsAdopting}
+      />
       <ConfirmDialog
         open={isConfirmingDelete}
         onOpenChange={setIsConfirmingDelete}

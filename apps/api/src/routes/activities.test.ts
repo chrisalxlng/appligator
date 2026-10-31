@@ -148,6 +148,43 @@ test("POST /applications/:id/activities stores email and file attachments, email
   expect(response.json().attachments).toEqual([{ ...attachments[0], to: "" }, attachments[1]]);
 });
 
+test("POST /applications/:id/activities takes over terms into empty details only", async () => {
+  const applicationId = await createApplication();
+  await request("POST", `/applications/${applicationId}/activities`, { body: offer });
+  const otherSalary = {
+    currency: "EUR" as const,
+    period: "year" as const,
+    min: 90_000,
+    max: 90_000,
+  };
+
+  await request("POST", `/applications/${applicationId}/activities`, {
+    body: { ...offer, terms: { ...offer.terms!, salary: otherSalary, vacationDays: 30 } },
+  });
+
+  expect((await request("GET", `/applications/${applicationId}`)).json()).toMatchObject({
+    position: "Lead Developer Frontend",
+    salary: offer.terms!.salary,
+    homeOfficePercentage: 80,
+    vacationDays: 30,
+    bonuses: [],
+  });
+});
+
+test("PUT /applications/:id/activities/:activityId takes over terms into empty details", async () => {
+  const applicationId = await createApplication();
+  const [submission] = await listActivities(applicationId);
+
+  await request("PUT", `/applications/${applicationId}/activities/${submission.id}`, {
+    body: { ...activityInput, terms: { ...offer.terms!, salary: null } },
+  });
+
+  expect((await request("GET", `/applications/${applicationId}`)).json()).toMatchObject({
+    salary: null,
+    homeOfficePercentage: 80,
+  });
+});
+
 test("GET /applications/:id/activities lists the activities, latest first", async () => {
   const applicationId = await createApplication();
   await request("POST", `/applications/${applicationId}/activities`, { body: offer });

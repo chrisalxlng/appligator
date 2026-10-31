@@ -19,7 +19,6 @@ import { useActivities } from "./activityQueries.ts";
 import { AdoptTermsHint } from "./AdoptTerms.tsx";
 import styles from "./ActivityLog.module.css";
 import { EditActivityDrawer } from "./EditActivityDrawer.tsx";
-import { termsDifferences } from "./termsDifferences.ts";
 import { useActivityDateLabel } from "./useActivityDateLabel.ts";
 
 export function ActivityLog({ application }: { application: Application }) {
@@ -111,8 +110,6 @@ function ActivityEntry({ application, activity, isLatest, offersTerms }: Activit
   const dateLabel = useActivityDateLabel()(activity.occurredAt);
   const properties = useActivityProperties(activity);
   const typeLabel = t(`activities.types.${activity.type}.label`);
-  const differences =
-    offersTerms && activity.terms ? termsDifferences(activity.terms, application) : [];
 
   return (
     <li className={`${styles.entry} ${isLatest ? styles.latest : ""}`}>
@@ -139,12 +136,10 @@ function ActivityEntry({ application, activity, isLatest, offersTerms }: Activit
           </PropertyList>
         </div>
       )}
-      {differences.length > 0 && (
-        <AdoptTermsHint application={application} activity={activity} differences={differences} />
-      )}
+      {offersTerms && <AdoptTermsHint application={application} activity={activity} />}
       {activity.attachments.length > 0 && <AttachmentCards attachments={activity.attachments} />}
       <EditActivityDrawer
-        applicationId={application.id}
+        application={application}
         activity={activity}
         open={isEditing}
         onOpenChange={setIsEditing}

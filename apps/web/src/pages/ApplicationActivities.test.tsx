@@ -187,6 +187,8 @@ test("adds the terms of an offer", async () => {
       terms: { position: "Lead Developer", vacationDays: 30, salary: null },
     }),
   );
+  const adoption = await screen.findByRole("dialog", { name: "Take over values" });
+  await userEvent.click(within(adoption).getByRole("button", { name: "Close" }));
   const latest = entriesOf(await findLog())[0]!;
   await waitFor(() => expect(latest).toHaveTextContent("PositionLead Developer"));
   expect(latest).toHaveTextContent("Vacation days30");
@@ -277,6 +279,8 @@ test("edits and removes the terms of an activity", async () => {
       salary: offer.terms!.salary,
     }),
   );
+  const adoption = await screen.findByRole("dialog", { name: "Take over values" });
+  await userEvent.click(within(adoption).getByRole("button", { name: "Close" }));
 
   await userEvent.click(within(log).getByRole("button", { name: /Edit Offer received$/ }));
   const reopened = await screen.findByRole("dialog", { name: "Offer received" });

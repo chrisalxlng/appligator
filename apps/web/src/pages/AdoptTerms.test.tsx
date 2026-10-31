@@ -109,3 +109,82 @@ test("gives no hint once the latest terms are reviewed", async () => {
   expect(await within(log).findByRole("heading", { name: "Offer received" })).toBeVisible();
   expect(within(log).queryByText(/differ from the details/)).not.toBeInTheDocument();
 });
+
+async function addInterviewWithVacationDays(days: string) {
+  const log = await findLog();
+  await within(log).findByRole("heading", { name: "Offer received" });
+  await userEvent.click(screen.getByRole("button", { name: "Add activity" }));
+  const picker = await screen.findByRole("dialog", { name: "Add activity" });
+  await userEvent.click(within(picker).getByRole("button", { name: "Show more" }));
+  await userEvent.click(within(picker).getByRole("button", { name: /^Interview held/ }));
+  const form = await screen.findByRole("dialog", { name: "Interview held" });
+  await userEvent.click(within(form).getByRole("button", { name: "Add terms" }));
+  const terms = await screen.findByRole("dialog", { name: "Add terms" });
+  await userEvent.type(within(terms).getByRole("textbox", { name: "Vacation days" }), days);
+  await userEvent.click(within(terms).getByRole("button", { name: "Add" }));
+  await userEvent.click(within(form).getByRole("button", { name: "Add" }));
+}
+
+test("takes over terms into empty details without asking", async () => {
+  const api = createFakeApi([jobFixture], [{ ...application, vacationDays: null }], {
+    [application.id]: [{ ...offer, detailsReviewed: true }],
+  });
+  renderApp(`/applications/${application.id}`);
+
+  await addInterviewWithVacationDays("28");
+
+  const detail = await screen.findByRole("article");
+  await waitFor(() => expect(detail).toHaveTextContent("Vacation days28"));
+  expect(screen.queryByRole("dialog", { name: "Take over values" })).not.toBeInTheDocument();
+  expect(api.requestsWith("PUT")).toEqual([]);
+});
+
+test("asks right after adding an activity whose terms would change the details", async () => {
+  renderAdoption([{ ...offer, detailsReviewed: true }]);
+
+  await addInterviewWithVacationDays("28");
+
+  const drawer = await screen.findByRole("dialog", { name: "Take over values" });
+  expect(
+    within(drawer)
+      .getByRole("checkbox", { name: /^Vacation days/ })
+      .closest("label"),
+  ).toHaveTextContent("Vacation days3028");
+});
+
+test("asks after editing the terms of an activity, but not after other changes", async () => {
+  renderAdoption([{ ...offer, detailsReviewed: true }]);
+  const log = await findLog();
+  const edit = async () => {
+    await userEvent.click(await within(log).findByRole("button", { name: /Edit Offer received$/ }));
+    return screen.findByRole("dialog", { name: "Offer received" });
+  };
+
+  const notesForm = await edit();
+  await userEvent.click(within(notesForm).getByRole("button", { name: "Update" }));
+  expect(await screen.findByText("Activity updated")).toBeInTheDocument();
+  expect(screen.queryByRole("dialog", { name: "Take over values" })).not.toBeInTheDocument();
+
+  const termsForm = await edit();
+  await userEvent.click(within(termsForm).getByRole("button", { name: "Edit terms" }));
+  const terms = await screen.findByRole("dialog", { name: "Edit terms" });
+  await userEvent.clear(within(terms).getByRole("textbox", { name: "Vacation days" }));
+  await userEvent.type(within(terms).getByRole("textbox", { name: "Vacation days" }), "28");
+  await userEvent.click(within(terms).getByRole("button", { name: "Update" }));
+  await userEvent.click(within(termsForm).getByRole("button", { name: "Update" }));
+
+  expect(await screen.findByRole("dialog", { name: "Take over values" })).toBeVisible();
+});
+
+test("keeps the hint when the drawer is closed without ignoring", async () => {
+  const api = renderAdoption();
+  const drawer = await openAdoption();
+
+  await userEvent.click(within(drawer).getByRole("button", { name: "Close" }));
+
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog", { name: "Take over values" })).not.toBeInTheDocument(),
+  );
+  expect(within(await findLog()).getByText("2 values differ from the details")).toBeVisible();
+  expect(api.requestsWith("PUT")).toEqual([]);
+});
