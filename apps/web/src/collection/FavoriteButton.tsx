@@ -2,7 +2,6 @@ import { IconButton } from "@appligator/ui";
 import { IconStar, IconStarFilled } from "@tabler/icons-react";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import styles from "./FavoriteButton.module.css";
 
 interface FavoriteButtonProps {
   favorite: boolean;
@@ -22,7 +21,7 @@ export function FavoriteButton({ favorite, markFavorite }: FavoriteButtonProps) 
       onClick={() => markFavorite.mutate(!isFavorite)}
     >
       {isFavorite ? (
-        <IconStarFilled size={20} className={styles.star} aria-hidden />
+        <IconStarFilled size={20} aria-hidden />
       ) : (
         <IconStar size={20} stroke={2} aria-hidden />
       )}

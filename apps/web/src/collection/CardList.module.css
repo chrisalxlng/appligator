@@ -93,7 +93,11 @@
 }
 
 .star {
-  color: var(--highlight-separator);
+  color: var(--text-secondary);
+
+  [data-status="active"] & {
+    color: var(--active-text-secondary);
+  }
 }
 
 .created {
