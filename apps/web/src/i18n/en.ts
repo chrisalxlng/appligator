@@ -45,7 +45,7 @@ export const en = {
     notFound: {
       title: "Job not found",
       description: "This job does not exist or has been deleted.",
-      back: "Back to jobs",
+      back: "Show all jobs",
     },
     detailLoadError: {
       title: "Job could not be loaded",
@@ -120,7 +120,7 @@ export const en = {
     notFound: {
       title: "Application not found",
       description: "This application does not exist or has been deleted.",
-      back: "Back to applications",
+      back: "Show all applications",
     },
     detailLoadError: {
       title: "Application could not be loaded",

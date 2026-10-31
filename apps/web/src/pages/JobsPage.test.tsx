@@ -317,7 +317,7 @@ test("shows that a job does not exist", async () => {
   renderApp("/jobs/00000000-0000-4000-8000-000000000000");
 
   expect(await screen.findByRole("heading", { name: "Job not found" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Back to jobs" })).toHaveAttribute("href", "/jobs");
+  expect(screen.getByRole("link", { name: "Show all jobs" })).toHaveAttribute("href", "/jobs");
   expect(document.title).toBe("Job not found • Appligator");
 });
 

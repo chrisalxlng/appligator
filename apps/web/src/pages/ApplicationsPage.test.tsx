@@ -68,7 +68,7 @@ test("shows that an application does not exist", async () => {
   renderApp("/applications/00000000-0000-4000-8000-000000000000");
 
   expect(await screen.findByRole("heading", { name: "Application not found" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Back to applications" })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: "Show all applications" })).toHaveAttribute(
     "href",
     "/applications",
   );

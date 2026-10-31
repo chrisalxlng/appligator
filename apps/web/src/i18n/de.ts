@@ -24,7 +24,7 @@ export const de: Translations = {
     add: "Hinzufügen",
     edit: "Bearbeiten",
     apply: "Bewerben",
-    openApplication: "Zur Bewerbung",
+    openApplication: "Bewerbung öffnen",
     status: {
       open: "Offen",
       applied: "Beworben",
@@ -47,7 +47,7 @@ export const de: Translations = {
     notFound: {
       title: "Stelle nicht gefunden",
       description: "Diese Stelle gibt es nicht oder sie wurde gelöscht.",
-      back: "Zurück zu den Stellen",
+      back: "Alle Stellen anzeigen",
     },
     detailLoadError: {
       title: "Stelle konnte nicht geladen werden",
@@ -125,7 +125,7 @@ export const de: Translations = {
     notFound: {
       title: "Bewerbung nicht gefunden",
       description: "Diese Bewerbung gibt es nicht oder sie wurde gelöscht.",
-      back: "Zurück zu den Bewerbungen",
+      back: "Alle Bewerbungen anzeigen",
     },
     detailLoadError: {
       title: "Bewerbung konnte nicht geladen werden",
@@ -136,7 +136,7 @@ export const de: Translations = {
     },
     properties: {
       status: "Status",
-      appliedAt: "Bewerbungseingang",
+      appliedAt: "Eingang",
       job: "Stelle",
     },
     form: {
