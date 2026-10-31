@@ -7,7 +7,7 @@ import {
   submitKeyShortcuts,
   TextInput,
 } from "@appligator/ui";
-import { IconFileImport, IconPencil, IconPlus } from "@tabler/icons-react";
+import { IconPencil, IconPlus, IconUpload } from "@tabler/icons-react";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { richTextError, type FieldError } from "../details/detailsForm.ts";
@@ -15,9 +15,11 @@ import listStyles from "../details/list.module.css";
 import { toIsoDateTime, toLocalDateTime } from "../details/localDateTime.ts";
 import { useFormatLabels } from "../details/useFormatLabels.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
-import { importEmail } from "./emailImport.ts";
+import { DropZone } from "./DropZone.tsx";
+import { importEmail, isEmailFile } from "./emailImport.ts";
 
 type EmailAttachment = Extract<Attachment, { kind: "email" }>;
+type LinkAttachment = Extract<Attachment, { kind: "link" }>;
 
 interface EmailFormValues {
   subject: string;
@@ -29,7 +31,7 @@ interface EmailFormValues {
 function toFormValues(email?: Omit<EmailAttachment, "kind">): EmailFormValues {
   return {
     subject: email?.subject ?? "",
-    from: email?.from ?? "",
+    from: email?.from.toLowerCase() ?? "",
     sentAt: email?.sentAt ? toLocalDateTime(email.sentAt) : "",
     body: email?.body ?? "",
   };
@@ -42,7 +44,7 @@ function headerError(text: string): FieldError | undefined {
 interface EmailFormProps {
   inputRef: RefObject<HTMLInputElement | null>;
   attachment?: EmailAttachment;
-  onSave: (attachment: EmailAttachment) => void;
+  onSave: (attachment: EmailAttachment, links: LinkAttachment[]) => void;
 }
 
 export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
@@ -50,7 +52,8 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
   const formatLabels = useFormatLabels();
   const [values, setValues] = useState(() => toFormValues(attachment));
   const [errors, setErrors] = useState<Partial<Record<keyof EmailFormValues, FieldError>>>({});
-  const [importFailed, setImportFailed] = useState(false);
+  const [importError, setImportError] = useState<"importFailed" | "notAnEmail">();
+  const [links, setLinks] = useState<LinkAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shortcutHints = useShortcutHints();
 
@@ -60,11 +63,14 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
 
   async function importFile(file: File | undefined) {
     if (!file) return;
-    setImportFailed(false);
+    if (!isEmailFile(file)) return setImportError("notAnEmail");
+    setImportError(undefined);
     try {
-      setValues(toFormValues(await importEmail(file)));
+      const imported = await importEmail(file);
+      setValues(toFormValues(imported.email));
+      setLinks(imported.links);
     } catch {
-      setImportFailed(true);
+      setImportError("importFailed");
     }
   }
 
@@ -82,13 +88,16 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) return;
 
-    onSave({
-      kind: "email",
-      subject,
-      from,
-      sentAt: values.sentAt ? toIsoDateTime(values.sentAt) : null,
-      body: values.body,
-    });
+    onSave(
+      {
+        kind: "email",
+        subject,
+        from,
+        sentAt: values.sentAt ? toIsoDateTime(values.sentAt) : null,
+        body: values.body,
+      },
+      links,
+    );
   }
 
   function errorFor(field: keyof EmailFormValues) {
@@ -97,61 +106,70 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
   }
 
   return (
-    <form className={listStyles.form} onSubmit={submit} noValidate>
-      <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
-        <IconFileImport size={20} stroke={2.4} aria-hidden />
-        {t("attachments.email.import")}
-      </Button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".eml,message/rfc822"
-        hidden
-        aria-label={t("attachments.email.import")}
-        onChange={(event) => {
-          void importFile(event.target.files?.[0]);
-          event.target.value = "";
-        }}
-      />
-      {importFailed && (
-        <p role="alert" className={listStyles.error}>
-          {t("attachments.errors.importFailed")}
-        </p>
-      )}
-      <Field label={t("attachments.email.subject")} error={errorFor("subject")}>
-        <TextInput ref={inputRef} value={values.subject} onValueChange={setValue("subject")} />
-      </Field>
-      <Field label={t("attachments.email.from")} error={errorFor("from")}>
-        <TextInput type="email" value={values.from} onValueChange={setValue("from")} />
-      </Field>
-      <Field label={t("attachments.email.sentAt")}>
-        <DateInput
-          value={values.sentAt}
-          onValueChange={setValue("sentAt")}
-          withTime
-          clearable
-          clearLabel={t("fields.clear")}
+    <DropZone
+      label={t("attachments.email.dropHere")}
+      onFiles={(files) => void importFile(files[0])}
+    >
+      <form className={listStyles.form} onSubmit={submit} noValidate>
+        <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
+          <IconUpload size={20} stroke={2.4} aria-hidden />
+          {t("attachments.email.import")}
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".eml,message/rfc822"
+          hidden
+          aria-label={t("attachments.email.import")}
+          onChange={(event) => {
+            void importFile(event.target.files?.[0]);
+            event.target.value = "";
+          }}
         />
-      </Field>
-      <Field label={t("attachments.email.body")} error={errorFor("body")}>
-        <RichTextEditor
-          value={values.body}
-          onValueChange={setValue("body")}
-          formatLabels={formatLabels}
-        />
-      </Field>
-      <Button
-        type="submit"
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        {attachment ? (
-          <IconPencil size={20} stroke={2.4} aria-hidden />
-        ) : (
-          <IconPlus size={20} stroke={2.4} aria-hidden />
+        {importError && (
+          <p role="alert" className={listStyles.error}>
+            {t(`attachments.errors.${importError}`)}
+          </p>
         )}
-        {t(attachment ? "attachments.update" : "attachments.add")}
-      </Button>
-    </form>
+        <Field label={t("attachments.email.subject")} error={errorFor("subject")}>
+          <TextInput ref={inputRef} value={values.subject} onValueChange={setValue("subject")} />
+        </Field>
+        <Field label={t("attachments.email.from")} error={errorFor("from")}>
+          <TextInput
+            type="email"
+            value={values.from}
+            onValueChange={(from) => setValue("from")(from.toLowerCase())}
+          />
+        </Field>
+        <Field label={t("attachments.email.sentAt")}>
+          <DateInput
+            value={values.sentAt}
+            onValueChange={setValue("sentAt")}
+            withTime
+            clearable
+            clearLabel={t("fields.clear")}
+          />
+        </Field>
+        <Field label={t("attachments.email.body")} error={errorFor("body")}>
+          <RichTextEditor
+            value={values.body}
+            onValueChange={setValue("body")}
+            formatLabels={formatLabels}
+          />
+        </Field>
+        <Button
+          type="submit"
+          shortcutHint={shortcutHints?.submit}
+          aria-keyshortcuts={submitKeyShortcuts}
+        >
+          {attachment ? (
+            <IconPencil size={20} stroke={2.4} aria-hidden />
+          ) : (
+            <IconPlus size={20} stroke={2.4} aria-hidden />
+          )}
+          {t(attachment ? "attachments.update" : "attachments.add")}
+        </Button>
+      </form>
+    </DropZone>
   );
 }

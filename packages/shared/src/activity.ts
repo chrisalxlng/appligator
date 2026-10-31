@@ -72,6 +72,7 @@ const emailAttachmentSchema = z.object({
 const fileAttachmentSchema = z.object({
   kind: z.literal("file"),
   fileId: z.uuid(),
+  title: z.string().trim().max(jobLimits.textLength),
   name: z.string().trim().min(1).max(activityLimits.fileNameLength),
   mimeType: z.string().max(activityLimits.fileNameLength),
 });

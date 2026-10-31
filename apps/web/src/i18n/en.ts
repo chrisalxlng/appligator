@@ -314,7 +314,7 @@ export const en = {
     update: "Update",
     remove: "Remove {{title}}",
     uploading: "Uploading …",
-    dropHint: "or drop files here",
+    dropHere: "Drop files here to attach them",
     link: {
       kind: "Link",
       addTitle: "Add link",
@@ -336,9 +336,16 @@ export const en = {
       sentAt: "Sent",
       body: "Text",
       noSubject: "No subject",
+      dropHere: "Drop an .eml file here to import it",
     },
     file: {
       kind: "File",
+      addTitle: "Add file",
+      editTitle: "Edit file",
+      dropHere: "Drop a file here",
+      choose: "Choose file",
+      replace: "Choose another file",
+      title: "Title",
     },
     errors: {
       tooMany: "An activity can have at most {{count}} attachments.",
@@ -347,6 +354,9 @@ export const en = {
       uploadFailed: "The file could not be uploaded. Please try again.",
       importFailed: "The email could not be imported. Please check the file.",
       openFailed: "The file could not be opened. Please try again.",
+      notAnEmail: "Please drop an .eml file.",
+      fileRequired: "Please choose a file.",
+      titleTooLong: "This title is too long. Please shorten it.",
     },
   },
   sections: {

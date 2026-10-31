@@ -133,6 +133,7 @@ test("POST /applications/:id/activities stores email and file attachments", asyn
     {
       kind: "file",
       fileId: "6a1f0e3c-2b4d-4c5e-8f9a-0b1c2d3e4f5a",
+      title: "CV",
       name: "Lebenslauf.pdf",
       mimeType: "application/pdf",
     },

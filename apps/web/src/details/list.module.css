@@ -28,6 +28,11 @@
     background: var(--fill-press);
   }
 
+  &[data-static] {
+    background: var(--fill);
+    cursor: default;
+  }
+
   &:has(.itemButton:focus-visible) {
     outline: var(--focus-ring-width) solid var(--active-separator);
     outline-offset: var(--focus-ring-offset);

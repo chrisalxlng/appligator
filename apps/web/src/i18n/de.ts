@@ -322,7 +322,7 @@ export const de: Translations = {
     update: "Aktualisieren",
     remove: "{{title}} entfernen",
     uploading: "Wird hochgeladen …",
-    dropHint: "oder Dateien hierher ziehen",
+    dropHere: "Zum Anhängen hier ablegen",
     link: {
       kind: "Link",
       addTitle: "Link hinzufügen",
@@ -344,9 +344,16 @@ export const de: Translations = {
       sentAt: "Gesendet",
       body: "Text",
       noSubject: "Kein Betreff",
+      dropHere: ".eml-Datei zum Importieren hier ablegen",
     },
     file: {
       kind: "Datei",
+      addTitle: "Datei hinzufügen",
+      editTitle: "Datei bearbeiten",
+      dropHere: "Datei hier ablegen",
+      choose: "Datei auswählen",
+      replace: "Andere Datei auswählen",
+      title: "Titel",
     },
     errors: {
       tooMany: "Eine Aktivität kann höchstens {{count}} Anhänge haben.",
@@ -355,6 +362,9 @@ export const de: Translations = {
       uploadFailed: "Die Datei konnte nicht hochgeladen werden. Bitte versuche es erneut.",
       importFailed: "Die E-Mail konnte nicht importiert werden. Bitte prüfe die Datei.",
       openFailed: "Die Datei konnte nicht geöffnet werden. Bitte versuche es erneut.",
+      notAnEmail: "Bitte lege eine .eml-Datei ab.",
+      fileRequired: "Bitte wähle eine Datei aus.",
+      titleTooLong: "Dieser Titel ist zu lang. Bitte kürze ihn.",
     },
   },
   sections: {

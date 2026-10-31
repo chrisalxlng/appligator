@@ -17,6 +17,7 @@ const offerEmail = {
 const cv = {
   kind: "file" as const,
   fileId: cvFileId,
+  title: "",
   name: "Lebenslauf.pdf",
   mimeType: "application/pdf",
 };
@@ -36,6 +37,26 @@ const eml = [
   "",
   "wir laden dich ein.",
 ].join("\r\n");
+
+const htmlEml = [
+  "From: Jasmin Habegger <J.HABEGGER@optadata-gruppe.de>",
+  "Subject: Deep Dive und Kennenlernen",
+  "Date: Mon, 04 Dec 2023 11:59:00 +0100",
+  "Content-Type: text/html; charset=utf-8",
+  "",
+  '<p class="MsoNormal">Hallo Christopher,</p><p>&nbsp;</p>',
+  '<p>Link zum Meeting: <a href="https://teams.microsoft.com/l/meetup/1">Hier klicken</a></p>',
+  '<p>Link Aufgabenstellung: <a href="https://stackblitz.com/edit/challenge">https://stackblitz.com/edit/challenge</a></p>',
+  '<p>E-Mail: <a href="mailto:j.habegger@optadata-gruppe.de">j.habegger@optadata-gruppe.de</a></p>',
+].join("\r\n");
+
+function emlFile(content = eml, name = "einladung.eml") {
+  return new File([content], name, { type: "message/rfc822" });
+}
+
+function dropFiles(target: HTMLElement, files: File[]) {
+  fireEvent.drop(target, { dataTransfer: { files, types: ["Files"] } });
+}
 
 function renderAttachments() {
   const api = createFakeApi([jobFixture], [application], { [application.id]: [submission] });
@@ -133,100 +154,223 @@ test("adds an email by hand", async () => {
   );
 });
 
-test("imports an email from an .eml file in the email drawer", async () => {
-  renderAttachments();
+test("imports an email with its text and links from an .eml file", async () => {
+  const api = renderAttachments();
   const form = await editSubmission();
   await chooseAttachment(form, "Email");
   const drawer = await screen.findByRole("dialog", { name: "Add email" });
 
   await userEvent.upload(
     within(drawer).getByLabelText("Import .eml file", { selector: "input" }),
-    new File([eml], "einladung.eml", { type: "message/rfc822" }),
+    emlFile(htmlEml),
   );
+
+  await waitFor(() =>
+    expect(within(drawer).getByRole("textbox", { name: "Subject" })).toHaveValue(
+      "Deep Dive und Kennenlernen",
+    ),
+  );
+  expect(within(drawer).getByRole("textbox", { name: "From" })).toHaveValue(
+    "j.habegger@optadata-gruppe.de",
+  );
+  expect(within(drawer).getByLabelText("Sent")).toHaveValue(
+    toLocalDateTime("2023-12-04T10:59:00.000Z"),
+  );
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+  await userEvent.click(within(form).getByRole("button", { name: "Update" }));
+
+  await waitFor(() =>
+    expect(api.requestsWith("PUT")[0]?.body?.attachments).toEqual([
+      cv,
+      offerEmail,
+      expect.objectContaining({
+        kind: "email",
+        body: expect.stringMatching(
+          /^<p>Hallo Christopher,<\/p><p>Link zum Meeting: Hier klicken<\/p>/,
+        ),
+      }),
+      { kind: "link", url: "https://teams.microsoft.com/l/meetup/1", title: "Hier klicken" },
+      { kind: "link", url: "https://stackblitz.com/edit/challenge", title: "" },
+    ]),
+  );
+});
+
+test("writes the sender of an email in lower case", async () => {
+  renderAttachments();
+  const form = await editSubmission();
+  await chooseAttachment(form, "Email");
+  const drawer = await screen.findByRole("dialog", { name: "Add email" });
+
+  await userEvent.type(within(drawer).getByRole("textbox", { name: "From" }), "HR@Example.com");
+
+  expect(within(drawer).getByRole("textbox", { name: "From" })).toHaveValue("hr@example.com");
+});
+
+test("imports an .eml file dropped onto the email drawer", async () => {
+  renderAttachments();
+  const form = await editSubmission();
+  await chooseAttachment(form, "Email");
+  const drawer = await screen.findByRole("dialog", { name: "Add email" });
+
+  dropFiles(within(drawer).getByRole("textbox", { name: "Subject" }), [emlFile()]);
 
   await waitFor(() =>
     expect(within(drawer).getByRole("textbox", { name: "Subject" })).toHaveValue(
       "Einladung zum Gespräch",
     ),
   );
-  expect(within(drawer).getByRole("textbox", { name: "From" })).toHaveValue(
-    "hr@randstad-digital.de",
-  );
-  expect(within(drawer).getByLabelText("Sent")).toHaveValue(
-    toLocalDateTime("2026-10-30T09:00:00.000Z"),
-  );
+  expect(within(form).queryByRole("button", { name: /^Einladung/ })).not.toBeInTheDocument();
 });
 
-test("adds dropped .eml files as emails and uploads other dropped files", async () => {
+test("only imports .eml files into the email drawer", async () => {
+  renderAttachments();
+  const form = await editSubmission();
+  await chooseAttachment(form, "Email");
+  const drawer = await screen.findByRole("dialog", { name: "Add email" });
+
+  dropFiles(within(drawer).getByRole("textbox", { name: "Subject" }), [
+    new File(["cv"], "CV.pdf", { type: "application/pdf" }),
+  ]);
+
+  expect(await within(drawer).findByRole("alert")).toHaveTextContent("Please drop an .eml file.");
+});
+
+test("adds files dropped anywhere onto an activity: emails with their links and uploads", async () => {
   const api = renderAttachments();
   const form = await editSubmission();
 
-  fireEvent.drop(within(form).getByRole("button", { name: "Add attachment" }), {
-    dataTransfer: {
-      files: [
-        new File([eml], "einladung.eml", { type: "message/rfc822" }),
-        new File(["cover letter"], "Anschreiben.pdf", { type: "application/pdf" }),
-      ],
-    },
-  });
+  dropFiles(within(form).getByLabelText("Time"), [
+    emlFile(htmlEml),
+    new File(["cover letter"], "Anschreiben.pdf", { type: "application/pdf" }),
+  ]);
 
   expect(await within(form).findByRole("button", { name: /^Anschreiben/ })).toHaveTextContent(
     "AnschreibenPDF",
   );
-  expect(within(form).getByRole("button", { name: /^Einladung zum Gespräch/ })).toBeVisible();
+  expect(await within(form).findByRole("button", { name: /^Deep Dive/ })).toBeVisible();
+  expect(within(form).getByRole("button", { name: /^Hier klicken/ })).toBeVisible();
   const [upload] = api.stashRequests;
   expect(upload).toMatchObject({ method: "POST" });
   expect(api.files.get(upload!.fileId)).toBeInstanceOf(File);
 
   await userEvent.click(within(form).getByRole("button", { name: "Update" }));
   await waitFor(() =>
-    expect(api.requestsWith("PUT")[0]?.body?.attachments).toEqual(
-      expect.arrayContaining([
-        {
-          kind: "email",
-          subject: "Einladung zum Gespräch",
-          from: "hr@randstad-digital.de",
-          sentAt: "2026-10-30T09:00:00.000Z",
-          body: "<p>Hallo,</p><p>wir laden dich ein.</p>",
-        },
-        {
-          kind: "file",
-          fileId: upload!.fileId,
-          name: "Anschreiben.pdf",
-          mimeType: "application/pdf",
-        },
-      ]),
+    expect(api.requestsWith("PUT")[0]?.body?.attachments).toContainEqual({
+      kind: "file",
+      fileId: upload!.fileId,
+      title: "Anschreiben",
+      name: "Anschreiben.pdf",
+      mimeType: "application/pdf",
+    }),
+  );
+});
+
+async function openFileDrawer() {
+  const form = await editSubmission();
+  await chooseAttachment(form, "File");
+  return { form, drawer: await screen.findByRole("dialog", { name: "Add file" }) };
+}
+
+function chooseFile(drawer: HTMLElement, file: File) {
+  return userEvent.upload(
+    within(drawer).getByLabelText("Choose file", { selector: "input" }),
+    file,
+  );
+}
+
+test("adds a file with the file name as its default title", async () => {
+  const api = renderAttachments();
+  const { form, drawer } = await openFileDrawer();
+
+  await chooseFile(drawer, new File(["cv"], "CV_2026.pdf", { type: "application/pdf" }));
+
+  const title = within(drawer).getByRole("textbox", { name: "Title" });
+  await waitFor(() => expect(title).toHaveValue("CV_2026"));
+  await userEvent.clear(title);
+  await userEvent.type(title, "Lebenslauf");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+  await userEvent.click(within(form).getByRole("button", { name: "Update" }));
+
+  await waitFor(() =>
+    expect(api.requestsWith("PUT")[0]?.body?.attachments).toContainEqual(
+      expect.objectContaining({ kind: "file", title: "Lebenslauf", name: "CV_2026.pdf" }),
     ),
   );
 });
 
-test("rejects files larger than 10 MB without uploading them", async () => {
+test("keeps an entered title when a file is dropped onto the file drawer", async () => {
+  renderAttachments();
+  const { drawer } = await openFileDrawer();
+  const title = within(drawer).getByRole("textbox", { name: "Title" });
+  await userEvent.type(title, "Anschreiben");
+
+  dropFiles(title, [new File(["letter"], "cover.pdf", { type: "application/pdf" })]);
+
+  expect(await within(drawer).findByText("cover.pdf")).toBeVisible();
+  expect(title).toHaveValue("Anschreiben");
+});
+
+test("requires a file in the file drawer", async () => {
+  renderAttachments();
+  const { drawer } = await openFileDrawer();
+
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+
+  expect(await within(drawer).findByRole("alert")).toHaveTextContent("Please choose a file.");
+});
+
+test("renames a file attachment", async () => {
   const api = renderAttachments();
   const form = await editSubmission();
+
+  await userEvent.click(within(form).getByRole("button", { name: /^Lebenslauf/ }));
+  const drawer = await screen.findByRole("dialog", { name: "Edit file" });
+  await userEvent.type(within(drawer).getByRole("textbox", { name: "Title" }), "CV");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Update" }));
+  await userEvent.click(within(form).getByRole("button", { name: "Update" }));
+
+  await waitFor(() =>
+    expect(api.requestsWith("PUT")[0]?.body?.attachments).toEqual([
+      { ...cv, title: "CV" },
+      offerEmail,
+    ]),
+  );
+  expect(api.stashRequests).toEqual([]);
+});
+
+test("rejects files larger than 10 MB without uploading them", async () => {
+  const api = renderAttachments();
+  const { drawer } = await openFileDrawer();
   const largeFile = new File(["x"], "Portfolio.pdf", { type: "application/pdf" });
   Object.defineProperty(largeFile, "size", { value: 10_000_001 });
 
-  await chooseAttachment(form, "File");
-  await userEvent.upload(within(form).getByLabelText("File", { selector: "input" }), largeFile);
+  await chooseFile(drawer, largeFile);
 
-  expect(await within(form).findByRole("alert")).toHaveTextContent("Files can be at most 10 MB.");
+  expect(await within(drawer).findByRole("alert")).toHaveTextContent("Files can be at most 10 MB.");
   expect(api.stashRequests).toEqual([]);
 });
 
 test("explains when a file cannot be uploaded", async () => {
   const api = renderAttachments();
   api.failStashWith(422);
-  const form = await editSubmission();
+  const { drawer } = await openFileDrawer();
 
-  await chooseAttachment(form, "File");
-  await userEvent.upload(
-    within(form).getByLabelText("File", { selector: "input" }),
-    new File(["cv"], "CV.pdf", { type: "application/pdf" }),
-  );
+  await chooseFile(drawer, new File(["cv"], "CV.pdf", { type: "application/pdf" }));
 
-  expect(await within(form).findByRole("alert")).toHaveTextContent(
+  expect(await within(drawer).findByRole("alert")).toHaveTextContent(
     "You have reached the maximum number of files.",
   );
+});
+
+test("deletes a file chosen in the file drawer when it is closed without adding", async () => {
+  const api = renderAttachments();
+  const { drawer } = await openFileDrawer();
+  await chooseFile(drawer, new File(["cv"], "CV.pdf", { type: "application/pdf" }));
+  await within(drawer).findByText("CV.pdf");
+
+  await userEvent.click(within(drawer).getByRole("button", { name: "Close" }));
+
+  await waitFor(() => expect(api.files.size).toBe(1));
 });
 
 test("deletes removed files after saving", async () => {
@@ -240,14 +384,12 @@ test("deletes removed files after saving", async () => {
   await waitFor(() => expect(api.stashRequests).toEqual([{ method: "DELETE", fileId: cvFileId }]));
 });
 
-test("deletes uploaded files when the form is closed without saving", async () => {
+test("deletes uploaded files when the activity is closed without saving", async () => {
   const api = renderAttachments();
   const form = await editSubmission();
-  await chooseAttachment(form, "File");
-  await userEvent.upload(
-    within(form).getByLabelText("File", { selector: "input" }),
+  dropFiles(within(form).getByLabelText("Time"), [
     new File(["cv"], "CV.pdf", { type: "application/pdf" }),
-  );
+  ]);
   await within(form).findByRole("button", { name: /^CV/ });
 
   await userEvent.click(within(form).getByRole("button", { name: "Close" }));

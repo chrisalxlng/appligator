@@ -29,8 +29,8 @@ export function useDescribeAttachment() {
           meta: attachment.from,
         };
       case "file": {
-        const [title, extension] = splitExtension(attachment.name);
-        return { icon, title, meta: extension || attachment.mimeType };
+        const [name, extension] = splitExtension(attachment.name);
+        return { icon, title: attachment.title || name, meta: extension || attachment.mimeType };
       }
     }
   };
