@@ -2,6 +2,7 @@ import type { Icon } from "@tabler/icons-react";
 import { useId, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import styles from "./DetailView.module.css";
+import a11y from "./visuallyHidden.module.css";
 
 interface DetailViewProps {
   company: string;
@@ -53,7 +54,7 @@ export function NotSpecified() {
   return (
     <>
       <span aria-hidden>—</span>
-      <span className={styles.visuallyHidden}>{t("common.notSpecified")}</span>
+      <span className={a11y.visuallyHidden}>{t("common.notSpecified")}</span>
     </>
   );
 }

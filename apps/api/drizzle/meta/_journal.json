@@ -29,6 +29,13 @@
       "when": 1793397576162,
       "tag": "0003_create_applications",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793440719831,
+      "tag": "0004_add_job_viewed_at",
+      "breakpoints": true
     }
   ]
 }

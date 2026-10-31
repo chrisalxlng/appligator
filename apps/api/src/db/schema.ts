@@ -78,6 +78,7 @@ export const jobs = pgTable(
     position: text().notNull(),
     ...jobDetailColumns(),
     applicationDeadline: date(),
+    viewedAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },

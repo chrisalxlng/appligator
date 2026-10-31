@@ -9,12 +9,14 @@ import { DetailsSection } from "../details/DetailsSection.tsx";
 import { formatIsoDate, hostname } from "../details/format.ts";
 import { JobActions } from "./JobActions.tsx";
 import styles from "./JobDetail.module.css";
+import { useMarkJobViewed } from "./jobQueries.ts";
 import { useJobStatus } from "./useJobStatus.ts";
 
 export function JobDetail({ job }: { job: Job }) {
   const { t, i18n } = useTranslation();
   const jobStatus = useJobStatus()(job.status);
   const applicationStatus = useApplicationStatus();
+  useMarkJobViewed(job);
 
   return (
     <DetailView

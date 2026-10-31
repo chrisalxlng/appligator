@@ -1,12 +1,14 @@
-import type { Job, JobInput, JobStatus } from "@appligator/shared";
+import type { Job, JobInput, JobListPage, JobStatus } from "@appligator/shared";
 import {
   keepPreviousData,
+  type InfiniteData,
   useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useApiClient } from "../api/useApiClient.ts";
 import { createJobsApi } from "./jobsApi.ts";
 
@@ -83,4 +85,32 @@ export function useDeleteJob(id: string) {
     mutationFn: () => jobsApi.remove(id),
     onSuccess: () => invalidateJobCollections(queryClient),
   });
+}
+
+function markViewedInCache(queryClient: QueryClient, id: string) {
+  queryClient.setQueryData<Job>(jobKeys.detail(id), (job) => job && { ...job, isNew: false });
+  queryClient.setQueriesData<InfiniteData<JobListPage>>(
+    { queryKey: ["jobs", "list"] },
+    (data) =>
+      data && {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          items: page.items.map((item) => (item.id === id ? { ...item, isNew: false } : item)),
+        })),
+      },
+  );
+}
+
+export function useMarkJobViewed({ id, isNew }: Job) {
+  const jobsApi = useJobsApi();
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: () => jobsApi.markViewed(id),
+    onSuccess: () => markViewedInCache(queryClient, id),
+  });
+
+  useEffect(() => {
+    if (isNew) mutate();
+  }, [isNew, mutate]);
 }

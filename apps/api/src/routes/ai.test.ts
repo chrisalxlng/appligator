@@ -341,6 +341,7 @@ test("POST /ai/job-import creates the job from the page", async () => {
     workModel: "remote",
     contractTerm: { kind: "permanent" },
     commuteDistance: null,
+    isNew: true,
   });
   const [row] = await db.select().from(jobs).where(eq(jobs.id, job.id));
   expect(row).toMatchObject({ userId: "user-id", company: "Initech GmbH" });
