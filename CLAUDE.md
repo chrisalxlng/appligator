@@ -17,7 +17,7 @@ Review the full branch diff (`git diff master...HEAD`) as if it were someone els
 - **Consistency:** Is the implementation coherent in itself and with the existing codebase (naming, structure, patterns)? No duplicated logic.
 - **Correctness:** Edge cases, error and empty states, loading states.
 - **Tests:** Do the tests cover the new behavior, including edge cases? Do they fail without the change?
-- **UI:** Does it match the Figma design on desktop and mobile? No console errors.
+- **UI:** Is it consistent with the existing UI on desktop and mobile? No console errors.
 - **Code style:** Readable without comments; remaining comments explain only a non-obvious "why".
 - **Docs:** Are `CLAUDE.md`, READMEs and the PR description still accurate?
 
@@ -30,7 +30,6 @@ Summarize the self-review findings and what was fixed in the PR description.
 - **API docs:** while `vp run dev` runs, http://localhost:3000/docs shows all API endpoints in a Swagger UI; `Authorize` logs in via Keycloak to try them out.
 - **Playwright MCP:** drive the app in a browser to verify features and take screenshots (saved to `.playwright-mcp/`, gitignored).
 - **Chrome DevTools MCP:** inspect console errors, network requests and performance.
-- **Figma MCP:** designs live in the Figma file "Appligator" (file key `p87iDADBZ2aALpClaG2UPd`, https://www.figma.com/design/p87iDADBZ2aALpClaG2UPd/Appligator). Check the relevant frames before implementing UI.
 
 # Code Style
 
@@ -43,6 +42,7 @@ Summarize the self-review findings and what was fixed in the PR description.
 
 - **Load errors:** When content cannot be loaded, show `LoadError` (error illustration, title, description and a retry button) — also for a section within a page. Failed saves show an inline `role="alert"` message above the submit button; invalid input shows the error of its `Field`.
 - **Colors are semantic:** Deep Teal is for interactive and active elements, Royal Purple for highlights (e.g. AI hints), Forest Green for positive states (e.g. an applied job), Burgundy Red for destructive actions and errors, Teal Gray for neutral surfaces. Use the semantic tokens from `packages/ui/src/styles/tokens.css`, not palette colors directly.
+- **Button labels:** Every button label, `aria-label` and tooltip starts with or contains a verb that names the action, e.g. "Nach oben scrollen" instead of "Nach oben", "Weitere Aktionen anzeigen" instead of "Weitere Aktionen".
 - **Colored surfaces:** Elements on a colored surface (e.g. a button in an error box) use a different shade of the same palette, never gray.
 
 # Git Workflow

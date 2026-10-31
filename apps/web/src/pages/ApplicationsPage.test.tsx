@@ -203,7 +203,7 @@ test("deletes an application after confirmation", async () => {
   const api = createFakeApi([jobFixture], [application]);
   const router = renderApp(`/applications/${application.id}`);
 
-  await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Show more actions" }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog", { name: "Delete application?" });
   await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));

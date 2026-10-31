@@ -91,7 +91,7 @@
 .accessCard {
   position: relative;
 
-  &:active:has(.deleteButton:active) {
+  &:active:has(.cardAction:active) {
     background: var(--fill-hover);
   }
 
@@ -125,8 +125,14 @@
   }
 }
 
-.deleteButton {
+.cardAction {
   position: relative;
+}
+
+.verifyError {
+  margin-top: calc(-1 * var(--spacing-4));
+  color: var(--destructive-text);
+  font: var(--font-body-s);
 }
 
 .cardContent {

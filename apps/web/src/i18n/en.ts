@@ -11,7 +11,7 @@ export const en = {
   },
   common: {
     close: "Close",
-    moreActions: "More actions",
+    moreActions: "Show more actions",
     today: "Today",
     yesterday: "Yesterday",
     notSpecified: "Not specified",
@@ -27,6 +27,7 @@ export const en = {
     hide: "Hide",
     showPinned: "Show pinned",
     hidePinned: "Hide pinned",
+    scrollToTop: "Scroll to top",
     statusFilter: "Filter by status",
   },
   jobs: {
@@ -415,6 +416,18 @@ export const en = {
         cancel: "Cancel",
         error: "The AI access could not be deleted. Please try again.",
       },
+      verify: {
+        action: "Check connection",
+        errors: {
+          apiKeyRequired: "The stored key can no longer be used. Please enter it again.",
+          accessRejected:
+            "The provider rejected the key or the model. Please update the AI access.",
+          rateLimited:
+            "Your key has reached its limit. Check your balance and limits with the provider.",
+          providerUnavailable: "The provider is currently unavailable. Please try again later.",
+          verifyFailed: "The connection could not be checked. Please try again.",
+        },
+      },
     },
     language: {
       title: "Edit AI language",
@@ -431,6 +444,7 @@ export const en = {
       added: "AI access added",
       updated: "AI access updated",
       deleted: "AI access deleted",
+      verified: "Connection works",
       languageUpdated: "AI language updated",
     },
   },

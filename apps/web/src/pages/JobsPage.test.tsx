@@ -671,7 +671,7 @@ test("deletes a job after confirmation", async () => {
   const api = createFakeApi([jobFixture, olderJob]);
   const router = renderApp(`/jobs/${jobFixture.id}`);
 
-  await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Show more actions" }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog", { name: "Delete job?" });
   expect(dialog).toHaveTextContent(
@@ -691,7 +691,7 @@ test("keeps the job when deleting is cancelled", async () => {
   const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
 
-  await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Show more actions" }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog");
   await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
@@ -706,7 +706,7 @@ test("shows an error when deleting fails", async () => {
   await screen.findByRole("article");
   api.failWith("DELETE", 500);
 
-  await userEvent.click(screen.getByRole("button", { name: "More actions" }));
+  await userEvent.click(screen.getByRole("button", { name: "Show more actions" }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog");
   await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
@@ -748,7 +748,7 @@ test("confirms deleting with Ctrl+Enter", async () => {
   const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
 
-  await userEvent.click(await screen.findByRole("button", { name: "More actions" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Show more actions" }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
   await screen.findByRole("alertdialog", { name: "Delete job?" });
   await userEvent.keyboard("{Control>}{Enter}{/Control}");
@@ -975,7 +975,7 @@ test("links an applied job to its application instead of offering to change it",
   expect(
     within(detail).getByRole("link", { name: /Lead Developer Frontend.*Applied/ }),
   ).toHaveAttribute("href", `/applications/${application.id}`);
-  for (const name of ["Apply", "Edit", "More actions"]) {
+  for (const name of ["Apply", "Edit", "Show more actions"]) {
     expect(within(detail).queryByRole("button", { name })).not.toBeInTheDocument();
   }
 });

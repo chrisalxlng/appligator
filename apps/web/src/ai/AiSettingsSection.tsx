@@ -1,16 +1,17 @@
 import type { AiSettings } from "@appligator/shared";
 import { ConfirmDialog, IconButton, Spinner, useSuccessToast } from "@appligator/ui";
-import { IconChevronRight, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconChevronRight, IconPlugConnected, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { capitalize, formatRelativeTime } from "../i18n/formatRelativeTime.ts";
 import { LoadError } from "../loading/LoadError.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { accessError } from "./accessError.ts";
 import { AiAccessDrawer } from "./AiAccessDrawer.tsx";
 import { AiLanguageDrawer } from "./AiLanguageDrawer.tsx";
 import { aiProviderNames } from "./aiProviders.ts";
-import { useAiSettings, useDeleteAiSettings } from "./aiQueries.ts";
+import { useAiSettings, useDeleteAiSettings, useVerifyAiSettings } from "./aiQueries.ts";
 import styles from "./AiSettingsSection.module.css";
 
 type OpenDrawer = "access" | "language" | null;
@@ -45,7 +46,12 @@ export function AiSettingsSection() {
       {settings.isSuccess &&
         (settings.data ? (
           <>
-            <AiAccessCard settings={settings.data} onEdit={() => setOpenDrawer("access")} />
+            {/* Remounting drops the result of a connection check once the access changes. */}
+            <AiAccessCard
+              key={settings.data.accessUpdatedAt}
+              settings={settings.data}
+              onEdit={() => setOpenDrawer("access")}
+            />
             <AiLanguageCard settings={settings.data} onEdit={() => setOpenDrawer("language")} />
             <AiLanguageDrawer
               settings={settings.data}
@@ -76,6 +82,7 @@ export function AiSettingsSection() {
 function AiAccessCard({ settings, onEdit }: { settings: AiSettings; onEdit: () => void }) {
   const { t, i18n } = useTranslation();
   const deleteSettings = useDeleteAiSettings();
+  const verifySettings = useVerifyAiSettings();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const showSuccess = useSuccessToast();
   const shortcutHints = useShortcutHints();
@@ -90,43 +97,63 @@ function AiAccessCard({ settings, onEdit }: { settings: AiSettings; onEdit: () =
     });
   }
 
+  function verify() {
+    verifySettings.mutate(undefined, { onSuccess: () => showSuccess(t("ai.toast.verified")) });
+  }
+
   return (
-    <div className={`${styles.card} ${styles.accessCard}`}>
-      <button type="button" className={styles.cardButton} onClick={onEdit}>
-        <span className={styles.cardTitle}>{providerName}</span>
-        <span className={styles.cardText}>{settings.model}</span>
-        <span className={styles.cardCaption}>
-          {capitalize(
-            t("ai.access.updated", {
-              time: formatRelativeTime(settings.accessUpdatedAt, i18n.language),
-            }),
-          )}
-        </span>
-      </button>
-      <IconButton
-        variant="surface"
-        className={styles.deleteButton}
-        label={t("ai.access.delete.action")}
-        onClick={() => {
-          deleteSettings.reset();
-          setIsConfirmingDelete(true);
-        }}
-      >
-        <IconTrash size={20} stroke={2} aria-hidden />
-      </IconButton>
-      <ConfirmDialog
-        open={isConfirmingDelete}
-        onOpenChange={setIsConfirmingDelete}
-        title={t("ai.access.delete.title")}
-        description={t("ai.access.delete.description", { provider: providerName })}
-        confirmLabel={t("ai.access.delete.confirm")}
-        cancelLabel={t("ai.access.delete.cancel")}
-        onConfirm={confirmDelete}
-        pending={deleteSettings.isPending}
-        error={deleteSettings.isError ? t("ai.access.delete.error") : undefined}
-        confirmShortcutHint={shortcutHints?.submit}
-      />
-    </div>
+    <>
+      <div className={`${styles.card} ${styles.accessCard}`}>
+        <button type="button" className={styles.cardButton} onClick={onEdit}>
+          <span className={styles.cardTitle}>{providerName}</span>
+          <span className={styles.cardText}>{settings.model}</span>
+          <span className={styles.cardCaption}>
+            {capitalize(
+              t("ai.access.updated", {
+                time: formatRelativeTime(settings.accessUpdatedAt, i18n.language),
+              }),
+            )}
+          </span>
+        </button>
+        <IconButton
+          variant="surface"
+          className={styles.cardAction}
+          label={t("ai.access.verify.action")}
+          pending={verifySettings.isPending}
+          onClick={verify}
+        >
+          <IconPlugConnected size={20} stroke={2} aria-hidden />
+        </IconButton>
+        <IconButton
+          variant="surface"
+          className={styles.cardAction}
+          label={t("ai.access.delete.action")}
+          onClick={() => {
+            deleteSettings.reset();
+            setIsConfirmingDelete(true);
+          }}
+        >
+          <IconTrash size={20} stroke={2} aria-hidden />
+        </IconButton>
+        <ConfirmDialog
+          open={isConfirmingDelete}
+          onOpenChange={setIsConfirmingDelete}
+          title={t("ai.access.delete.title")}
+          description={t("ai.access.delete.description", { provider: providerName })}
+          confirmLabel={t("ai.access.delete.confirm")}
+          cancelLabel={t("ai.access.delete.cancel")}
+          onConfirm={confirmDelete}
+          pending={deleteSettings.isPending}
+          error={deleteSettings.isError ? t("ai.access.delete.error") : undefined}
+          confirmShortcutHint={shortcutHints?.submit}
+        />
+      </div>
+      {verifySettings.isError && (
+        <p role="alert" className={styles.verifyError}>
+          {t(`ai.access.verify.errors.${accessError(verifySettings.error, "verifyFailed")}`)}
+        </p>
+      )}
+    </>
   );
 }
 

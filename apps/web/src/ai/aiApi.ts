@@ -15,6 +15,8 @@ export function createAiApi(api: ApiClient) {
     saveSettings: (input: AiSettingsInput) =>
       api.request("/ai/settings", aiSettingsSchema, { method: "PUT", body: input }),
     deleteSettings: () => api.requestWithoutContent("/ai/settings", { method: "DELETE" }),
+    verifySettings: () =>
+      api.requestWithoutContent("/ai/settings/verification", { method: "POST" }),
     extractJob: (description: string, signal: AbortSignal) =>
       api.request("/ai/job-extraction", jobExtractionSchema, {
         method: "POST",
