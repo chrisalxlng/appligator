@@ -71,6 +71,8 @@ interface CardListProps<Item extends CardItem> {
   openedId: string | undefined;
   status: (item: Item) => { label: string; tone: BadgeTone };
   renderLink: (item: Item, props: CardLinkProps) => ReactElement;
+  pinnedCollapsed: boolean;
+  onPinnedCollapsedChange: (collapsed: boolean) => void;
   onEndReached?: () => void;
 }
 
@@ -79,11 +81,17 @@ export function CardList<Item extends CardItem>({
   openedId,
   status,
   renderLink,
+  pinnedCollapsed,
+  onPinnedCollapsedChange,
   onEndReached,
 }: CardListProps<Item>) {
   const { t } = useTranslation();
   const createdLabel = useCreatedLabel();
-  const { tabStopId, focusItem, leaveList } = useTabStop(items, openedId);
+  const pinnedListId = useId();
+  const pinnedItems = items.filter((item) => item.pinned);
+  const otherItems = items.filter((item) => !item.pinned);
+  const visibleItems = pinnedCollapsed ? otherItems : items;
+  const { tabStopId, focusItem, leaveList } = useTabStop(visibleItems, openedId);
 
   function renderCards(sectionItems: Item[]) {
     return (
@@ -125,14 +133,28 @@ export function CardList<Item extends CardItem>({
     );
   }
 
-  const pinnedItems = items.filter((item) => item.pinned);
-  const otherItems = items.filter((item) => !item.pinned);
-
   return (
     <div className={styles.container}>
       {pinnedItems.length > 0 ? (
         <>
-          <Section title={t("common.pinned")}>{renderCards(pinnedItems)}</Section>
+          <Section
+            title={t("common.pinned")}
+            count={pinnedItems.length}
+            action={
+              <button
+                type="button"
+                className={styles.sectionToggle}
+                aria-label={t(pinnedCollapsed ? "common.showPinned" : "common.hidePinned")}
+                aria-expanded={!pinnedCollapsed}
+                aria-controls={pinnedCollapsed ? undefined : pinnedListId}
+                onClick={() => onPinnedCollapsedChange(!pinnedCollapsed)}
+              >
+                {t(pinnedCollapsed ? "common.show" : "common.hide")}
+              </button>
+            }
+          >
+            {!pinnedCollapsed && <div id={pinnedListId}>{renderCards(pinnedItems)}</div>}
+          </Section>
           {otherItems.length > 0 && (
             <Section title={t("common.unpinned")}>{renderCards(otherItems)}</Section>
           )}
@@ -145,14 +167,25 @@ export function CardList<Item extends CardItem>({
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+interface SectionProps {
+  title: string;
+  count?: number;
+  action?: ReactNode;
+  children: ReactNode;
+}
+
+function Section({ title, count, action, children }: SectionProps) {
   const titleId = useId();
 
   return (
     <section className={styles.section} aria-labelledby={titleId}>
-      <h2 id={titleId} className={styles.sectionTitle}>
-        {title}
-      </h2>
+      <div className={styles.sectionHeader}>
+        <h2 id={titleId} className={styles.sectionTitle}>
+          {title}
+        </h2>
+        {count !== undefined && <span className={styles.sectionCount}>{count}</span>}
+        {action}
+      </div>
       {children}
     </section>
   );

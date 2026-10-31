@@ -23,6 +23,10 @@ export const en = {
     pin: "Pin",
     unpin: "Unpin",
     pinError: "The pin could not be saved. Please try again.",
+    show: "Show",
+    hide: "Hide",
+    showPinned: "Show pinned",
+    hidePinned: "Hide pinned",
     statusFilter: "Filter by status",
   },
   jobs: {

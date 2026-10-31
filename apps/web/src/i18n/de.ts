@@ -25,6 +25,10 @@ export const de: Translations = {
     pin: "Anpinnen",
     unpin: "Lösen",
     pinError: "Das Anpinnen konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    show: "Einblenden",
+    hide: "Ausblenden",
+    showPinned: "Angepinnte einblenden",
+    hidePinned: "Angepinnte ausblenden",
     statusFilter: "Nach Status filtern",
   },
   jobs: {

@@ -1,5 +1,5 @@
 import { jobLimits } from "@appligator/shared";
-import { act, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, onTestFinished, test, vi } from "vite-plus/test";
 import { scrollObservedElementsIntoView } from "../testing/fakeIntersectionObserver.ts";
@@ -855,6 +855,52 @@ test("moves through the pinned and the other jobs as one list", async () => {
   expect(others[0]).toHaveFocus();
   await userEvent.keyboard("{End}{ArrowUp}{ArrowUp}");
   expect(pinned).toHaveFocus();
+});
+
+test("hides the pinned jobs until they are shown again, also after reloading", async () => {
+  const [first, second] = manyJobs(2);
+  createFakeApi([first!, { ...second!, pinned: true }]);
+  renderApp("/jobs", { viewport: "mobile" });
+  const pinned = await screen.findByRole("region", { name: "Pinned" });
+  expect(pinned).toHaveTextContent("Pinned1");
+
+  await userEvent.click(within(pinned).getByRole("button", { name: "Hide pinned" }));
+
+  expect(within(pinned).queryByRole("link")).toBeNull();
+  expect(within(pinned).getByRole("button", { name: "Show pinned" })).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  expect(await findPositionLinks()).toHaveLength(1);
+
+  cleanup();
+  renderApp("/jobs", { viewport: "mobile" });
+  const reloaded = await screen.findByRole("region", { name: "Pinned" });
+  expect(within(reloaded).queryByRole("link")).toBeNull();
+
+  await userEvent.click(within(reloaded).getByRole("button", { name: "Show pinned" }));
+  expect(within(reloaded).getByRole("link")).toHaveTextContent("Position 2");
+});
+
+test("opens the first visible job on desktop while the pinned jobs are hidden", async () => {
+  localStorage.setItem("appligator.pinnedCollapsed.jobs", "true");
+  createFakeApi([{ ...jobFixture, pinned: true }, olderJob]);
+  const router = renderApp("/jobs");
+
+  await screen.findByRole("heading", { level: 2, name: "Frontend Developer" });
+  expect(router.state.location.pathname).toBe(`/jobs/${olderJob.id}`);
+});
+
+test("skips the hidden pinned jobs when tabbing into the list", async () => {
+  localStorage.setItem("appligator.pinnedCollapsed.jobs", "true");
+  const [first, second] = manyJobs(2);
+  createFakeApi([{ ...first!, pinned: true }, second!]);
+  renderApp("/jobs", { viewport: "tablet" });
+  await findPositionLinks();
+
+  await tabIntoJobList();
+
+  expect(screen.getByRole("link", { name: /^Position 2/ })).toHaveFocus();
 });
 
 test("pins a job with an application", async () => {

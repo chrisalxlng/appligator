@@ -7,10 +7,12 @@ import { useApplicationStatus } from "../applications/useApplicationStatus.ts";
 import { CardList } from "../collection/CardList.tsx";
 import { CollectionPage } from "../collection/CollectionPage.tsx";
 import { StatusFilter } from "../collection/StatusFilter.tsx";
+import { usePinnedCollapsed } from "../collection/usePinnedCollapsed.ts";
 import { useStatusFilter } from "../collection/useStatusFilter.ts";
 
 export function ApplicationsPage() {
   const { t } = useTranslation();
+  const [pinnedCollapsed, setPinnedCollapsed] = usePinnedCollapsed("applications");
   const { applicationId } = useParams({ strict: false });
   const statusCounts = useApplicationStatusCounts();
   const [status, setStatus] = useStatusFilter<ApplicationStatus>(statusCounts.data);
@@ -50,6 +52,8 @@ export function ApplicationsPage() {
               {...props}
             />
           )}
+          pinnedCollapsed={pinnedCollapsed}
+          onPinnedCollapsedChange={setPinnedCollapsed}
           onEndReached={onEndReached}
         />
       )}
