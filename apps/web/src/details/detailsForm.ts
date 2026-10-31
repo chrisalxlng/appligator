@@ -160,7 +160,7 @@ export function requiredTextError(text: string, missingError: FieldError) {
   return text.length > jobLimits.textLength ? "tooLong" : undefined;
 }
 
-export function richTextError(html: string, maxLength: number) {
+export function richTextError(html: string, maxLength: number): FieldError | undefined {
   return html.length > maxLength ? "tooLong" : undefined;
 }
 

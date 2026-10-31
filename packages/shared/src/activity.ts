@@ -46,6 +46,9 @@ export const activityTypeFields: Record<ActivityType, readonly ActivityField[]> 
 export const activityLimits = {
   attachments: 20,
   linkLength: 2_000,
+  emailHeaderLength: 1_000,
+  emailBodyLength: 100_000,
+  fileNameLength: 255,
 };
 
 export const activityTermsSchema = jobDetailsSchema.omit({ notes: true }).extend({
@@ -58,7 +61,26 @@ const linkAttachmentSchema = z.object({
   title: z.string().trim().max(jobLimits.textLength),
 });
 
-const attachmentSchema = z.discriminatedUnion("kind", [linkAttachmentSchema]);
+const emailAttachmentSchema = z.object({
+  kind: z.literal("email"),
+  subject: z.string().trim().max(activityLimits.emailHeaderLength),
+  from: z.string().trim().max(activityLimits.emailHeaderLength),
+  sentAt: z.iso.datetime().nullable(),
+  body: z.string().max(activityLimits.emailBodyLength),
+});
+
+const fileAttachmentSchema = z.object({
+  kind: z.literal("file"),
+  fileId: z.uuid(),
+  name: z.string().trim().min(1).max(activityLimits.fileNameLength),
+  mimeType: z.string().max(activityLimits.fileNameLength),
+});
+
+const attachmentSchema = z.discriminatedUnion("kind", [
+  linkAttachmentSchema,
+  emailAttachmentSchema,
+  fileAttachmentSchema,
+]);
 
 export const activityInputSchema = z
   .object({

@@ -3,7 +3,7 @@
 # Development Workflow
 
 1. The user provides the requirements; we agree on a rough plan together before coding.
-2. Implement on a new branch, write tests and verify visually in the browser. Afterwards close the browser and stop the dev servers by port (`lsof -tiTCP:5173,3000,6006 -sTCP:LISTEN | xargs kill`).
+2. Implement on a new branch, write tests and verify visually in the browser. Afterwards close the browser and stop the dev servers by port (`lsof -tiTCP:5173,3001,6006 -sTCP:LISTEN | xargs kill`).
 3. Self-review the whole branch (see below) and fix every finding right away.
 4. When the result is complete and all checks pass, push and open a pull request — no separate go needed.
 5. The user reviews, approves and merges.
@@ -25,9 +25,9 @@ Summarize the self-review findings and what was fixed in the PR description.
 
 # Tools
 
-- **Dev server:** `vp run dev` starts the web app at http://localhost:5173 (strict port; if it is taken, a dev server is already running) and the API at http://localhost:3000.
+- **Dev server:** `vp run dev` starts the web app at http://localhost:5173 (strict port; if it is taken, a dev server is already running) and the API at http://localhost:3001. File attachments are stored in stash, which cl-dev serves at http://localhost:3000.
 - **Storybook:** `vp run storybook` serves the UI components at http://localhost:6006.
-- **API docs:** while `vp run dev` runs, http://localhost:3000/docs shows all API endpoints in a Swagger UI; `Authorize` logs in via Keycloak to try them out.
+- **API docs:** while `vp run dev` runs, http://localhost:3001/docs shows all API endpoints in a Swagger UI; `Authorize` logs in via Keycloak to try them out.
 - **Playwright MCP:** drive the app in a browser to verify features and take screenshots (saved to `.playwright-mcp/`, gitignored).
 - **Chrome DevTools MCP:** inspect console errors, network requests and performance.
 

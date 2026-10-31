@@ -4,6 +4,8 @@ import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { fileIdsOf } from "../attachments/attachments.ts";
+import { useDeleteFiles } from "../attachments/useFileCleanup.ts";
 import { AddActivityDrawer } from "../activities/AddActivityDrawer.tsx";
 import { useActivities } from "../activities/activityQueries.ts";
 import { DetailActions } from "../collection/DetailActions.tsx";
@@ -20,6 +22,7 @@ export function ApplicationActions({ application }: { application: Application }
   const deleteApplication = useDeleteApplication(application);
   const pin = usePinApplication(application.id);
   const activities = useActivities(application.id);
+  const deleteFiles = useDeleteFiles();
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -30,6 +33,7 @@ export function ApplicationActions({ application }: { application: Application }
   function confirmDelete() {
     deleteApplication.mutate(undefined, {
       onSuccess: () => {
+        deleteFiles((activities.data ?? []).flatMap(({ attachments }) => fileIdsOf(attachments)));
         setIsConfirmingDelete(false);
         showSuccess(t("applications.toast.deleted"));
         void navigate({ to: "/applications" });

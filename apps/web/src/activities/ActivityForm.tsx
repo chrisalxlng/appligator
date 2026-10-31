@@ -19,7 +19,8 @@ import {
   type ActivityPrefill,
   type ActivityFormValues,
 } from "./activityFormValues.ts";
-import { AttachmentList } from "./AttachmentList.tsx";
+import { AttachmentList } from "../attachments/AttachmentList.tsx";
+import { useFileCleanup } from "../attachments/useFileCleanup.ts";
 import { TermsField } from "./TermsField.tsx";
 
 interface ActivityFormProps<Result> {
@@ -46,6 +47,7 @@ export function ActivityForm<Result>({
   const { t } = useTranslation();
   const [values, setValues] = useState(() => toActivityFormValues(activity, prefill));
   const [errors, setErrors] = useState<ActivityFormErrors>({});
+  const files = useFileCleanup(values.attachments);
   const shortcutHints = useShortcutHints();
   const fields = activityTypeFields[type];
   const clearLabel = t("fields.clear");
@@ -64,9 +66,10 @@ export function ActivityForm<Result>({
     event.preventDefault();
     const result = validateActivityForm(type, values);
     setErrors(result.errors ?? {});
+    if (!result.input) return;
     // Unlike the callbacks of mutate, the promise also settles when saving unmounts the form,
     // e.g. when applying turns the actions of the job into a link to the application.
-    if (result.input) save.mutateAsync(result.input).then(onSaved, () => {});
+    files.save(result.input.attachments, save.mutateAsync(result.input)).then(onSaved, () => {});
   }
 
   return (
@@ -112,7 +115,16 @@ export function ActivityForm<Result>({
         onValueChange={setValue("notes")}
         error={errorFor("notes")}
       />
-      <AttachmentList attachments={values.attachments} onChange={setValue("attachments")} />
+      <AttachmentList
+        attachments={values.attachments}
+        onChange={(update) =>
+          setValues((current) => {
+            const attachments = update(current.attachments);
+            files.track(attachments);
+            return { ...current, attachments };
+          })
+        }
+      />
       {save.isError && (
         <p role="alert" className={formStyles.saveError}>
           {t("activities.form.saveError")}
