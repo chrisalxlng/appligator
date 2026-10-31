@@ -39,7 +39,7 @@ function lastBadge() {
 test("sends the page to the API and stores the imported job", async () => {
   await importJob(tabId, link);
 
-  expect(fetchMock).toHaveBeenCalledWith("http://localhost:3000/ai/job-import", {
+  expect(fetchMock).toHaveBeenCalledWith("http://localhost:3001/ai/job-import", {
     method: "POST",
     headers: { authorization: "Bearer access-token", "content-type": "application/json" },
     body: JSON.stringify({ link, html }),

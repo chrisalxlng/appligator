@@ -136,7 +136,8 @@ test("adds an activity with a link attachment", async () => {
   const time = within(form).getByLabelText("Time");
   await userEvent.clear(time);
   await userEvent.type(time, "2026-10-24T14:00");
-  await userEvent.click(within(form).getByRole("button", { name: "Add link" }));
+  await userEvent.click(within(form).getByRole("button", { name: "Add attachment" }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Link" }));
   const addLink = await screen.findByRole("dialog", { name: "Add link" });
   await userEvent.click(within(addLink).getByRole("button", { name: "Add" }));
   expect(within(addLink).getByText("Please enter a valid link.")).toBeVisible();
@@ -234,6 +235,7 @@ test("deletes an activity after confirmation", async () => {
   const form = await screen.findByRole("dialog", { name: "Task received" });
   await userEvent.click(within(form).getByRole("button", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog", { name: "Delete activity?" });
+  expect(dialog).toHaveTextContent("“Task received” from October 29, 2026 will be deleted");
   await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
 
   expect(await screen.findByText("Activity deleted")).toBeInTheDocument();

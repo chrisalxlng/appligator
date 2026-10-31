@@ -17,7 +17,9 @@ Monorepo built with [Vite+](https://viteplus.dev).
 
 The app requires a login via Keycloak. Locally, the Keycloak of the [cl-dev](https://github.com/chrisalxlng/cl-dev) setup must run at http://localhost:8080 with the `appligator-app` client in the `apps` realm. The web app reads its Keycloak settings from `apps/web/.env.development`; the API requires `KEYCLOAK_ISSUER` and `KEYCLOAK_CLIENT_ID`, which `vp run dev` loads from `apps/api/.env.development`. Like `DATABASE_URL`, values set in the environment take precedence and the API fails to start if one is missing.
 
-The web app calls the API directly at `VITE_API_URL` (http://localhost:3000 in development, https://api.appligator.christopherlang.dev in production). The API therefore allows cross-origin requests from the web app's origin, which it requires as `WEB_APP_ORIGIN` (http://localhost:5173 in `apps/api/.env.development`).
+The web app calls the API directly at `VITE_API_URL` (http://localhost:3001 in development, https://api.appligator.christopherlang.dev in production). The API therefore allows cross-origin requests from the web app's origin, which it requires as `WEB_APP_ORIGIN` (http://localhost:5173 in `apps/api/.env.development`).
+
+The web app stores file attachments in [stash](https://github.com/chrisalxlng/stash) at `VITE_STASH_URL` (http://localhost:3000 in development, run by cl-dev), under the client ID `appligator`. Stash only accepts tokens with its audience, which the `appligator-app` client adds with an audience mapper, and requires the web app's origin in its `ALLOWED_ORIGINS`. The API only stores the IDs, names and types of the files.
 
 The API stores its data in PostgreSQL. Locally, the `appligator-db` database of the cl-dev setup must run at `localhost:5433`. The API requires `DATABASE_URL`; `vp run dev` and the database tasks load it from `apps/api/.env.development`, and a `DATABASE_URL` set in the environment takes precedence. Tests run against an in-memory PostgreSQL ([PGlite](https://pglite.dev)) and need no database.
 
@@ -25,7 +27,7 @@ The API applies pending migrations from `apps/api/drizzle` on startup, before it
 
 Users connect their own AI API key (OpenAI, Anthropic, Google or Mistral) on the profile page. The API encrypts these keys with AES-256-GCM using a key derived from `AI_API_KEY_ENCRYPTION_KEY`. `vp run dev` loads the placeholder `dev-only-example-key` from `apps/api/.env.development`; production must set a long random secret instead (e.g. `openssl rand -base64 32`) and keep it stable, because changing it makes stored API keys unreadable. The selectable models come from the [models.dev](https://models.dev) catalog, which the API caches for a day.
 
-With `API_DOCS=true` (set in `apps/api/.env.development`), the API serves its OpenAPI document and a Swagger UI at http://localhost:3000/docs, generated from the Zod schemas of the routes. The `Authorize` button logs in via Keycloak, which requires `http://localhost:3000/docs/static/oauth2-redirect.html` as a redirect URI of the `appligator-app` client (set up by cl-dev in development). Production leaves `API_DOCS` unset.
+With `API_DOCS=true` (set in `apps/api/.env.development`), the API serves its OpenAPI document and a Swagger UI at http://localhost:3001/docs, generated from the Zod schemas of the routes. The `Authorize` button logs in via Keycloak, which requires `http://localhost:3001/docs/static/oauth2-redirect.html` as a redirect URI of the `appligator-app` client (set up by cl-dev in development). Production leaves `API_DOCS` unset.
 
 - Install dependencies:
 
@@ -39,7 +41,7 @@ vp install
 vp run @appligator/api#db:generate
 ```
 
-- Start the web app (http://localhost:5173) and the API (http://localhost:3000):
+- Start the web app (http://localhost:5173) and the API (http://localhost:3001):
 
 ```bash
 vp run dev

@@ -112,11 +112,7 @@ export function CollectionPage<Item>({
           {filter}
           {renderList(query.data ?? [], canLoadMore ? loadMore : undefined)}
         </div>
-        {query.isFetchingNextPage && (
-          <div className={styles.loadingMore}>
-            <Spinner label={texts.loadingMore} />
-          </div>
-        )}
+        {query.isFetchingNextPage && <Spinner label={texts.loadingMore} />}
         {query.isFetchNextPageError && (
           <LoadError
             title={texts.loadMoreError.title}

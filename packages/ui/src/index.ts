@@ -16,6 +16,7 @@ export { LogoMark } from "./logo-mark/LogoMark.tsx";
 export { Menu, MenuItem, type MenuItemProps, type MenuProps } from "./menu/Menu.tsx";
 export { Popover, type PopoverProps } from "./popover/Popover.tsx";
 export { RichText, type RichTextProps } from "./rich-text/RichText.tsx";
+export { toRichText } from "./rich-text/toRichText.ts";
 export {
   RichTextEditor,
   type RichTextEditorLabels,

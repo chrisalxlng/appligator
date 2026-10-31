@@ -333,7 +333,28 @@ export function createFakeApi(
     return new Response(null, { status: 204 });
   }
 
+  const files = new Map<string, Blob>();
+  const stashRequests: { method: string; fileId: string }[] = [];
+  let stashFailure: number | null = null;
+
+  function handleStash(url: string, init?: RequestInit) {
+    const method = init?.method ?? "GET";
+    const fileId = url.split("/").at(-1)!;
+    stashRequests.push({ method, fileId });
+    if (stashFailure) return new Response(null, { status: stashFailure });
+    if (method === "POST") {
+      files.set(fileId, (init!.body as FormData).get("file") as File);
+      return new Response(null, { status: 201 });
+    }
+    const file = files.get(fileId);
+    if (!file) return new Response(null, { status: 404 });
+    if (method === "GET") return new Response(file);
+    files.delete(fileId);
+    return new Response(null, { status: 204 });
+  }
+
   async function handle(url: string, init?: RequestInit): Promise<Response> {
+    if (url.startsWith(import.meta.env.VITE_STASH_URL)) return handleStash(url, init);
     const method = init?.method ?? "GET";
     const path = url.replace(import.meta.env.VITE_API_URL, "");
     const { pathname, searchParams } = new URL(path, location.origin);
@@ -358,6 +379,9 @@ export function createFakeApi(
 
   return {
     requests,
+    files,
+    stashRequests,
+    failStashWith: (status: number) => (stashFailure = status),
     requestsWith: (method: string) => requests.filter((request) => request.method === method),
     failWith: (method: string, status: number, pathSuffix = "") =>
       failures.set(method, { status, pathSuffix }),
