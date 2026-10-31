@@ -21,7 +21,6 @@
 }
 
 .card {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-0-5);
@@ -98,26 +97,24 @@
 }
 
 .newIndicator {
-  --glow: color-mix(in srgb, var(--highlight-separator) 55%, transparent);
+  --glow: color-mix(in srgb, var(--highlight-separator) 35%, transparent);
 
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: var(--spacing-3);
-  height: var(--spacing-3);
-  border: var(--border-width-m) solid var(--surface);
+  display: inline-block;
+  width: var(--spacing-2);
+  height: var(--spacing-2);
+  margin-inline-end: var(--spacing-2);
   border-radius: var(--radius-full);
   background: var(--highlight-separator);
-  box-shadow: 0 0 var(--spacing-2) var(--spacing-0-5) var(--glow);
-  translate: -50% -50%;
+  box-shadow: 0 0 var(--spacing-1) var(--glow);
+  vertical-align: 0.1em;
 
   @media (prefers-reduced-motion: no-preference) {
-    animation: glow 1.6s ease-in-out infinite alternate;
+    animation: glow 2s ease-in-out infinite alternate;
   }
 }
 
 @keyframes glow {
   to {
-    box-shadow: 0 0 var(--spacing-4) var(--spacing-1-5) var(--glow);
+    box-shadow: 0 0 var(--spacing-2) var(--spacing-0-5) var(--glow);
   }
 }
