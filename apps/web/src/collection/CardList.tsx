@@ -98,12 +98,14 @@ export function CardList<Item extends CardItem>({
                 onKeyDown: moveFocus,
                 children: (
                   <>
-                    {item.isNew && (
-                      <span className={styles.newIndicator}>
-                        <span className={a11y.visuallyHidden}>{t("common.new")}</span>
-                      </span>
-                    )}
-                    <span className={styles.position}>{item.position}</span>
+                    <span className={styles.position}>
+                      {item.isNew && (
+                        <span className={styles.newIndicator}>
+                          <span className={a11y.visuallyHidden}>{t("common.new")}</span>
+                        </span>
+                      )}
+                      {item.position}
+                    </span>
                     <span className={styles.company}>{item.company}</span>
                     <span className={styles.footer}>
                       <span className={styles.created}>{createdLabel(item.createdAt)}</span>
