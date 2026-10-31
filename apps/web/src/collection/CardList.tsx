@@ -1,4 +1,4 @@
-import { Badge, type BadgeTone } from "@appligator/ui";
+import { Badge, Tooltip, type BadgeTone } from "@appligator/ui";
 import {
   useEffect,
   useEffectEvent,
@@ -98,9 +98,11 @@ export function CardList<Item extends CardItem>({
                   <>
                     <span className={styles.position}>
                       {item.isNew && (
-                        <span className={styles.newIndicator}>
-                          <span className={a11y.visuallyHidden}>{t("common.new")}</span>
-                        </span>
+                        <Tooltip label={t("common.newHint")}>
+                          <span className={styles.newIndicator}>
+                            <span className={a11y.visuallyHidden}>{t("common.new")}</span>
+                          </span>
+                        </Tooltip>
                       )}
                       {item.position}
                     </span>

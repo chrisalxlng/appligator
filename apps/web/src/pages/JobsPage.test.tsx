@@ -95,6 +95,17 @@ test("marks new jobs until they are opened", async () => {
   ).not.toHaveTextContent("New");
 });
 
+test("explains the new indicator in a tooltip without adding a tab stop", async () => {
+  createFakeApi([jobWith({ isNew: true }), olderJob]);
+  renderApp("/jobs", { viewport: "mobile" });
+
+  const card = await screen.findByRole("link", { name: /Lead Developer Frontend/ });
+  await userEvent.hover(within(card).getByText("New"));
+
+  expect(await screen.findByText("Not viewed yet")).toBeInTheDocument();
+  expect(card.querySelectorAll("[tabindex]:not([tabindex='-1'])")).toHaveLength(0);
+});
+
 test("does not mark a job as viewed again", async () => {
   const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);

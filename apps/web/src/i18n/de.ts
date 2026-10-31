@@ -17,6 +17,7 @@ export const de: Translations = {
     today: "Heute",
     yesterday: "Gestern",
     notSpecified: "Keine Angabe",
+    newHint: "Noch nicht angesehen",
     new: "Neu",
     allStatuses: "Alle",
     statusFilter: "Nach Status filtern",
