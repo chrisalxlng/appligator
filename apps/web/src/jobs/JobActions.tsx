@@ -1,8 +1,8 @@
 import type { Job } from "@appligator/shared";
-import { Button, ConfirmDialog, MenuItem, Tooltip, useSuccessToast } from "@appligator/ui";
-import { IconPencil, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
-import { useState, type ReactElement } from "react";
+import { Button, ConfirmDialog, LinkButton, MenuItem, useSuccessToast } from "@appligator/ui";
+import { IconArrowUpRight, IconPencil, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApply } from "../applications/applicationQueries.ts";
 import { DetailActions } from "../collection/DetailActions.tsx";
@@ -12,11 +12,28 @@ import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { JobFormDrawer } from "./JobFormDrawer.tsx";
 import { useDeleteJob } from "./jobQueries.ts";
 
-function LockedTooltip({ reason, children }: { reason?: string; children: ReactElement }) {
-  return reason ? <Tooltip label={reason}>{children}</Tooltip> : children;
+export function JobActions({ job }: { job: Job }) {
+  return job.application ? (
+    <DetailActions
+      buttons={[<ApplicationLink key="application" applicationId={job.application.id} />]}
+    />
+  ) : (
+    <OpenJobActions job={job} />
+  );
 }
 
-export function JobActions({ job }: { job: Job }) {
+function ApplicationLink({ applicationId }: { applicationId: string }) {
+  const { t } = useTranslation();
+
+  return (
+    <LinkButton render={<Link to="/applications/$applicationId" params={{ applicationId }} />}>
+      <IconArrowUpRight size={20} stroke={2.4} aria-hidden />
+      {t("jobs.openApplication")}
+    </LinkButton>
+  );
+}
+
+function OpenJobActions({ job }: { job: Job }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const apply = useApply();
@@ -25,10 +42,7 @@ export function JobActions({ job }: { job: Job }) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const showSuccess = useSuccessToast();
   const shortcutHints = useShortcutHints();
-  const isApplied = job.status === "applied";
-  useAltShortcut("E", () => {
-    if (!isApplied) setIsEditing(true);
-  });
+  useAltShortcut("E", () => setIsEditing(true));
 
   function confirmDelete() {
     deleteJob.mutate(undefined, {
@@ -40,44 +54,18 @@ export function JobActions({ job }: { job: Job }) {
     });
   }
 
-  const menuItems = (
-    <LockedTooltip reason={isApplied ? t("jobs.deleteLocked") : undefined}>
-      <MenuItem
-        variant="destructive"
-        icon={<IconTrash size={18} stroke={2} aria-hidden />}
-        disabled={isApplied}
-        onClick={() => {
-          deleteJob.reset();
-          setIsConfirmingDelete(true);
-        }}
-      >
-        {t("jobs.delete.action")}
-      </MenuItem>
-    </LockedTooltip>
-  );
   const applyButton = (
-    <LockedTooltip reason={isApplied ? t("jobs.appliedHint") : undefined}>
-      <Button
-        disabled={isApplied}
-        focusableWhenDisabled
-        pending={apply.isPending}
-        onClick={() =>
-          apply.mutate(job.id, { onSuccess: () => showSuccess(t("applications.toast.created")) })
-        }
-      >
-        <IconPlayerPlay size={20} stroke={2.4} aria-hidden />
-        {t("jobs.apply")}
-      </Button>
-    </LockedTooltip>
+    <Button
+      pending={apply.isPending}
+      onClick={() =>
+        apply.mutate(job.id, { onSuccess: () => showSuccess(t("applications.toast.created")) })
+      }
+    >
+      <IconPlayerPlay size={20} stroke={2.4} aria-hidden />
+      {t("jobs.apply")}
+    </Button>
   );
-  const editButton = isApplied ? (
-    <Tooltip label={t("jobs.editLocked")}>
-      <Button variant="surface" disabled focusableWhenDisabled>
-        <IconPencil size={20} stroke={2.4} aria-hidden />
-        {t("jobs.edit")}
-      </Button>
-    </Tooltip>
-  ) : (
+  const editButton = (
     <ShortcutTooltip hint={shortcutHints?.alt("E")}>
       <Button variant="surface" onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
         <IconPencil size={20} stroke={2.4} aria-hidden />
@@ -85,12 +73,24 @@ export function JobActions({ job }: { job: Job }) {
       </Button>
     </ShortcutTooltip>
   );
+  const deleteItem = (
+    <MenuItem
+      variant="destructive"
+      icon={<IconTrash size={18} stroke={2} aria-hidden />}
+      onClick={() => {
+        deleteJob.reset();
+        setIsConfirmingDelete(true);
+      }}
+    >
+      {t("jobs.delete.action")}
+    </MenuItem>
+  );
 
   return (
     <>
       <DetailActions
         buttons={[applyButton, editButton]}
-        menuItems={menuItems}
+        menuItems={deleteItem}
         error={apply.isError && t("applications.createError")}
       />
       <JobFormDrawer job={job} open={isEditing} onOpenChange={setIsEditing} />

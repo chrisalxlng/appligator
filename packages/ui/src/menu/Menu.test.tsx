@@ -21,19 +21,3 @@ test("runs the action of the chosen item", async () => {
 
   expect(onDelete).toHaveBeenCalledOnce();
 });
-
-test("does not run the action of a disabled item", async () => {
-  const onDelete = vi.fn();
-  render(
-    <Menu trigger={<Button>More</Button>}>
-      <MenuItem disabled onClick={onDelete}>
-        Delete
-      </MenuItem>
-    </Menu>,
-  );
-
-  await userEvent.click(screen.getByRole("button", { name: "More" }));
-  await userEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
-
-  expect(onDelete).not.toHaveBeenCalled();
-});

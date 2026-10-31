@@ -24,9 +24,7 @@ export const de: Translations = {
     add: "Hinzufügen",
     edit: "Bearbeiten",
     apply: "Bewerben",
-    appliedHint: "Du hast dich bereits auf diese Stelle beworben.",
-    editLocked: "Stellen, auf die du dich beworben hast, können nicht mehr bearbeitet werden.",
-    deleteLocked: "Stellen, auf die du dich beworben hast, können nicht mehr gelöscht werden.",
+    openApplication: "Zur Bewerbung",
     status: {
       open: "Offen",
       applied: "Beworben",

@@ -8,7 +8,7 @@ import styles from "./DetailActions.module.css";
 
 interface DetailActionsProps {
   buttons: ReactNode[];
-  menuItems: ReactNode;
+  menuItems?: ReactNode;
   error?: string | false;
 }
 
@@ -17,7 +17,7 @@ export function DetailActions({ buttons, menuItems, error }: DetailActionsProps)
   const isDesktop = useIsDesktop();
 
   const buttonList = buttons.map((button, index) => <Fragment key={index}>{button}</Fragment>);
-  const menu = (
+  const menu = menuItems && (
     <Menu
       trigger={
         <IconButton variant="surface" label={t("common.moreActions")}>

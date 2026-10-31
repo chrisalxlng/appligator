@@ -40,3 +40,11 @@
     color: var(--active-text-primary);
   }
 }
+
+.count {
+  color: var(--text-secondary);
+
+  [aria-pressed="true"] > & {
+    color: var(--active-text-secondary);
+  }
+}

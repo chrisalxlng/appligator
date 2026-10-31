@@ -36,7 +36,7 @@ export function StatusFilter<Status extends string>({
           aria-pressed={status === selected}
           onClick={() => onSelect(status)}
         >
-          {count} {label}
+          <span className={styles.count}>{count}</span> {label}
         </button>
       ))}
     </fieldset>

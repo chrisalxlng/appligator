@@ -22,9 +22,7 @@ export const en = {
     add: "Add",
     edit: "Edit",
     apply: "Apply",
-    appliedHint: "You have already applied for this job.",
-    editLocked: "Jobs you applied for can no longer be edited.",
-    deleteLocked: "Jobs you applied for can no longer be deleted.",
+    openApplication: "Open application",
     status: {
       open: "Open",
       applied: "Applied",

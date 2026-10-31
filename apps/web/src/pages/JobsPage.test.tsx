@@ -788,6 +788,7 @@ test("applies for a job from its detail view", async () => {
   expect(within(detail).getByRole("link", { name: /Lead Developer Frontend/ })).toHaveTextContent(
     "Applied",
   );
+  expect(within(detail).getByRole("link", { name: "Open application" })).toBeVisible();
 });
 
 test("shows an error when applying fails", async () => {
@@ -802,37 +803,22 @@ test("shows an error when applying fails", async () => {
   );
 });
 
-test("links an applied job to its application and locks it", async () => {
+test("links an applied job to its application instead of offering to change it", async () => {
   const application = applicationFor(jobFixture);
   createFakeApi([jobFixture], [application]);
   renderApp(`/jobs/${jobFixture.id}`);
   const detail = await screen.findByRole("article");
 
-  expect(within(detail).getByRole("link", { name: /Lead Developer Frontend/ })).toHaveAttribute(
+  expect(within(detail).getByRole("link", { name: "Open application" })).toHaveAttribute(
     "href",
     `/applications/${application.id}`,
   );
-  expect(within(detail).getByRole("button", { name: "Apply" })).toHaveAttribute(
-    "aria-disabled",
-    "true",
-  );
-  expect(within(detail).getByRole("button", { name: "Edit" })).toHaveAttribute(
-    "aria-disabled",
-    "true",
-  );
-
-  await userEvent.hover(within(detail).getByRole("button", { name: "Edit" }));
   expect(
-    await screen.findByText("Jobs you applied for can no longer be edited."),
-  ).toBeInTheDocument();
-
-  await userEvent.click(within(detail).getByRole("button", { name: "More actions" }));
-  const deleteItem = await screen.findByRole("menuitem", { name: "Delete" });
-  expect(deleteItem).toHaveAttribute("aria-disabled", "true");
-  await userEvent.hover(deleteItem);
-  expect(
-    await screen.findByText("Jobs you applied for can no longer be deleted."),
-  ).toBeInTheDocument();
+    within(detail).getByRole("link", { name: /Lead Developer Frontend.*Applied/ }),
+  ).toHaveAttribute("href", `/applications/${application.id}`);
+  for (const name of ["Apply", "Edit", "More actions"]) {
+    expect(within(detail).queryByRole("button", { name })).not.toBeInTheDocument();
+  }
 });
 
 test("does not open the edit drawer of an applied job with Alt+E", async () => {

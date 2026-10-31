@@ -19,7 +19,7 @@
 }
 
 .list {
-  padding: var(--spacing-1) var(--spacing-2);
+  padding: var(--spacing-2);
   overflow-y: auto;
   outline: none;
 }
@@ -41,8 +41,7 @@
   }
 
   &[data-highlighted] {
-    background: var(--active-surface);
-    color: var(--active-text-primary);
+    background: var(--surface-hover);
   }
 }
 

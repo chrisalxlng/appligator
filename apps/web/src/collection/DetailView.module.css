@@ -53,6 +53,10 @@
   color: var(--text-secondary);
   font: var(--font-label-m);
   letter-spacing: var(--tracking-label-m);
+
+  & svg {
+    flex-shrink: 0;
+  }
 }
 
 .propertyValue {

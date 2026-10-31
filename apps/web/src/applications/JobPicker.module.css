@@ -6,10 +6,6 @@
 .meta {
   color: var(--text-secondary);
   font: var(--font-body-s);
-
-  [data-highlighted] > & {
-    color: var(--active-text-secondary);
-  }
 }
 
 .statusTitle {
