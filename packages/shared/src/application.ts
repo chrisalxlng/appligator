@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { activityInputSchema } from "./activity.ts";
 import { jobDetailsSchema, jobListItemSchema, requiredText } from "./job.ts";
 import { applicationStatuses } from "./status.ts";
 
@@ -10,13 +11,13 @@ export const applicationInputSchema = z.object({
 
 export const applicationCreateSchema = z.object({
   jobId: z.uuid(),
-  appliedAt: z.iso.date(),
+  activity: activityInputSchema,
 });
 
 export const applicationSchema = applicationInputSchema.extend({
   id: z.uuid(),
   status: z.enum(applicationStatuses),
-  appliedAt: z.iso.date(),
+  appliedAt: z.iso.datetime().nullable(),
   pinned: z.boolean(),
   job: jobListItemSchema.pick({ id: true, position: true }),
   createdAt: z.iso.datetime(),

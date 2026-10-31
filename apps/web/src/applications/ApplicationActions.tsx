@@ -1,9 +1,11 @@
 import type { Application } from "@appligator/shared";
 import { Button, ConfirmDialog, MenuItem, useSuccessToast } from "@appligator/ui";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AddActivityDrawer } from "../activities/AddActivityDrawer.tsx";
+import { useActivities } from "../activities/activityQueries.ts";
 import { DetailActions } from "../collection/DetailActions.tsx";
 import { PinButton } from "../collection/PinButton.tsx";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
@@ -17,6 +19,8 @@ export function ApplicationActions({ application }: { application: Application }
   const navigate = useNavigate();
   const deleteApplication = useDeleteApplication(application);
   const pin = usePinApplication(application.id);
+  const activities = useActivities(application.id);
+  const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const showSuccess = useSuccessToast();
@@ -45,9 +49,15 @@ export function ApplicationActions({ application }: { application: Application }
       {t("applications.delete.action")}
     </MenuItem>
   );
+  const addActivityButton = (
+    <Button onClick={() => setIsAddingActivity(true)}>
+      <IconPlus size={20} stroke={2.4} aria-hidden />
+      {t("activities.add")}
+    </Button>
+  );
   const editButton = (
     <ShortcutTooltip hint={shortcutHints?.alt("E")}>
-      <Button onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
+      <Button variant="surface" onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
         <IconPencil size={20} stroke={2.4} aria-hidden />
         {t("applications.edit")}
       </Button>
@@ -58,9 +68,15 @@ export function ApplicationActions({ application }: { application: Application }
   return (
     <>
       <DetailActions
-        buttons={[editButton, pinButton]}
+        buttons={[addActivityButton, editButton, pinButton]}
         menuItems={deleteItem}
         error={pin.isError && t("common.pinError")}
+      />
+      <AddActivityDrawer
+        applicationId={application.id}
+        activities={activities.data ?? []}
+        open={isAddingActivity}
+        onOpenChange={setIsAddingActivity}
       />
       <ApplicationFormDrawer
         application={application}

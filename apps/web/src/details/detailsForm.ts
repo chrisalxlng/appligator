@@ -51,6 +51,7 @@ export type FieldError =
   | "positionRequired"
   | "tooLong"
   | "linkInvalid"
+  | "dateRequired"
   | "salaryIncomplete"
   | "salaryRange"
   | "salaryTooHigh"

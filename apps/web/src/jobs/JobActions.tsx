@@ -4,7 +4,7 @@ import { IconArrowUpRight, IconPencil, IconPlayerPlay, IconTrash } from "@tabler
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useApply } from "../applications/applicationQueries.ts";
+import { ApplyDrawer } from "../applications/ApplyDrawer.tsx";
 import { DetailActions } from "../collection/DetailActions.tsx";
 import { PinButton } from "../collection/PinButton.tsx";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
@@ -52,8 +52,8 @@ interface OpenJobActionsProps {
 function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const apply = useApply();
   const deleteJob = useDeleteJob(job.id);
+  const [isApplying, setIsApplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const showSuccess = useSuccessToast();
@@ -71,12 +71,7 @@ function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
   }
 
   const applyButton = (
-    <Button
-      pending={apply.isPending}
-      onClick={() =>
-        apply.mutate(job.id, { onSuccess: () => showSuccess(t("applications.toast.created")) })
-      }
-    >
+    <Button onClick={() => setIsApplying(true)}>
       <IconPlayerPlay size={20} stroke={2.4} aria-hidden />
       {t("jobs.apply")}
     </Button>
@@ -107,8 +102,9 @@ function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
       <DetailActions
         buttons={[applyButton, editButton, pinButton]}
         menuItems={deleteItem}
-        error={apply.isError ? t("applications.createError") : pinError}
+        error={pinError}
       />
+      <ApplyDrawer jobId={job.id} open={isApplying} onOpenChange={setIsApplying} />
       <JobFormDrawer job={job} open={isEditing} onOpenChange={setIsEditing} />
       <ConfirmDialog
         open={isConfirmingDelete}

@@ -67,12 +67,12 @@
   cursor: pointer;
 
   @media (hover: hover) {
-    &:hover {
+    &:hover:not(:has(.cardAction:hover)) {
       background: var(--fill-hover);
     }
   }
 
-  &:active {
+  &:active:not(:has(.cardAction:active)) {
     background: var(--fill-press);
   }
 }
@@ -90,10 +90,6 @@
 
 .accessCard {
   position: relative;
-
-  &:active:has(.cardAction:active) {
-    background: var(--fill-hover);
-  }
 
   &:has(.cardButton:focus-visible) {
     outline: var(--focus-ring-width) solid var(--active-separator);

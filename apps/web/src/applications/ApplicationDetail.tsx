@@ -3,9 +3,10 @@ import { Badge, LinkChip } from "@appligator/ui";
 import { IconBriefcase2, IconMailbox, IconTag } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { DetailView, Property } from "../collection/DetailView.tsx";
+import { ActivityLog } from "../activities/ActivityLog.tsx";
+import { DetailView, NotSpecified, Property } from "../collection/DetailView.tsx";
 import { DetailsSection } from "../details/DetailsSection.tsx";
-import { formatIsoDate } from "../details/format.ts";
+import { formatDate } from "../details/format.ts";
 import { ApplicationActions } from "./ApplicationActions.tsx";
 import { useApplicationStatus } from "./useApplicationStatus.ts";
 
@@ -24,7 +25,11 @@ export function ApplicationDetail({ application }: { application: Application })
             <Badge tone={status.tone}>{status.label}</Badge>
           </Property>
           <Property icon={IconMailbox} label={t("applications.properties.appliedAt")}>
-            {formatIsoDate(application.appliedAt, i18n.language)}
+            {application.appliedAt ? (
+              formatDate(application.appliedAt, i18n.language, "long")
+            ) : (
+              <NotSpecified />
+            )}
           </Property>
           <Property icon={IconBriefcase2} label={t("applications.properties.job")}>
             <LinkChip render={<Link to="/jobs/$jobId" params={{ jobId: application.job.id }} />}>
@@ -35,6 +40,7 @@ export function ApplicationDetail({ application }: { application: Application })
       }
     >
       <DetailsSection details={application} />
+      <ActivityLog applicationId={application.id} />
     </DetailView>
   );
 }

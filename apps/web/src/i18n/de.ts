@@ -156,7 +156,11 @@ export const de: Translations = {
       update: "Aktualisieren",
       saveError: "Die Bewerbung konnte nicht gespeichert werden. Bitte versuche es erneut.",
     },
-    createError: "Die Bewerbung konnte nicht erstellt werden. Bitte versuche es erneut.",
+    applyForm: {
+      title: "Bewerben",
+      job: "Stelle",
+      submit: "Bewerben",
+    },
     picker: {
       title: "Stelle auswählen",
       search: "Stelle suchen",
@@ -185,6 +189,143 @@ export const de: Translations = {
       confirm: "Löschen",
       cancel: "Abbrechen",
       error: "Die Bewerbung konnte nicht gelöscht werden. Bitte versuche es erneut.",
+    },
+  },
+  activities: {
+    title: "Aktivitäten",
+    add: "Aktivität hinzufügen",
+    edit: "{{date}}: {{type}} bearbeiten",
+    loading: "Aktivitäten werden geladen …",
+    loadError: {
+      title: "Aktivitäten konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    empty: "Noch keine Aktivitäten.",
+    picker: {
+      showMore: "Mehr anzeigen",
+      showLess: "Weniger anzeigen",
+    },
+    types: {
+      applicationSubmitted: {
+        label: "Bewerbung eingereicht",
+        description: "Du hast deine Bewerbung erfolgreich beim Unternehmen eingereicht.",
+      },
+      receiptConfirmed: {
+        label: "Bewerbungseingang bestätigt",
+        description: "Das Unternehmen hat den Erhalt deiner Unterlagen offiziell bestätigt.",
+      },
+      interviewScheduled: {
+        label: "Gespräch terminiert",
+        description: "Ein Termin für das Gespräch wurde vereinbart.",
+      },
+      interviewHeld: {
+        label: "Gespräch durchgeführt",
+        description: "Das Gespräch hat stattgefunden.",
+      },
+      taskReceived: {
+        label: "Aufgabe erhalten",
+        description: "Du hast eine Aufgabe erhalten.",
+      },
+      taskSubmitted: {
+        label: "Aufgabe eingereicht",
+        description: "Du hast deine ausgearbeitete Aufgabe übermittelt.",
+      },
+      documentsRequested: {
+        label: "Dokumente angefordert",
+        description: "Das Unternehmen hat weitere Unterlagen angefordert.",
+      },
+      documentsSubmitted: {
+        label: "Dokumente eingereicht",
+        description: "Du hast die geforderten Dokumente an das Unternehmen übermittelt.",
+      },
+      statusInquired: {
+        label: "Status nachgefragt",
+        description:
+          "Du hast dich beim Unternehmen nach dem aktuellen Stand deiner Bewerbung erkundigt.",
+      },
+      offerReceived: {
+        label: "Angebot erhalten",
+        description: "Du hast ein konkretes Vertragsangebot vom Unternehmen erhalten.",
+      },
+      counterOfferSubmitted: {
+        label: "Gegenangebot eingereicht",
+        description:
+          "Du hast Nachverhandlungen zu den Konditionen gestartet und wartest auf Rückmeldung.",
+      },
+      offerAccepted: {
+        label: "Angebot angenommen",
+        description: "Du hast das Angebot akzeptiert. Der Bewerbungsprozess wird beendet.",
+      },
+      offerDeclined: {
+        label: "Angebot abgelehnt",
+        description: "Du hast das Angebot abgelehnt. Der Bewerbungsprozess wird beendet.",
+      },
+      rejectionReceived: {
+        label: "Absage erhalten",
+        description:
+          "Das Unternehmen hat sich gegen eine Zusammenarbeit entschieden. Der Bewerbungsprozess wird beendet.",
+      },
+      applicationWithdrawn: {
+        label: "Bewerbung zurückgezogen",
+        description: "Du hast deine Bewerbung von deiner Seite aus aktiv zurückgezogen.",
+      },
+      applicationPaused: {
+        label: "Bewerbung pausiert",
+        description: "Der Bewerbungsprozess wurde vorübergehend ausgesetzt.",
+      },
+      other: {
+        label: "Sonstige Aktivität",
+        description: "Ein sonstiges Ereignis ist im Bewerbungsverlauf eingetreten.",
+      },
+    },
+    properties: {
+      position: "Position",
+      appointmentAt: "Termin",
+      dueDate: "Abgabefrist",
+      responseDeadline: "Rückmeldefrist",
+    },
+    form: {
+      addTitle: "Aktivität hinzufügen",
+      occurredAt: "Zeitpunkt",
+      appointmentAt: "Termin",
+      dueDate: "Abgabefrist",
+      responseDeadline: "Rückmeldefrist",
+      add: "Hinzufügen",
+      update: "Aktualisieren",
+      saveError: "Die Aktivität konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    },
+    terms: {
+      legend: "Konditionen",
+      add: "Hinzufügen",
+      addTitle: "Konditionen hinzufügen",
+      editTitle: "Konditionen bearbeiten",
+      remove: "Konditionen entfernen",
+    },
+    attachments: {
+      legend: "Anhänge",
+      add: "Hinzufügen",
+      addLink: "Link hinzufügen",
+      editLink: "Link bearbeiten",
+      url: "Link",
+      title: "Titel",
+      remove: "{{title}} entfernen",
+      errors: {
+        urlInvalid: "Bitte gib einen gültigen Link an.",
+        tooLong: "Dieser Titel ist zu lang. Bitte kürze ihn.",
+      },
+    },
+    toast: {
+      added: "Aktivität hinzugefügt",
+      updated: "Aktivität aktualisiert",
+      deleted: "Aktivität gelöscht",
+    },
+    delete: {
+      action: "Löschen",
+      title: "Aktivität löschen?",
+      description: "„{{type}}“ vom {{date}} wird endgültig gelöscht.",
+      confirm: "Löschen",
+      cancel: "Abbrechen",
+      error: "Die Aktivität konnte nicht gelöscht werden. Bitte versuche es erneut.",
     },
   },
   sections: {
@@ -327,6 +468,7 @@ export const de: Translations = {
       positionRequired: "Bitte gib eine Position an.",
       tooLong: "Dieser Text ist zu lang. Bitte kürze ihn.",
       linkInvalid: "Bitte gib einen gültigen Link an.",
+      dateRequired: "Bitte gib einen Zeitpunkt an.",
       salaryIncomplete: "Bitte gib Währung, Betrag und Zeitraum an.",
       salaryRange: "Der Mindestbetrag darf den Höchstbetrag nicht übersteigen.",
       salaryTooHigh: "Dieser Betrag ist zu hoch.",

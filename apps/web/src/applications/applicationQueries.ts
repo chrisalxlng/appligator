@@ -1,4 +1,9 @@
-import type { Application, ApplicationInput, ApplicationStatus } from "@appligator/shared";
+import type {
+  ActivityInput,
+  Application,
+  ApplicationInput,
+  ApplicationStatus,
+} from "@appligator/shared";
 import {
   useInfiniteQuery,
   useMutation,
@@ -10,7 +15,7 @@ import { useApiClient } from "../api/useApiClient.ts";
 import { invalidateJobCollections, jobKeys } from "../jobs/jobQueries.ts";
 import { createApplicationsApi } from "./applicationsApi.ts";
 
-const applicationKeys = {
+export const applicationKeys = {
   list: (status: ApplicationStatus | null) => ["applications", "list", status] as const,
   statusCounts: ["applications", "status-counts"] as const,
   detail: (id: string) => ["applications", "detail", id] as const,
@@ -61,19 +66,12 @@ export function useApplication(id: string) {
   });
 }
 
-function todayIsoDate() {
-  const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${today.getFullYear()}-${month}-${day}`;
-}
-
-export function useApply() {
+export function useApply(jobId: string) {
   const applicationsApi = useApplicationsApi();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (jobId: string) => applicationsApi.create({ jobId, appliedAt: todayIsoDate() }),
+    mutationFn: (activity: ActivityInput) => applicationsApi.create({ jobId, activity }),
     onSuccess: (application: Application) => {
       queryClient.setQueryData(applicationKeys.detail(application.id), application);
       return Promise.all([

@@ -13,8 +13,3 @@
   font: var(--font-label-m);
   letter-spacing: var(--tracking-label-m);
 }
-
-.error {
-  padding-top: var(--spacing-2);
-  color: var(--destructive-text);
-}

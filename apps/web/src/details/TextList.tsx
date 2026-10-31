@@ -12,7 +12,7 @@ import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
-import styles from "./TextList.module.css";
+import styles from "./list.module.css";
 
 type TextListKind = "location" | "bonus" | "benefit";
 
@@ -56,6 +56,7 @@ export function TextList({ kind, legend, items, onChange }: TextListProps) {
               </button>
               <IconButton
                 variant="surface"
+                className={styles.itemAction}
                 label={t(`textList.${kind}.remove`, { item })}
                 onClick={() => onChange(items.filter((_, current) => current !== index))}
               >

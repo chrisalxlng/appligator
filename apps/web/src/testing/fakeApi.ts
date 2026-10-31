@@ -1,6 +1,8 @@
 import {
   applicationStatuses,
   jobStatuses,
+  type Activity,
+  type ActivityInput,
   type Application,
   type ApplicationCreate,
   type ApplicationInput,
@@ -13,7 +15,7 @@ import { vi } from "vite-plus/test";
 interface RecordedRequest {
   method: string;
   path: string;
-  body?: JobInput & ApplicationInput & ApplicationCreate & PinInput;
+  body?: JobInput & ApplicationInput & ApplicationCreate & PinInput & ActivityInput;
 }
 
 export const jobFixture: Job = {
@@ -72,8 +74,25 @@ export function applicationFor(job: Job, overrides: Partial<Application> = {}): 
     position,
     id: crypto.randomUUID(),
     status: "applied",
-    appliedAt: "2026-10-30",
+    appliedAt: "2026-10-30T09:15:00.000Z",
     job: { id, position },
+    ...overrides,
+  };
+}
+
+export function activityWith(overrides: Partial<Activity> = {}): Activity {
+  return {
+    id: crypto.randomUUID(),
+    type: "applicationSubmitted",
+    occurredAt: "2026-10-30T09:15:00.000Z",
+    terms: null,
+    appointmentAt: null,
+    dueDate: null,
+    responseDeadline: null,
+    notes: "",
+    attachments: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -104,11 +123,22 @@ function countByStatus<Status extends string>(
     .filter(({ count }) => count > 0);
 }
 
-export function createFakeApi(initialJobs: Job[] = [], initialApplications: Application[] = []) {
+export function createFakeApi(
+  initialJobs: Job[] = [],
+  initialApplications: Application[] = [],
+  initialActivities: Record<string, Activity[]> = {},
+) {
   let jobs = [...initialJobs];
   let applications = [...initialApplications];
+  const activities = new Map(
+    applications.map((application) => [
+      application.id,
+      initialActivities[application.id] ??
+        (application.appliedAt ? [activityWith({ occurredAt: application.appliedAt })] : []),
+    ]),
+  );
   const requests: RecordedRequest[] = [];
-  const failures = new Map<string, number>();
+  const failures = new Map<string, { status: number; pathSuffix: string }>();
   const holds = new Map<string, Promise<void>>();
 
   function withStatus(job: Job): Job {
@@ -225,19 +255,24 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
     if (pathname === "/applications" && method === "POST") {
       const job = jobs.find((current) => current.id === body!.jobId);
       if (!job) return json({ error: "Not Found" }, 404);
+      const { terms, notes } = body!.activity;
       const created = applicationFor(job, {
-        appliedAt: body!.appliedAt,
+        ...terms,
+        position: terms?.position ?? job.position,
+        notes,
         createdAt: now,
         updatedAt: now,
       });
       applications = [created, ...applications];
-      return json(created, 201);
+      activities.set(created.id, [activityWith(body!.activity)]);
+      return json(withAppliedAt(created), 201);
     }
 
     const [, id, action] = pathname.match(/^\/applications\/([^/]+)(?:\/(.+))?$/) ?? [];
     const application = applications.find((current) => current.id === id);
     if (!application) return json({ error: "Not Found" }, 404);
-    if (method === "GET") return json(application);
+    if (action?.startsWith("activities")) return handleActivities(method, action, id!, body);
+    if (method === "GET") return json(withAppliedAt(application));
     if (action === "pin") {
       applications = applications.map((current) =>
         current.id === id ? { ...current, pinned: body!.pinned } : current,
@@ -247,9 +282,54 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
     if (method === "PUT") {
       const updated = { ...application, ...body!, updatedAt: now };
       applications = applications.map((current) => (current.id === id ? updated : current));
-      return json(updated);
+      return json(withAppliedAt(updated));
     }
     applications = applications.filter((current) => current.id !== id);
+    return new Response(null, { status: 204 });
+  }
+
+  function activitiesOf(applicationId: string) {
+    return (activities.get(applicationId) ?? []).toSorted((a, b) =>
+      b.occurredAt.localeCompare(a.occurredAt),
+    );
+  }
+
+  function withAppliedAt(application: Application): Application {
+    const submissions = activitiesOf(application.id).filter(
+      (activity) => activity.type === "applicationSubmitted",
+    );
+    return { ...application, appliedAt: submissions.at(-1)?.occurredAt ?? null };
+  }
+
+  function handleActivities(
+    method: string,
+    action: string,
+    applicationId: string,
+    body: RecordedRequest["body"],
+  ) {
+    const now = new Date().toISOString();
+    const current = activitiesOf(applicationId);
+    const [, activityId] = action.split("/");
+    if (method === "GET") return json(current);
+    if (method === "POST") {
+      const created = activityWith({ ...body!, createdAt: now, updatedAt: now });
+      activities.set(applicationId, [...current, created]);
+      return json(created, 201);
+    }
+    const activity = current.find(({ id }) => id === activityId);
+    if (!activity) return json({ error: "Not Found" }, 404);
+    if (method === "PUT") {
+      const updated = { ...activity, ...body!, updatedAt: now };
+      activities.set(
+        applicationId,
+        current.map((other) => (other.id === activityId ? updated : other)),
+      );
+      return json(updated);
+    }
+    activities.set(
+      applicationId,
+      current.filter(({ id }) => id !== activityId),
+    );
     return new Response(null, { status: 204 });
   }
 
@@ -262,7 +342,9 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
     await holds.get(method);
 
     const failure = failures.get(method);
-    if (failure) return new Response(null, { status: failure });
+    if (failure && pathname.endsWith(failure.pathSuffix)) {
+      return new Response(null, { status: failure.status });
+    }
 
     return pathname.startsWith("/applications")
       ? handleApplications(method, pathname, searchParams, body)
@@ -277,7 +359,8 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
   return {
     requests,
     requestsWith: (method: string) => requests.filter((request) => request.method === method),
-    failWith: (method: string, status: number) => failures.set(method, status),
+    failWith: (method: string, status: number, pathSuffix = "") =>
+      failures.set(method, { status, pathSuffix }),
     recover: () => failures.clear(),
     holdResponses: (method: string) => {
       let release = () => {};

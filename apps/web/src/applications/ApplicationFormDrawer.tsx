@@ -11,6 +11,7 @@ import { IconPencil } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { DetailsFields } from "../details/DetailsFields.tsx";
+import { NotesField } from "../details/NotesField.tsx";
 import styles from "../details/form.module.css";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import {
@@ -89,6 +90,11 @@ function ApplicationForm({ application, onSaved }: ApplicationFormProps) {
         <TextInput value={values.position} onValueChange={(position) => update({ position })} />
       </Field>
       <DetailsFields values={values} onChange={update} errorFor={errorFor} />
+      <NotesField
+        value={values.notes}
+        onValueChange={(notes) => update({ notes })}
+        error={errorFor("notes")}
+      />
       {save.isError && (
         <p role="alert" className={styles.saveError}>
           {t("applications.form.saveError")}
