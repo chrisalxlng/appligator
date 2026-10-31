@@ -101,6 +101,7 @@ test("POST /jobs creates a job", async () => {
     ...jobInput,
     id: expect.any(String),
     status: "open",
+    isNew: false,
     application: null,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
@@ -138,8 +139,8 @@ test.each([
   expect(response.statusCode).toBe(400);
 });
 
-function toListItem({ id, company, position, status, createdAt }: Record<string, unknown>) {
-  return { id, company, position, status, createdAt };
+function toListItem({ id, company, position, status, isNew, createdAt }: Record<string, unknown>) {
+  return { id, company, position, status, isNew, createdAt };
 }
 
 async function insertJobs(count: number, createdAt: string) {
@@ -236,6 +237,55 @@ test.each([
   );
 });
 
+async function insertUnviewedJob() {
+  const [row] = await db
+    .insert(jobs)
+    .values({ ...toSalaryColumns(emptyInput), userId: "user-id" })
+    .returning();
+  return row!;
+}
+
+test("GET /jobs marks the jobs that have not been viewed yet as new", async () => {
+  const unviewed = await insertUnviewedJob();
+  const created = await createJob();
+
+  const { items } = (await request("GET", "/jobs")).json();
+
+  expect(items).toEqual([
+    expect.objectContaining({ id: created.id, isNew: false }),
+    expect.objectContaining({ id: unviewed.id, isNew: true }),
+  ]);
+});
+
+test("POST /jobs/:id/view marks the job as viewed", async () => {
+  const job = await insertUnviewedJob();
+
+  const response = await request("POST", `/jobs/${job.id}/view`);
+
+  expect(response.statusCode).toBe(204);
+  expect((await request("GET", `/jobs/${job.id}`)).json()).toMatchObject({ isNew: false });
+});
+
+test("POST /jobs/:id/view keeps the time of the first view", async () => {
+  const job = await insertUnviewedJob();
+  await request("POST", `/jobs/${job.id}/view`);
+  const [firstView] = await db.select().from(jobs).where(eq(jobs.id, job.id));
+
+  await request("POST", `/jobs/${job.id}/view`);
+
+  const [secondView] = await db.select().from(jobs).where(eq(jobs.id, job.id));
+  expect(secondView!.viewedAt).toEqual(firstView!.viewedAt);
+});
+
+test("POST /jobs/:id/view marks a job with an application as viewed", async () => {
+  const job = await insertUnviewedJob();
+  await applyTo(job.id);
+
+  const response = await request("POST", `/jobs/${job.id}/view`);
+
+  expect(response.statusCode).toBe(204);
+});
+
 test("GET /jobs/status-counts counts the user's jobs by status", async () => {
   await createJob(emptyInput);
   await createJob(emptyInput);
@@ -315,13 +365,14 @@ test("DELETE /jobs/:id deletes the job", async () => {
 });
 
 test.each([
-  ["GET", undefined],
-  ["PUT", emptyInput],
-  ["DELETE", undefined],
-] as const)("%s /jobs/:id does not reveal jobs of other users", async (method, body) => {
+  ["GET", "", undefined],
+  ["PUT", "", emptyInput],
+  ["DELETE", "", undefined],
+  ["POST", "/view", undefined],
+] as const)("%s /jobs/:id%s does not reveal jobs of other users", async (method, path, body) => {
   const job = await createJob(jobInput, "other-user");
 
-  const response = await request(method, `/jobs/${job.id}`, { body });
+  const response = await request(method, `/jobs/${job.id}${path}`, { body });
 
   expect(response.statusCode).toBe(404);
   expect((await request("GET", `/jobs/${job.id}`, { userId: "other-user" })).json()).toEqual(job);

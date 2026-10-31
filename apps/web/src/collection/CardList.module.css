@@ -95,3 +95,34 @@
     color: var(--active-text-secondary);
   }
 }
+
+.newIndicator {
+  --glow: color-mix(in srgb, var(--highlight-separator) 25%, transparent);
+
+  position: relative;
+  display: inline-block;
+  width: var(--spacing-2);
+  height: var(--spacing-2);
+  margin-inline-end: var(--spacing-2);
+  border-radius: var(--radius-full);
+  background: var(--highlight-separator);
+  box-shadow: 0 0 var(--spacing-0-5) var(--glow);
+  vertical-align: 0.1em;
+
+  /* Enlarges the hover area of the tooltip beyond the small dot. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--spacing-1-5));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes glow {
+  to {
+    box-shadow: 0 0 var(--spacing-1-5) var(--spacing-0-5) var(--glow);
+  }
+}

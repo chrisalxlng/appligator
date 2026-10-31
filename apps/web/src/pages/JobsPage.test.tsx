@@ -72,6 +72,49 @@ test("lists the jobs with their creation day", async () => {
   expect(document.title).toBe("Jobs • Appligator");
 });
 
+test("marks new jobs until they are opened", async () => {
+  const newJob = jobWith({ isNew: true });
+  const api = createFakeApi([newJob, olderJob]);
+  renderApp("/jobs", { viewport: "mobile" });
+
+  const card = await screen.findByRole("link", { name: /Lead Developer Frontend/ });
+  expect(card).toHaveTextContent("NewLead Developer Frontend");
+  expect(screen.getByRole("link", { name: /Frontend Developer/ })).not.toHaveTextContent("New");
+
+  await userEvent.click(card);
+  await screen.findByRole("article");
+  await waitFor(() =>
+    expect(api.requestsWith("POST")).toEqual([
+      expect.objectContaining({ path: `/jobs/${newJob.id}/view` }),
+    ]),
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+  expect(
+    await screen.findByRole("link", { name: /Lead Developer Frontend/ }),
+  ).not.toHaveTextContent("New");
+});
+
+test("explains the new indicator in a tooltip without adding a tab stop", async () => {
+  createFakeApi([jobWith({ isNew: true }), olderJob]);
+  renderApp("/jobs", { viewport: "mobile" });
+
+  const card = await screen.findByRole("link", { name: /Lead Developer Frontend/ });
+  await userEvent.hover(within(card).getByText("New"));
+
+  expect(await screen.findByText("Not viewed yet")).toBeInTheDocument();
+  expect(card.querySelectorAll("[tabindex]:not([tabindex='-1'])")).toHaveLength(0);
+});
+
+test("does not mark a job as viewed again", async () => {
+  const api = createFakeApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+
+  await screen.findByRole("article");
+
+  expect(api.requestsWith("POST")).toEqual([]);
+});
+
 function manyJobs(count: number) {
   return Array.from({ length: count }, (_, index) =>
     jobWith({ id: crypto.randomUUID(), position: `Position ${index + 1}` }),
@@ -592,6 +635,7 @@ test("edits a job", async () => {
   const {
     id: _id,
     status: _status,
+    isNew: _isNew,
     application: _application,
     createdAt: _createdAt,
     updatedAt: _updatedAt,

@@ -40,12 +40,13 @@ function matchesSearch(search: string) {
 }
 
 export function toJob(
-  { userId: _userId, createdAt, updatedAt, ...row }: JobRow,
+  { userId: _userId, viewedAt, createdAt, updatedAt, ...row }: JobRow,
   application: JobApplication | null,
 ) {
   return {
     ...fromSalaryColumns(row),
     status: application ? ("applied" as const) : ("open" as const),
+    isNew: viewedAt === null,
     application,
     createdAt: createdAt.toISOString(),
     updatedAt: updatedAt.toISOString(),
@@ -82,6 +83,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
           company: jobs.company,
           position: jobs.position,
           status: jobStatus,
+          isNew: sql<boolean>`${jobs.viewedAt} is null`,
           createdAt: jobs.createdAt,
           cursorCreatedAt: cursorCreatedAt(jobs),
         })
@@ -134,10 +136,25 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, reply) => {
       const [row] = await app.db
         .insert(jobs)
-        .values({ ...toSalaryColumns(request.body), userId: request.userId })
+        .values({ ...toSalaryColumns(request.body), userId: request.userId, viewedAt: new Date() })
         .returning();
 
       return reply.code(201).send(toJob(row!, null));
+    },
+  );
+
+  app.post(
+    "/jobs/:id/view",
+    { schema: { params: jobParamsSchema, response: { 204: z.null(), 404: notFoundSchema } } },
+    async (request, reply) => {
+      const [row] = await app.db
+        .update(jobs)
+        .set({ viewedAt: sql`coalesce(${jobs.viewedAt}, now())` })
+        .where(ownJob(request.params.id, request.userId))
+        .returning({ id: jobs.id });
+
+      if (!row) return reply.code(404).send({ error: "Not Found" });
+      return reply.code(204).send(null);
     },
   );
 

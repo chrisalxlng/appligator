@@ -15,6 +15,8 @@ export const en = {
     today: "Today",
     yesterday: "Yesterday",
     notSpecified: "Not specified",
+    newHint: "Not viewed yet",
+    new: "New",
     allStatuses: "All",
     statusFilter: "Filter by status",
   },

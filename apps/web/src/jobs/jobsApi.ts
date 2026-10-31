@@ -25,5 +25,6 @@ export function createJobsApi(api: ApiClient) {
     update: (id: string, input: JobInput) =>
       api.request(`/jobs/${id}`, jobSchema, { method: "PUT", body: input }),
     remove: (id: string) => api.requestWithoutContent(`/jobs/${id}`, { method: "DELETE" }),
+    markViewed: (id: string) => api.requestWithoutContent(`/jobs/${id}/view`, { method: "POST" }),
   };
 }

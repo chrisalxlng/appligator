@@ -1,4 +1,4 @@
-import { Badge, type BadgeTone } from "@appligator/ui";
+import { Badge, Tooltip, type BadgeTone } from "@appligator/ui";
 import {
   useEffect,
   useEffectEvent,
@@ -9,8 +9,10 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./CardList.module.css";
 import { useCreatedLabel } from "./useCreatedLabel.ts";
+import a11y from "./visuallyHidden.module.css";
 
 const focusTargets: Record<string, (current: number, last: number) => number> = {
   ArrowDown: (current, last) => Math.min(current + 1, last),
@@ -32,6 +34,7 @@ export interface CardItem {
   id: string;
   company: string;
   position: string;
+  isNew?: boolean;
   createdAt: string;
 }
 
@@ -74,6 +77,7 @@ export function CardList<Item extends CardItem>({
   renderLink,
   onEndReached,
 }: CardListProps<Item>) {
+  const { t } = useTranslation();
   const createdLabel = useCreatedLabel();
   const { tabStopId, focusItem, leaveList } = useTabStop(items, openedId);
 
@@ -92,7 +96,16 @@ export function CardList<Item extends CardItem>({
                 onKeyDown: moveFocus,
                 children: (
                   <>
-                    <span className={styles.position}>{item.position}</span>
+                    <span className={styles.position}>
+                      {item.isNew && (
+                        <Tooltip label={t("common.newHint")}>
+                          <span className={styles.newIndicator}>
+                            <span className={a11y.visuallyHidden}>{t("common.new")}</span>
+                          </span>
+                        </Tooltip>
+                      )}
+                      {item.position}
+                    </span>
                     <span className={styles.company}>{item.company}</span>
                     <span className={styles.footer}>
                       <span className={styles.created}>{createdLabel(item.createdAt)}</span>

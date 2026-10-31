@@ -42,6 +42,7 @@ export const jobFixture: Job = {
   notes: "<p>Training budget of €2,000 per year</p>",
   applicationDeadline: "2026-12-31",
   status: "open",
+  isNew: false,
   application: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -58,6 +59,7 @@ export function applicationFor(job: Job, overrides: Partial<Application> = {}): 
     summary: _summary,
     applicationDeadline: _applicationDeadline,
     status: _status,
+    isNew: _isNew,
     application: _application,
     id,
     position,
@@ -124,11 +126,12 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
     const limit = Number(searchParams.get("limit") ?? fakePageSize);
     const { pageItems, nextCursor } = page(matches, searchParams.get("cursor"), limit);
     return {
-      items: pageItems.map(({ id, company, position, status, createdAt }) => ({
+      items: pageItems.map(({ id, company, position, status, isNew, createdAt }) => ({
         id,
         company,
         position,
         status,
+        isNew,
         createdAt,
       })),
       nextCursor,
@@ -167,6 +170,7 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
         ...body!,
         id: crypto.randomUUID(),
         status: "open",
+        isNew: false,
         application: null,
         createdAt: now,
         updatedAt: now,
@@ -175,10 +179,14 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
       return json(created, 201);
     }
 
-    const id = pathname.match(/^\/jobs\/(.+)$/)?.[1];
+    const [, id, action] = pathname.match(/^\/jobs\/([^/]+)(?:\/(.+))?$/) ?? [];
     const job = jobs.find((current) => current.id === id);
     if (!job) return json({ error: "Not Found" }, 404);
     if (method === "GET") return json(withStatus(job));
+    if (action === "view") {
+      jobs = jobs.map((current) => (current.id === id ? { ...current, isNew: false } : current));
+      return new Response(null, { status: 204 });
+    }
     if (withStatus(job).application) return json({ error: "applied" }, 409);
     if (method === "PUT") {
       const updated = { ...job, ...body!, updatedAt: now };

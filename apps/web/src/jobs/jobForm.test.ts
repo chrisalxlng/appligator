@@ -34,6 +34,7 @@ const job: Job = {
   notes: "<p>Training budget of €2,000 per year</p>",
   applicationDeadline: "2026-12-31",
   status: "open",
+  isNew: false,
   application: null,
   createdAt: "2026-10-28T09:00:00.000Z",
   updatedAt: "2026-10-28T09:00:00.000Z",
@@ -47,6 +48,7 @@ test("turns the values of an existing job back into the same input", () => {
   const {
     id: _id,
     status: _status,
+    isNew: _isNew,
     application: _application,
     createdAt: _createdAt,
     updatedAt: _updatedAt,
