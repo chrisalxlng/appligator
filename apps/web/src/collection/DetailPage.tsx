@@ -10,6 +10,7 @@ import { PageSpinner } from "../loading/PageSpinner.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
 import { Page } from "../pages/Page.tsx";
 import { DocumentTitle } from "../shell/DocumentTitle.tsx";
+import { ScrollToTop } from "../shell/ScrollToTop.tsx";
 import { useIsWide } from "../shell/useMediaQuery.ts";
 import styles from "./DetailPage.module.css";
 
@@ -58,6 +59,7 @@ export function DetailPage<Data extends { position: string }>({
       <DetailContent texts={texts} query={query} backLink={backLink}>
         {children}
       </DetailContent>
+      <ScrollToTop scrollsWith="parent" />
     </Page>
   );
 }

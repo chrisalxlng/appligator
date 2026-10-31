@@ -18,6 +18,7 @@ export const de: Translations = {
     yesterday: "Gestern",
     notSpecified: "Keine Angabe",
     allStatuses: "Alle",
+    scrollToTop: "Nach oben",
     statusFilter: "Nach Status filtern",
   },
   jobs: {

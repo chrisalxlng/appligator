@@ -16,6 +16,7 @@ export const en = {
     yesterday: "Yesterday",
     notSpecified: "Not specified",
     allStatuses: "All",
+    scrollToTop: "Back to top",
     statusFilter: "Filter by status",
   },
   jobs: {
