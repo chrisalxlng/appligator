@@ -2,6 +2,7 @@ import { Badge, Tooltip, type BadgeTone } from "@appligator/ui";
 import {
   useEffect,
   useEffectEvent,
+  useId,
   useRef,
   useState,
   type FocusEvent,
@@ -25,7 +26,8 @@ function moveFocus(event: KeyboardEvent<HTMLElement>) {
   const target = focusTargets[event.key];
   if (!target || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
 
-  const links = [...event.currentTarget.closest("ul")!.querySelectorAll<HTMLElement>("a")];
+  const list = event.currentTarget.closest(`.${styles.container}`)!;
+  const links = [...list.querySelectorAll<HTMLElement>("li > a")];
   event.preventDefault();
   links[target(links.indexOf(event.currentTarget), links.length - 1)]?.focus();
 }
@@ -35,17 +37,19 @@ export interface CardItem {
   company: string;
   position: string;
   isNew?: boolean;
+  pinned: boolean;
   createdAt: string;
 }
 
-// The list is a single tab stop: the focused card, else the opened one, else the first one.
+// The list, including its pinned section, is a single tab stop: the focused card, else the opened
+// one, else the first one.
 function useTabStop(items: CardItem[], openedId: string | undefined) {
   const [focusedId, setFocusedId] = useState<string>();
   const tabStopId =
     [focusedId, openedId].find((id) => items.some((item) => item.id === id)) ?? items[0]?.id;
 
   function leaveList(event: FocusEvent<HTMLElement>) {
-    if (!event.currentTarget.closest("ul")!.contains(event.relatedTarget)) {
+    if (!event.currentTarget.closest(`.${styles.container}`)!.contains(event.relatedTarget)) {
       setFocusedId(undefined);
     }
   }
@@ -81,10 +85,10 @@ export function CardList<Item extends CardItem>({
   const createdLabel = useCreatedLabel();
   const { tabStopId, focusItem, leaveList } = useTabStop(items, openedId);
 
-  return (
-    <div className={styles.container}>
+  function renderCards(sectionItems: Item[]) {
+    return (
       <ul className={styles.list}>
-        {items.map((item) => {
+        {sectionItems.map((item) => {
           const { label, tone } = status(item);
           return (
             <li key={item.id}>
@@ -118,8 +122,39 @@ export function CardList<Item extends CardItem>({
           );
         })}
       </ul>
+    );
+  }
+
+  const pinnedItems = items.filter((item) => item.pinned);
+  const otherItems = items.filter((item) => !item.pinned);
+
+  return (
+    <div className={styles.container}>
+      {pinnedItems.length > 0 ? (
+        <>
+          <Section title={t("common.pinned")}>{renderCards(pinnedItems)}</Section>
+          {otherItems.length > 0 && (
+            <Section title={t("common.unpinned")}>{renderCards(otherItems)}</Section>
+          )}
+        </>
+      ) : (
+        renderCards(items)
+      )}
       {onEndReached && <EndTrigger onReached={onEndReached} />}
     </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  const titleId = useId();
+
+  return (
+    <section className={styles.section} aria-labelledby={titleId}>
+      <h2 id={titleId} className={styles.sectionTitle}>
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }
 

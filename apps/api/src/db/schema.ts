@@ -13,6 +13,7 @@ import {
 } from "@appligator/shared";
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   date,
   index,
   integer,
@@ -79,6 +80,7 @@ export const jobs = pgTable(
     ...jobDetailColumns(),
     applicationDeadline: date(),
     viewedAt: timestamp({ withTimezone: true }),
+    pinned: boolean().notNull().default(false),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
@@ -96,6 +98,7 @@ export const applications = pgTable(
       .references(() => jobs.id, { onDelete: "restrict" }),
     status: applicationStatusEnum().notNull(),
     appliedAt: date().notNull(),
+    pinned: boolean().notNull().default(false),
     company: text().notNull(),
     position: text().notNull(),
     ...jobDetailColumns(),

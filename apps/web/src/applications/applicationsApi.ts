@@ -19,6 +19,8 @@ export function createApplicationsApi(api: ApiClient) {
       api.request("/applications", applicationSchema, { method: "POST", body: input }),
     update: (id: string, input: ApplicationInput) =>
       api.request(`/applications/${id}`, applicationSchema, { method: "PUT", body: input }),
+    pin: (id: string, pinned: boolean) =>
+      api.requestWithoutContent(`/applications/${id}/pin`, { method: "PUT", body: { pinned } }),
     remove: (id: string) => api.requestWithoutContent(`/applications/${id}`, { method: "DELETE" }),
   };
 }

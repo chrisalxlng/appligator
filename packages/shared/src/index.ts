@@ -74,7 +74,9 @@ export {
   applicationStatuses,
   jobStatusCountsSchema,
   jobStatuses,
+  pinInputSchema,
   type ApplicationStatus,
+  type PinInput,
   type JobStatus,
   type StatusCount,
 } from "./status.ts";

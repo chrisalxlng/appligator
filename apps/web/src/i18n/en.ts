@@ -18,6 +18,11 @@ export const en = {
     newHint: "Not viewed yet",
     new: "New",
     allStatuses: "All",
+    pinned: "Pinned",
+    unpinned: "More",
+    pin: "Pin",
+    unpin: "Unpin",
+    pinError: "The pin could not be saved. Please try again.",
     statusFilter: "Filter by status",
   },
   jobs: {

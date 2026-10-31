@@ -212,3 +212,34 @@ test("deletes an application after confirmation", async () => {
   expect(api.requestsWith("DELETE")[0]?.path).toBe(`/applications/${application.id}`);
   await waitFor(() => expect(router.state.location.pathname).toBe("/applications"));
 });
+
+test("pins an application to a section above the other applications", async () => {
+  const other = applicationFor(olderJob, { createdAt: yesterday });
+  const api = createFakeApi([jobFixture, olderJob], [application, other]);
+  renderApp(`/applications/${other.id}`);
+
+  await userEvent.click(
+    within(await screen.findByRole("article")).getByRole("button", { name: "Pin" }),
+  );
+
+  expect(api.requestsWith("PUT")).toEqual([
+    expect.objectContaining({ path: `/applications/${other.id}/pin`, body: { pinned: true } }),
+  ]);
+  const pinned = await screen.findByRole("region", { name: "Pinned" });
+  expect(within(pinned).getByRole("link", { name: /Applied$/ })).toHaveTextContent(
+    "Frontend Developer",
+  );
+});
+
+test("takes over the pin of the job when applying", async () => {
+  createFakeApi([jobWith({ pinned: true })]);
+  renderApp("/applications");
+
+  const picker = await openPicker();
+  await userEvent.click(within(picker).getByRole("option", { name: /Lead Developer Frontend/ }));
+
+  const pinned = await screen.findByRole("region", { name: "Pinned" });
+  expect(within(pinned).getByRole("link", { name: /Applied$/ })).toHaveTextContent(
+    "Lead Developer Frontend",
+  );
+});

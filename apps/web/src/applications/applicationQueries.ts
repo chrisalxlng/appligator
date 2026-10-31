@@ -113,3 +113,19 @@ export function useDeleteApplication(application: Application) {
       ]),
   });
 }
+
+export function usePinApplication(id: string) {
+  const applicationsApi = useApplicationsApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (pinned: boolean) => applicationsApi.pin(id, pinned),
+    onSuccess: (_, pinned) => {
+      queryClient.setQueryData<Application>(
+        applicationKeys.detail(id),
+        (application) => application && { ...application, pinned },
+      );
+      return invalidateCollections(queryClient);
+    },
+  });
+}

@@ -20,6 +20,11 @@ export const de: Translations = {
     newHint: "Noch nicht angesehen",
     new: "Neu",
     allStatuses: "Alle",
+    pinned: "Angepinnt",
+    unpinned: "Weitere",
+    pin: "Anpinnen",
+    unpin: "Lösen",
+    pinError: "Das Anpinnen konnte nicht gespeichert werden. Bitte versuche es erneut.",
     statusFilter: "Nach Status filtern",
   },
   jobs: {

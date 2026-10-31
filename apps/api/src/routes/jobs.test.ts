@@ -102,6 +102,7 @@ test("POST /jobs creates a job", async () => {
     id: expect.any(String),
     status: "open",
     isNew: false,
+    pinned: false,
     application: null,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
@@ -139,8 +140,16 @@ test.each([
   expect(response.statusCode).toBe(400);
 });
 
-function toListItem({ id, company, position, status, isNew, createdAt }: Record<string, unknown>) {
-  return { id, company, position, status, isNew, createdAt };
+function toListItem({
+  id,
+  company,
+  position,
+  status,
+  isNew,
+  pinned,
+  createdAt,
+}: Record<string, unknown>) {
+  return { id, company, position, status, isNew, pinned, createdAt };
 }
 
 async function insertJobs(count: number, createdAt: string) {
@@ -202,7 +211,7 @@ test.each([
   ["a malformed cursor", "cursor=not-a-cursor"],
   [
     "a cursor without an id",
-    `cursor=${Buffer.from("2026-10-01T12:00:00.000000Z").toString("base64url")}`,
+    `cursor=${Buffer.from("unpinned|2026-10-01T12:00:00.000000Z").toString("base64url")}`,
   ],
 ])("GET /jobs rejects %s", async (_, query) => {
   const response = await request("GET", `/jobs?${query}`);
@@ -284,6 +293,51 @@ test("POST /jobs/:id/view marks a job with an application as viewed", async () =
   const response = await request("POST", `/jobs/${job.id}/view`);
 
   expect(response.statusCode).toBe(204);
+});
+
+async function pin(id: string, pinned = true, userId?: string) {
+  return request("PUT", `/jobs/${id}/pin`, { body: { pinned }, userId });
+}
+
+test("PUT /jobs/:id/pin pins and unpins the job", async () => {
+  const job = await createJob();
+
+  expect((await pin(job.id)).statusCode).toBe(204);
+  expect((await request("GET", `/jobs/${job.id}`)).json()).toMatchObject({ pinned: true });
+
+  await pin(job.id, false);
+  expect((await request("GET", `/jobs/${job.id}`)).json()).toMatchObject({ pinned: false });
+});
+
+test("PUT /jobs/:id/pin pins a job with an application", async () => {
+  const job = await createJob();
+  await applyTo(job.id);
+
+  expect((await pin(job.id)).statusCode).toBe(204);
+});
+
+test("PUT /jobs/:id/pin rejects a missing pin", async () => {
+  const job = await createJob();
+
+  const response = await request("PUT", `/jobs/${job.id}/pin`, { body: {} });
+
+  expect(response.statusCode).toBe(400);
+});
+
+test("GET /jobs lists the pinned jobs first and pages through them", async () => {
+  const [oldest, middle, newest] = [await createJob(), await createJob(), await createJob()];
+  await pin(oldest.id);
+
+  const firstPage = (await request("GET", "/jobs?limit=2")).json();
+  const secondPage = (await request("GET", `/jobs?limit=2&cursor=${firstPage.nextCursor}`)).json();
+
+  expect([...firstPage.items, ...secondPage.items].map((item: { id: string }) => item.id)).toEqual([
+    oldest.id,
+    newest.id,
+    middle.id,
+  ]);
+  expect(firstPage.items[0]).toMatchObject({ pinned: true });
+  expect(secondPage.nextCursor).toBeNull();
 });
 
 test("GET /jobs/status-counts counts the user's jobs by status", async () => {
@@ -369,6 +423,7 @@ test.each([
   ["PUT", "", emptyInput],
   ["DELETE", "", undefined],
   ["POST", "/view", undefined],
+  ["PUT", "/pin", { pinned: true }],
 ] as const)("%s /jobs/:id%s does not reveal jobs of other users", async (method, path, body) => {
   const job = await createJob(jobInput, "other-user");
 
