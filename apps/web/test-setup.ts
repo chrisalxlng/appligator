@@ -4,7 +4,10 @@ import { afterEach, vi } from "vite-plus/test";
 import "./src/i18n/i18n.ts";
 import { FakeIntersectionObserver } from "./src/testing/fakeIntersectionObserver.ts";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
 
 vi.stubGlobal(
   "ResizeObserver",

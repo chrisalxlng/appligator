@@ -5,13 +5,14 @@ import {
   applicationSchema,
   applicationStatusCountsSchema,
   applicationStatuses,
+  pinInputSchema,
 } from "@appligator/shared";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { applications, jobs } from "../db/schema.ts";
 import { notFoundSchema } from "./notFound.ts";
-import { afterCursor, cursorCreatedAt, pageQuerySchema, toPage } from "./pagination.ts";
+import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
 import { sortByStatus } from "./statusCounts.ts";
 
@@ -82,6 +83,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
           company: applications.company,
           position: applications.position,
           status: applications.status,
+          pinned: applications.pinned,
           createdAt: applications.createdAt,
           cursorCreatedAt: cursorCreatedAt(applications),
         })
@@ -93,7 +95,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
             afterCursor(applications, cursor),
           ),
         )
-        .orderBy(desc(applications.createdAt), desc(applications.id))
+        .orderBy(...pageOrder(applications))
         .limit(limit + 1);
 
       return toPage(rows, limit);
@@ -164,6 +166,27 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
         .returning();
 
       return reply.code(201).send(toApplication(row!, job));
+    },
+  );
+
+  app.put(
+    "/applications/:id/pin",
+    {
+      schema: {
+        params: applicationParamsSchema,
+        body: pinInputSchema,
+        response: { 204: z.null(), 404: notFoundSchema },
+      },
+    },
+    async (request, reply) => {
+      const [row] = await app.db
+        .update(applications)
+        .set({ pinned: request.body.pinned })
+        .where(ownApplication(request.params.id, request.userId))
+        .returning({ id: applications.id });
+
+      if (!row) return reply.code(404).send({ error: "Not Found" });
+      return reply.code(204).send(null);
     },
   );
 

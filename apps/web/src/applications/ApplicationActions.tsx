@@ -5,16 +5,18 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DetailActions } from "../collection/DetailActions.tsx";
+import { PinButton } from "../collection/PinButton.tsx";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { ApplicationFormDrawer } from "./ApplicationFormDrawer.tsx";
-import { useDeleteApplication } from "./applicationQueries.ts";
+import { useDeleteApplication, usePinApplication } from "./applicationQueries.ts";
 
 export function ApplicationActions({ application }: { application: Application }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deleteApplication = useDeleteApplication(application);
+  const pin = usePinApplication(application.id);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const showSuccess = useSuccessToast();
@@ -51,10 +53,15 @@ export function ApplicationActions({ application }: { application: Application }
       </Button>
     </ShortcutTooltip>
   );
+  const pinButton = <PinButton pinned={application.pinned} pin={pin} />;
 
   return (
     <>
-      <DetailActions buttons={[editButton]} menuItems={deleteItem} />
+      <DetailActions
+        buttons={[editButton, pinButton]}
+        menuItems={deleteItem}
+        error={pin.isError && t("common.pinError")}
+      />
       <ApplicationFormDrawer
         application={application}
         open={isEditing}

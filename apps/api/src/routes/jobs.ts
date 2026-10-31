@@ -1,4 +1,5 @@
 import {
+  pinInputSchema,
   jobInputSchema,
   jobListPageSchema,
   jobSchema,
@@ -7,12 +8,12 @@ import {
   type Job,
   type JobStatus,
 } from "@appligator/shared";
-import { and, count, desc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, count, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { applications, jobs } from "../db/schema.ts";
 import { notFoundSchema } from "./notFound.ts";
-import { afterCursor, cursorCreatedAt, pageQuerySchema, toPage } from "./pagination.ts";
+import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
 import { sortByStatus } from "./statusCounts.ts";
 
@@ -84,6 +85,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
           position: jobs.position,
           status: jobStatus,
           isNew: sql<boolean>`${jobs.viewedAt} is null`,
+          pinned: jobs.pinned,
           createdAt: jobs.createdAt,
           cursorCreatedAt: cursorCreatedAt(jobs),
         })
@@ -97,7 +99,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
             afterCursor(jobs, cursor),
           ),
         )
-        .orderBy(desc(jobs.createdAt), desc(jobs.id))
+        .orderBy(...pageOrder(jobs))
         .limit(limit + 1);
 
       return toPage(rows, limit);
@@ -150,6 +152,27 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
       const [row] = await app.db
         .update(jobs)
         .set({ viewedAt: sql`coalesce(${jobs.viewedAt}, now())` })
+        .where(ownJob(request.params.id, request.userId))
+        .returning({ id: jobs.id });
+
+      if (!row) return reply.code(404).send({ error: "Not Found" });
+      return reply.code(204).send(null);
+    },
+  );
+
+  app.put(
+    "/jobs/:id/pin",
+    {
+      schema: {
+        params: jobParamsSchema,
+        body: pinInputSchema,
+        response: { 204: z.null(), 404: notFoundSchema },
+      },
+    },
+    async (request, reply) => {
+      const [row] = await app.db
+        .update(jobs)
+        .set({ pinned: request.body.pinned })
         .where(ownJob(request.params.id, request.userId))
         .returning({ id: jobs.id });
 

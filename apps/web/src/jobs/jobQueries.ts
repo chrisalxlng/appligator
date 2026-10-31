@@ -87,6 +87,19 @@ export function useDeleteJob(id: string) {
   });
 }
 
+export function usePinJob(id: string) {
+  const jobsApi = useJobsApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (pinned: boolean) => jobsApi.pin(id, pinned),
+    onSuccess: (_, pinned) => {
+      queryClient.setQueryData<Job>(jobKeys.detail(id), (job) => job && { ...job, pinned });
+      return invalidateJobCollections(queryClient);
+    },
+  });
+}
+
 function markViewedInCache(queryClient: QueryClient, id: string) {
   queryClient.setQueryData<Job>(jobKeys.detail(id), (job) => job && { ...job, isNew: false });
   queryClient.setQueriesData<InfiniteData<JobListPage>>(

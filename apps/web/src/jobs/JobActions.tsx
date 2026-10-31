@@ -2,23 +2,33 @@ import type { Job } from "@appligator/shared";
 import { Button, ConfirmDialog, LinkButton, MenuItem, useSuccessToast } from "@appligator/ui";
 import { IconArrowUpRight, IconPencil, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useApply } from "../applications/applicationQueries.ts";
 import { DetailActions } from "../collection/DetailActions.tsx";
+import { PinButton } from "../collection/PinButton.tsx";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { JobFormDrawer } from "./JobFormDrawer.tsx";
-import { useDeleteJob } from "./jobQueries.ts";
+import { useDeleteJob, usePinJob } from "./jobQueries.ts";
 
 export function JobActions({ job }: { job: Job }) {
+  const { t } = useTranslation();
+  const pin = usePinJob(job.id);
+  const pinButton = <PinButton pinned={job.pinned} pin={pin} />;
+  const pinError = pin.isError && t("common.pinError");
+
   return job.application ? (
     <DetailActions
-      buttons={[<ApplicationLink key="application" applicationId={job.application.id} />]}
+      buttons={[
+        <ApplicationLink key="application" applicationId={job.application.id} />,
+        pinButton,
+      ]}
+      error={pinError}
     />
   ) : (
-    <OpenJobActions job={job} />
+    <OpenJobActions job={job} pinButton={pinButton} pinError={pinError} />
   );
 }
 
@@ -33,7 +43,13 @@ function ApplicationLink({ applicationId }: { applicationId: string }) {
   );
 }
 
-function OpenJobActions({ job }: { job: Job }) {
+interface OpenJobActionsProps {
+  job: Job;
+  pinButton: ReactNode;
+  pinError: string | false;
+}
+
+function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const apply = useApply();
@@ -89,9 +105,9 @@ function OpenJobActions({ job }: { job: Job }) {
   return (
     <>
       <DetailActions
-        buttons={[applyButton, editButton]}
+        buttons={[applyButton, editButton, pinButton]}
         menuItems={deleteItem}
-        error={apply.isError && t("applications.createError")}
+        error={apply.isError ? t("applications.createError") : pinError}
       />
       <JobFormDrawer job={job} open={isEditing} onOpenChange={setIsEditing} />
       <ConfirmDialog

@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { CardList } from "../collection/CardList.tsx";
 import { CollectionPage } from "../collection/CollectionPage.tsx";
 import { StatusFilter } from "../collection/StatusFilter.tsx";
+import { usePinnedCollapsed } from "../collection/usePinnedCollapsed.ts";
 import { useStatusFilter } from "../collection/useStatusFilter.ts";
 import { JobFormDrawer } from "../jobs/JobFormDrawer.tsx";
 import { useJobs, useJobStatusCounts } from "../jobs/jobQueries.ts";
@@ -17,6 +18,7 @@ import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 
 export function JobsPage() {
   const { t } = useTranslation();
+  const [pinnedCollapsed, setPinnedCollapsed] = usePinnedCollapsed("jobs");
   const navigate = useNavigate();
   const { jobId } = useParams({ strict: false });
   const statusCounts = useJobStatusCounts();
@@ -63,6 +65,8 @@ export function JobsPage() {
           renderLink={(job, props) => (
             <Link to="/jobs/$jobId" params={{ jobId: job.id }} {...props} />
           )}
+          pinnedCollapsed={pinnedCollapsed}
+          onPinnedCollapsedChange={setPinnedCollapsed}
           onEndReached={onEndReached}
         />
       )}

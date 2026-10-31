@@ -1,5 +1,5 @@
 import { jobLimits } from "@appligator/shared";
-import { act, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, onTestFinished, test, vi } from "vite-plus/test";
 import { scrollObservedElementsIntoView } from "../testing/fakeIntersectionObserver.ts";
@@ -636,6 +636,7 @@ test("edits a job", async () => {
     id: _id,
     status: _status,
     isNew: _isNew,
+    pinned: _pinned,
     application: _application,
     createdAt: _createdAt,
     updatedAt: _updatedAt,
@@ -811,6 +812,120 @@ test("hides the status filter while all jobs have the same status", async () => 
   await screen.findAllByRole("link", { name: /Developer/ });
 
   expect(screen.queryByRole("group", { name: "Filter by status" })).not.toBeInTheDocument();
+});
+
+test("pins a job to a section above the other jobs and unpins it again", async () => {
+  const api = createFakeApi([jobFixture, olderJob]);
+  renderApp(`/jobs/${olderJob.id}`);
+  const detail = await screen.findByRole("article");
+
+  await userEvent.click(within(detail).getByRole("button", { name: "Pin" }));
+
+  expect(api.requestsWith("PUT")).toEqual([
+    expect.objectContaining({ path: `/jobs/${olderJob.id}/pin`, body: { pinned: true } }),
+  ]);
+  const pinned = await screen.findByRole("region", { name: "Pinned" });
+  expect(within(pinned).getByRole("link")).toHaveTextContent("Frontend Developer");
+  expect(within(screen.getByRole("region", { name: "More" })).getByRole("link")).toHaveTextContent(
+    "Lead Developer Frontend",
+  );
+
+  await userEvent.click(within(detail).getByRole("button", { name: "Unpin" }));
+
+  await waitFor(() => expect(screen.queryByRole("region", { name: "Pinned" })).toBeNull());
+  expect(
+    screen.getAllByRole("link", { name: /Developer/ }).map((link) => link.textContent),
+  ).toEqual([
+    expect.stringContaining("Lead Developer Frontend"),
+    expect.stringContaining("Frontend Developer"),
+  ]);
+});
+
+test("moves through the pinned and the other jobs as one list", async () => {
+  const [first, second, third] = manyJobs(3);
+  createFakeApi([first!, second!, { ...third!, pinned: true }]);
+  renderApp("/jobs", { viewport: "tablet" });
+  const [pinned, ...others] = await findPositionLinks();
+
+  await tabIntoJobList();
+  expect(pinned).toHaveTextContent("Position 3");
+  expect(pinned).toHaveFocus();
+
+  await userEvent.keyboard("{ArrowDown}");
+  expect(others[0]).toHaveFocus();
+  await userEvent.keyboard("{End}{ArrowUp}{ArrowUp}");
+  expect(pinned).toHaveFocus();
+});
+
+test("hides the pinned jobs until they are shown again, also after reloading", async () => {
+  const [first, second] = manyJobs(2);
+  createFakeApi([first!, { ...second!, pinned: true }]);
+  renderApp("/jobs", { viewport: "mobile" });
+  const pinned = await screen.findByRole("region", { name: "Pinned" });
+  expect(pinned).toHaveTextContent("Pinned1");
+
+  await userEvent.click(within(pinned).getByRole("button", { name: "Hide pinned" }));
+
+  expect(within(pinned).queryByRole("link")).toBeNull();
+  expect(within(pinned).getByRole("button", { name: "Show pinned" })).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  expect(await findPositionLinks()).toHaveLength(1);
+
+  cleanup();
+  renderApp("/jobs", { viewport: "mobile" });
+  const reloaded = await screen.findByRole("region", { name: "Pinned" });
+  expect(within(reloaded).queryByRole("link")).toBeNull();
+
+  await userEvent.click(within(reloaded).getByRole("button", { name: "Show pinned" }));
+  expect(within(reloaded).getByRole("link")).toHaveTextContent("Position 2");
+});
+
+test("opens the first visible job on desktop while the pinned jobs are hidden", async () => {
+  localStorage.setItem("appligator.pinnedCollapsed.jobs", "true");
+  createFakeApi([{ ...jobFixture, pinned: true }, olderJob]);
+  const router = renderApp("/jobs");
+
+  await screen.findByRole("heading", { level: 2, name: "Frontend Developer" });
+  expect(router.state.location.pathname).toBe(`/jobs/${olderJob.id}`);
+});
+
+test("skips the hidden pinned jobs when tabbing into the list", async () => {
+  localStorage.setItem("appligator.pinnedCollapsed.jobs", "true");
+  const [first, second] = manyJobs(2);
+  createFakeApi([{ ...first!, pinned: true }, second!]);
+  renderApp("/jobs", { viewport: "tablet" });
+  await findPositionLinks();
+
+  await tabIntoJobList();
+
+  expect(screen.getByRole("link", { name: /^Position 2/ })).toHaveFocus();
+});
+
+test("pins a job with an application", async () => {
+  const api = createFakeApi([jobFixture], [applicationFor(jobFixture)]);
+  renderApp(`/jobs/${jobFixture.id}`);
+
+  await userEvent.click(
+    within(await screen.findByRole("article")).getByRole("button", { name: "Pin" }),
+  );
+
+  await waitFor(() => expect(api.requestsWith("PUT")).toHaveLength(1));
+});
+
+test("shows an error when pinning a job fails", async () => {
+  const api = createFakeApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  const detail = await screen.findByRole("article");
+
+  api.failWith("PUT", 500);
+  await userEvent.click(within(detail).getByRole("button", { name: "Pin" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "The pin could not be saved. Please try again.",
+  );
+  expect(within(detail).getByRole("button", { name: "Pin" })).toBeInTheDocument();
 });
 
 test("applies for a job from its detail view", async () => {

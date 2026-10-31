@@ -1,4 +1,4 @@
-import { sql, type SQL } from "drizzle-orm";
+import { desc, sql, type SQL } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
@@ -9,8 +9,8 @@ const cursorSeparator = "|";
 const cursorSchema = z
   .base64url()
   .transform((cursor) => Buffer.from(cursor, "base64url").toString().split(cursorSeparator))
-  .pipe(z.tuple([z.iso.datetime({ precision: 6 }), z.uuid()]))
-  .transform(([createdAt, id]) => ({ createdAt, id }));
+  .pipe(z.tuple([z.enum(["pinned", "unpinned"]), z.iso.datetime({ precision: 6 }), z.uuid()]))
+  .transform(([pinned, createdAt, id]) => ({ pinned: pinned === "pinned", createdAt, id }));
 
 export const pageQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(maxPageSize).default(defaultPageSize),
@@ -21,7 +21,13 @@ type Cursor = z.infer<typeof cursorSchema>;
 
 interface PageColumns {
   id: PgColumn;
+  pinned: PgColumn;
   createdAt: PgColumn;
+}
+
+// Pinned entries come first, then the newest.
+export function pageOrder({ id, pinned, createdAt }: PageColumns) {
+  return [desc(pinned), desc(createdAt), desc(id)];
 }
 
 // The cursor keeps the full microsecond precision of Postgres, which a JavaScript Date would lose.
@@ -29,13 +35,14 @@ export function cursorCreatedAt({ createdAt }: PageColumns) {
   return sql<string>`to_char(${createdAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
 }
 
-export function afterCursor({ id, createdAt }: PageColumns, cursor: Cursor | undefined) {
+export function afterCursor({ id, pinned, createdAt }: PageColumns, cursor: Cursor | undefined) {
   if (!cursor) return undefined;
-  return sql`(${createdAt}, ${id}) < (${cursor.createdAt}::timestamptz, ${cursor.id}::uuid)` as SQL;
+  return sql`(${pinned}, ${createdAt}, ${id}) < (${cursor.pinned}, ${cursor.createdAt}::timestamptz, ${cursor.id}::uuid)` as SQL;
 }
 
 interface PageRow {
   id: string;
+  pinned: boolean;
   createdAt: Date;
   cursorCreatedAt: string;
 }
@@ -49,11 +56,12 @@ export function toPage<Row extends PageRow>(rows: Row[], limit: number) {
       ...row,
       createdAt: createdAt.toISOString(),
     })),
-    nextCursor:
-      rows.length > limit && lastRow ? encodeCursor(lastRow.cursorCreatedAt, lastRow.id) : null,
+    nextCursor: rows.length > limit && lastRow ? encodeCursor(lastRow) : null,
   };
 }
 
-function encodeCursor(createdAt: string, id: string) {
-  return Buffer.from(`${createdAt}${cursorSeparator}${id}`).toString("base64url");
+function encodeCursor({ pinned, cursorCreatedAt, id }: PageRow) {
+  return Buffer.from(
+    [pinned ? "pinned" : "unpinned", cursorCreatedAt, id].join(cursorSeparator),
+  ).toString("base64url");
 }

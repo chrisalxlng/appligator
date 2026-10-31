@@ -5,6 +5,7 @@ import {
   type ApplicationCreate,
   type ApplicationInput,
   type Job,
+  type PinInput,
   type JobInput,
 } from "@appligator/shared";
 import { vi } from "vite-plus/test";
@@ -12,7 +13,7 @@ import { vi } from "vite-plus/test";
 interface RecordedRequest {
   method: string;
   path: string;
-  body?: JobInput & ApplicationInput & ApplicationCreate;
+  body?: JobInput & ApplicationInput & ApplicationCreate & PinInput;
 }
 
 export const jobFixture: Job = {
@@ -43,6 +44,7 @@ export const jobFixture: Job = {
   applicationDeadline: "2026-12-31",
   status: "open",
   isNew: false,
+  pinned: false,
   application: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -82,6 +84,10 @@ function json(data: unknown, status = 200) {
   return Response.json(data, { status });
 }
 
+function pinnedFirst<Item extends { pinned: boolean }>(items: Item[]) {
+  return items.toSorted((a, b) => Number(b.pinned) - Number(a.pinned));
+}
+
 function page<Item extends { id: string }>(items: Item[], cursor: string | null, limit: number) {
   const start = cursor ? items.findIndex((item) => item.id === cursor) + 1 : 0;
   const pageItems = items.slice(start, start + limit);
@@ -119,19 +125,20 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
   function listJobs(searchParams: URLSearchParams) {
     const status = searchParams.get("status");
     const search = searchParams.get("search")?.toLowerCase() ?? "";
-    const matches = jobs
+    const matches = pinnedFirst(jobs)
       .map(withStatus)
       .filter((job) => !status || job.status === status)
       .filter((job) => `${job.company} ${job.position}`.toLowerCase().includes(search));
     const limit = Number(searchParams.get("limit") ?? fakePageSize);
     const { pageItems, nextCursor } = page(matches, searchParams.get("cursor"), limit);
     return {
-      items: pageItems.map(({ id, company, position, status, isNew, createdAt }) => ({
+      items: pageItems.map(({ id, company, position, status, isNew, pinned, createdAt }) => ({
         id,
         company,
         position,
         status,
         isNew,
+        pinned,
         createdAt,
       })),
       nextCursor,
@@ -140,14 +147,17 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
 
   function listApplications(searchParams: URLSearchParams) {
     const status = searchParams.get("status");
-    const matches = applications.filter((application) => !status || application.status === status);
+    const matches = pinnedFirst(applications).filter(
+      (application) => !status || application.status === status,
+    );
     const { pageItems, nextCursor } = page(matches, searchParams.get("cursor"), fakePageSize);
     return {
-      items: pageItems.map(({ id, company, position, status, createdAt }) => ({
+      items: pageItems.map(({ id, company, position, status, pinned, createdAt }) => ({
         id,
         company,
         position,
         status,
+        pinned,
         createdAt,
       })),
       nextCursor,
@@ -171,6 +181,7 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
         id: crypto.randomUUID(),
         status: "open",
         isNew: false,
+        pinned: false,
         application: null,
         createdAt: now,
         updatedAt: now,
@@ -183,8 +194,9 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
     const job = jobs.find((current) => current.id === id);
     if (!job) return json({ error: "Not Found" }, 404);
     if (method === "GET") return json(withStatus(job));
-    if (action === "view") {
-      jobs = jobs.map((current) => (current.id === id ? { ...current, isNew: false } : current));
+    if (action) {
+      const change = action === "view" ? { isNew: false } : { pinned: body!.pinned };
+      jobs = jobs.map((current) => (current.id === id ? { ...current, ...change } : current));
       return new Response(null, { status: 204 });
     }
     if (withStatus(job).application) return json({ error: "applied" }, 409);
@@ -222,10 +234,16 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
       return json(created, 201);
     }
 
-    const id = pathname.match(/^\/applications\/(.+)$/)?.[1];
+    const [, id, action] = pathname.match(/^\/applications\/([^/]+)(?:\/(.+))?$/) ?? [];
     const application = applications.find((current) => current.id === id);
     if (!application) return json({ error: "Not Found" }, 404);
     if (method === "GET") return json(application);
+    if (action === "pin") {
+      applications = applications.map((current) =>
+        current.id === id ? { ...current, pinned: body!.pinned } : current,
+      );
+      return new Response(null, { status: 204 });
+    }
     if (method === "PUT") {
       const updated = { ...application, ...body!, updatedAt: now };
       applications = applications.map((current) => (current.id === id ? updated : current));

@@ -92,6 +92,7 @@ test("POST /applications applies to a job with its details", async () => {
     id: expect.any(String),
     status: "applied",
     appliedAt: "2026-10-30",
+    pinned: false,
     job: { id: job.id, position: "Lead Developer Frontend" },
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
@@ -133,11 +134,12 @@ test("GET /applications lists only the user's applications, newest first", async
   const response = await request("GET", "/applications");
 
   expect(response.json()).toEqual({
-    items: [newer, older].map(({ id, company, position, status, createdAt }) => ({
+    items: [newer, older].map(({ id, company, position, status, pinned, createdAt }) => ({
       id,
       company,
       position,
       status,
+      pinned,
       createdAt,
     })),
     nextCursor: null,
@@ -175,6 +177,43 @@ test("GET /applications/status-counts counts the user's applications by status",
 
 test("GET /applications/status-counts has no statuses without applications", async () => {
   expect((await request("GET", "/applications/status-counts")).json()).toEqual([]);
+});
+
+async function pin(id: string, pinned = true) {
+  return request("PUT", `/applications/${id}/pin`, { body: { pinned } });
+}
+
+test("PUT /applications/:id/pin pins and unpins the application", async () => {
+  const application = await createApplication();
+
+  expect((await pin(application.id)).statusCode).toBe(204);
+  expect((await request("GET", `/applications/${application.id}`)).json()).toMatchObject({
+    pinned: true,
+  });
+
+  await pin(application.id, false);
+  expect((await request("GET", `/applications/${application.id}`)).json()).toMatchObject({
+    pinned: false,
+  });
+});
+
+test("GET /applications lists the pinned applications first", async () => {
+  const older = await createApplication();
+  const newer = await createApplication();
+  await pin(older.id);
+
+  const { items } = (await request("GET", "/applications")).json();
+
+  expect(items.map(({ id }: { id: string }) => id)).toEqual([older.id, newer.id]);
+});
+
+test("POST /applications takes over the pin of the job", async () => {
+  const job = await createJob();
+  await request("PUT", `/jobs/${job.id}/pin`, { body: { pinned: true } });
+
+  const response = await apply(job.id);
+
+  expect(response.json()).toMatchObject({ pinned: true });
 });
 
 test("GET /applications/:id returns the application", async () => {
@@ -226,15 +265,16 @@ test("DELETE /applications/:id deletes the application and reopens the job", asy
 });
 
 test.each([
-  ["GET", undefined],
-  ["PUT", changedInput],
-  ["DELETE", undefined],
+  ["GET", "", undefined],
+  ["PUT", "", changedInput],
+  ["DELETE", "", undefined],
+  ["PUT", "/pin", { pinned: true }],
 ] as const)(
-  "%s /applications/:id does not reveal applications of other users",
-  async (method, body) => {
+  "%s /applications/:id%s does not reveal applications of other users",
+  async (method, path, body) => {
     const application = await createApplication("other-user");
 
-    const response = await request(method, `/applications/${application.id}`, { body });
+    const response = await request(method, `/applications/${application.id}${path}`, { body });
 
     expect(response.statusCode).toBe(404);
     expect(

@@ -1,5 +1,60 @@
 .container {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+  color: var(--text-secondary);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+}
+
+.sectionTitle {
+  font: inherit;
+}
+
+.sectionCount {
+  padding: 0 var(--spacing-1-5);
+  border-radius: var(--radius-full);
+  background: var(--fill);
+}
+
+.sectionToggle {
+  margin-left: auto;
+  padding: var(--spacing-0-5) var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--active-text-secondary);
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
 }
 
 /* Covers the end of the list, so the next jobs load while the last ones scroll into view. */
