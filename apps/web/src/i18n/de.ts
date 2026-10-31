@@ -411,6 +411,20 @@ export const de: Translations = {
         cancel: "Abbrechen",
         error: "Der KI-Zugang konnte nicht gelöscht werden. Bitte versuche es erneut.",
       },
+      verify: {
+        action: "Verbindung prüfen",
+        errors: {
+          apiKeyRequired:
+            "Der gespeicherte Schlüssel ist nicht mehr nutzbar. Bitte gib ihn erneut an.",
+          accessRejected:
+            "Der Anbieter hat den Schlüssel oder das Modell abgelehnt. Bitte aktualisiere den KI-Zugang.",
+          rateLimited:
+            "Dein Schlüssel hat sein Limit erreicht. Prüfe Guthaben und Limits beim Anbieter.",
+          providerUnavailable:
+            "Der Anbieter ist gerade nicht erreichbar. Bitte versuche es später erneut.",
+          verifyFailed: "Die Verbindung konnte nicht geprüft werden. Bitte versuche es erneut.",
+        },
+      },
     },
     language: {
       title: "KI-Sprache bearbeiten",
@@ -427,6 +441,7 @@ export const de: Translations = {
       added: "KI-Zugang hinzugefügt",
       updated: "KI-Zugang aktualisiert",
       deleted: "KI-Zugang gelöscht",
+      verified: "Verbindung funktioniert",
       languageUpdated: "KI-Sprache aktualisiert",
     },
   },
