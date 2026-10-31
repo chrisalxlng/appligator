@@ -6,17 +6,18 @@ import styles from "./control.module.css";
 export type DateInputProps = {
   value: string;
   onValueChange: (value: string) => void;
+  withTime?: boolean;
   "aria-label"?: string;
 } & ClearableProps;
 
 export function DateInput(props: DateInputProps) {
-  const { value, onValueChange, "aria-label": ariaLabel } = props;
+  const { value, onValueChange, withTime = false, "aria-label": ariaLabel } = props;
   const inputRef = useRef<HTMLInputElement>(null);
 
   const input = (
     <Input
       ref={inputRef}
-      type="date"
+      type={withTime ? "datetime-local" : "date"}
       className={styles.singleLine}
       value={value}
       onValueChange={onValueChange}

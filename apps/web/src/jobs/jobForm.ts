@@ -41,7 +41,7 @@ export function toFormValues(job?: Job): JobFormValues {
   };
 }
 
-function parseLink(value: string) {
+export function parseLink(value: string) {
   const link = value.trim();
   if (!link) return null;
 

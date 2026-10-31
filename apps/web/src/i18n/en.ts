@@ -151,7 +151,11 @@ export const en = {
       update: "Update",
       saveError: "The application could not be saved. Please try again.",
     },
-    createError: "The application could not be created. Please try again.",
+    applyForm: {
+      title: "Apply",
+      job: "Job",
+      submit: "Apply",
+    },
     picker: {
       title: "Select job",
       search: "Search jobs",
@@ -180,6 +184,135 @@ export const en = {
       confirm: "Delete",
       cancel: "Cancel",
       error: "The application could not be deleted. Please try again.",
+    },
+  },
+  activities: {
+    title: "Activities",
+    add: "Add activity",
+    edit: "{{date}}: Edit {{type}}",
+    loading: "Loading activities …",
+    loadError: {
+      title: "Activities could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    empty: "No activities yet.",
+    picker: {
+      showMore: "Show more",
+      showLess: "Show less",
+    },
+    types: {
+      applicationSubmitted: {
+        label: "Application submitted",
+        description: "You successfully submitted your application to the company.",
+      },
+      receiptConfirmed: {
+        label: "Receipt confirmed",
+        description: "The company officially confirmed that it received your documents.",
+      },
+      interviewScheduled: {
+        label: "Interview scheduled",
+        description: "An appointment for the interview was arranged.",
+      },
+      interviewHeld: {
+        label: "Interview held",
+        description: "The interview took place.",
+      },
+      taskReceived: {
+        label: "Task received",
+        description: "You received a task.",
+      },
+      taskSubmitted: {
+        label: "Task submitted",
+        description: "You handed in your completed task.",
+      },
+      documentsRequested: {
+        label: "Documents requested",
+        description: "The company requested further documents.",
+      },
+      documentsSubmitted: {
+        label: "Documents submitted",
+        description: "You sent the requested documents to the company.",
+      },
+      statusInquired: {
+        label: "Status inquired",
+        description: "You asked the company about the current state of your application.",
+      },
+      offerReceived: {
+        label: "Offer received",
+        description: "You received a concrete contract offer from the company.",
+      },
+      counterOfferSubmitted: {
+        label: "Counteroffer submitted",
+        description: "You started negotiating the terms and are waiting for a response.",
+      },
+      offerAccepted: {
+        label: "Offer accepted",
+        description: "You accepted the offer. The application process ends.",
+      },
+      offerDeclined: {
+        label: "Offer declined",
+        description: "You declined the offer. The application process ends.",
+      },
+      rejectionReceived: {
+        label: "Rejection received",
+        description: "The company decided against working with you. The application process ends.",
+      },
+      applicationWithdrawn: {
+        label: "Application withdrawn",
+        description: "You actively withdrew your application.",
+      },
+      applicationPaused: {
+        label: "Application paused",
+        description: "The application process was suspended for the time being.",
+      },
+      other: {
+        label: "Other activity",
+        description: "Something else happened in the course of the application.",
+      },
+    },
+    properties: {
+      position: "Position",
+      appointmentAt: "Appointment",
+      dueDate: "Due date",
+      responseDeadline: "Response deadline",
+    },
+    form: {
+      addTitle: "Add activity",
+      occurredAt: "Time",
+      appointmentAt: "Appointment",
+      dueDate: "Due date",
+      responseDeadline: "Response deadline",
+      terms: "Terms",
+      addTerms: "Add terms",
+      add: "Add",
+      update: "Update",
+      saveError: "The activity could not be saved. Please try again.",
+    },
+    attachments: {
+      legend: "Attachments",
+      add: "Add",
+      addLink: "Add link",
+      editLink: "Edit link",
+      url: "Link",
+      title: "Title",
+      remove: "Remove {{title}}",
+      errors: {
+        urlInvalid: "Please enter a valid link.",
+        tooLong: "This title is too long. Please shorten it.",
+      },
+    },
+    toast: {
+      added: "Activity added",
+      updated: "Activity updated",
+      deleted: "Activity deleted",
+    },
+    delete: {
+      action: "Delete",
+      title: "Delete activity?",
+      description: "“{{type}}” from {{date}} will be deleted permanently.",
+      confirm: "Delete",
+      cancel: "Cancel",
+      error: "The activity could not be deleted. Please try again.",
     },
   },
   sections: {
@@ -322,6 +455,7 @@ export const en = {
       positionRequired: "Please enter a position.",
       tooLong: "This text is too long. Please shorten it.",
       linkInvalid: "Please enter a valid link.",
+      dateRequired: "Please enter a date.",
       salaryIncomplete: "Please enter currency, amount and period.",
       salaryRange: "The minimum must not exceed the maximum.",
       salaryTooHigh: "This amount is too high.",

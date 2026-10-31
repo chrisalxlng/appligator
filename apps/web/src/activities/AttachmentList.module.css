@@ -1,0 +1,17 @@
+.attachment {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding-block: var(--spacing-3);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.meta {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+}

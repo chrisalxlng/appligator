@@ -7,10 +7,11 @@ import {
   applicationStatuses,
   pinInputSchema,
 } from "@appligator/shared";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { applications, jobs } from "../db/schema.ts";
+import { activities, applications, jobs } from "../db/schema.ts";
+import { toActivityColumns } from "./activityRows.ts";
 import { notFoundSchema } from "./notFound.ts";
 import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
@@ -27,12 +28,23 @@ const applicationListQuerySchema = pageQuerySchema.extend({
 
 const alreadyAppliedSchema = z.object({ error: z.literal("alreadyApplied") });
 
-function toApplication(
-  { userId: _userId, jobId, createdAt, updatedAt, ...row }: ApplicationRow,
-  job: { position: string },
-) {
+const appliedAt = sql<Date | null>`(
+  select min(${activities.occurredAt}) from ${activities}
+  where ${activities.applicationId} = ${applications.id}
+    and ${activities.type} = 'applicationSubmitted'
+)`.mapWith(activities.occurredAt);
+
+interface ApplicationResult {
+  application: ApplicationRow;
+  job: { position: string };
+  appliedAt: Date | null;
+}
+
+function toApplication({ application, job, appliedAt }: ApplicationResult) {
+  const { userId: _userId, jobId, createdAt, updatedAt, ...row } = application;
   return {
     ...fromSalaryColumns(row),
+    appliedAt: appliedAt?.toISOString() ?? null,
     job: { id: jobId, position: job.position },
     createdAt: createdAt.toISOString(),
     updatedAt: updatedAt.toISOString(),
@@ -60,7 +72,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
 
   async function findApplication(id: string, userId: string) {
     const [result] = await app.db
-      .select({ application: applications, job: { position: jobs.position } })
+      .select({ application: applications, job: { position: jobs.position }, appliedAt })
       .from(applications)
       .innerJoin(jobs, eq(jobs.id, applications.jobId))
       .where(ownApplication(id, userId));
@@ -128,7 +140,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
       const result = await findApplication(request.params.id, request.userId);
 
       if (!result) return reply.code(404).send({ error: "Not Found" });
-      return toApplication(result.application, result.job);
+      return toApplication(result);
     },
   );
 
@@ -141,7 +153,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request, reply) => {
-      const { jobId, appliedAt } = request.body;
+      const { jobId, activity } = request.body;
       const [job] = await app.db
         .select()
         .from(jobs)
@@ -154,18 +166,18 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
         .where(eq(applications.jobId, jobId));
       if (existing) return reply.code(409).send({ error: "alreadyApplied" });
 
-      const [row] = await app.db
-        .insert(applications)
-        .values({
-          ...jobDetailColumns(job),
-          userId: request.userId,
-          jobId,
-          status: "applied",
-          appliedAt,
-        })
-        .returning();
+      const { id } = await app.db.transaction(async (tx) => {
+        const [row] = await tx
+          .insert(applications)
+          .values({ ...jobDetailColumns(job), userId: request.userId, jobId, status: "applied" })
+          .returning({ id: applications.id });
+        await tx
+          .insert(activities)
+          .values({ ...toActivityColumns(activity), applicationId: row!.id });
+        return row!;
+      });
 
-      return reply.code(201).send(toApplication(row!, job));
+      return reply.code(201).send(toApplication((await findApplication(id, request.userId))!));
     },
   );
 
@@ -204,14 +216,10 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
         .update(applications)
         .set({ ...toSalaryColumns(request.body), updatedAt: new Date() })
         .where(ownApplication(request.params.id, request.userId))
-        .returning();
+        .returning({ id: applications.id });
       if (!row) return reply.code(404).send({ error: "Not Found" });
 
-      const [job] = await app.db
-        .select({ position: jobs.position })
-        .from(jobs)
-        .where(eq(jobs.id, row.jobId));
-      return toApplication(row, job!);
+      return toApplication((await findApplication(row.id, request.userId))!);
     },
   );
 

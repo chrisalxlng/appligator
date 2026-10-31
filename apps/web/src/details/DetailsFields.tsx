@@ -11,12 +11,11 @@ import {
   workingHoursPeriods,
   workModels,
 } from "@appligator/shared";
-import { DateInput, Field, Fieldset, NumberInput, RichTextEditor, Select } from "@appligator/ui";
+import { DateInput, Field, Fieldset, NumberInput, Select } from "@appligator/ui";
 import { useTranslation } from "react-i18next";
 import type { DetailsFormErrors, DetailsFormValues } from "./detailsForm.ts";
 import styles from "./form.module.css";
 import { TextList } from "./TextList.tsx";
-import { useFormatLabels } from "./useFormatLabels.ts";
 
 function unitFormat(unit: string, unitDisplay: "short" | "long" = "short") {
   return { style: "unit", unit, unitDisplay } as const;
@@ -35,7 +34,6 @@ export function DetailsFields({ values, onChange, errorFor }: DetailsFieldsProps
     return (value: DetailsFormValues[Key]) =>
       onChange({ [key]: value } as Pick<DetailsFormValues, Key>);
   }
-  const formatLabels = useFormatLabels();
   const selectPlaceholder = t("fields.selectPlaceholder");
   const clearLabel = t("fields.clear");
 
@@ -301,13 +299,6 @@ export function DetailsFields({ values, onChange, errorFor }: DetailsFieldsProps
           clearLabel={clearLabel}
         />
       </Fieldset>
-      <Field label={t("fields.notes")} error={errorFor("notes")}>
-        <RichTextEditor
-          value={values.notes}
-          onValueChange={setValue("notes")}
-          formatLabels={formatLabels}
-        />
-      </Field>
     </>
   );
 }

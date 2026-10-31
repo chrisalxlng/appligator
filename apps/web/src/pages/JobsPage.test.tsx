@@ -774,10 +774,6 @@ test("hides shortcut hints on touch devices", async () => {
   expect(within(drawer).getByRole("button", { name: "Add" }).textContent).toBe("Add");
 });
 
-function todayIsoDate() {
-  return new Date().toLocaleDateString("sv-SE");
-}
-
 test("shows the status of the jobs and filters them by status", async () => {
   const openJob = jobWith({ id: crypto.randomUUID(), position: "Open Developer" });
   createFakeApi([jobFixture, olderJob, openJob], [applicationFor(jobFixture)]);
@@ -928,7 +924,7 @@ test("shows an error when pinning a job fails", async () => {
   expect(within(detail).getByRole("button", { name: "Pin" })).toBeInTheDocument();
 });
 
-test("applies for a job from its detail view", async () => {
+test("applies for a job from its detail view with the time and notes of the submission", async () => {
   const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
   const detail = await screen.findByRole("article");
@@ -937,11 +933,26 @@ test("applies for a job from its detail view", async () => {
   expect(property("Status")).toHaveTextContent("Open");
 
   await userEvent.click(within(detail).getByRole("button", { name: "Apply" }));
+  const drawer = await screen.findByRole("dialog", { name: "Apply" });
+  expect(drawer).toHaveTextContent("JobLead Developer FrontendRandstad Digital Germany AG");
+  const time = within(drawer).getByLabelText("Time");
+  await userEvent.clear(time);
+  await userEvent.type(time, "2026-10-17T08:30");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Apply" }));
 
   expect(await screen.findByText("Application created")).toBeInTheDocument();
   expect(api.requestsWith("POST")[0]?.body).toEqual({
     jobId: jobFixture.id,
-    appliedAt: todayIsoDate(),
+    activity: {
+      type: "applicationSubmitted",
+      occurredAt: new Date("2026-10-17T08:30").toISOString(),
+      terms: null,
+      appointmentAt: null,
+      dueDate: null,
+      responseDeadline: null,
+      notes: "",
+      attachments: [],
+    },
   });
   await waitFor(() => expect(property("Status")).toHaveTextContent("Applied"));
   expect(within(detail).getByRole("link", { name: /Lead Developer Frontend/ })).toHaveTextContent(
@@ -956,9 +967,11 @@ test("shows an error when applying fails", async () => {
   renderApp(`/jobs/${jobFixture.id}`);
 
   await userEvent.click(await screen.findByRole("button", { name: "Apply" }));
+  const drawer = await screen.findByRole("dialog", { name: "Apply" });
+  await userEvent.click(within(drawer).getByRole("button", { name: "Apply" }));
 
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "The application could not be created. Please try again.",
+  expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+    "The activity could not be saved. Please try again.",
   );
 });
 

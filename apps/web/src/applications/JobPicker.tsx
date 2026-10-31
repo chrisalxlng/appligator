@@ -1,5 +1,5 @@
 import type { JobListItem } from "@appligator/shared";
-import { Button, Drawer, Popover, SearchList, Spinner, useSuccessToast } from "@appligator/ui";
+import { Button, Drawer, Popover, SearchList, Spinner } from "@appligator/ui";
 import { IconPlayerPlay } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useDeferredValue, useRef, useState, type RefObject } from "react";
@@ -11,7 +11,7 @@ import { useIsDesktop } from "../shell/useMediaQuery.ts";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
-import { useApply } from "./applicationQueries.ts";
+import { ApplyDrawer } from "./ApplyDrawer.tsx";
 import styles from "./JobPicker.module.css";
 
 export function JobPicker() {
@@ -21,57 +21,47 @@ export function JobPicker() {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const apply = useApply();
-  const showSuccess = useSuccessToast();
+  const [apply, setApply] = useState<{ job: JobListItem | null; open: boolean }>({
+    job: null,
+    open: false,
+  });
   const shortcutHints = useShortcutHints();
-  useAltShortcut("N", () => changeOpen(true));
-
-  function changeOpen(nextOpen: boolean) {
-    if (nextOpen) apply.reset();
-    setOpen(nextOpen);
-  }
+  useAltShortcut("N", () => setOpen(true));
 
   function select(job: JobListItem) {
-    if (apply.isPending) return;
-    apply.mutate(job.id, {
-      onSuccess: (application) => {
-        setOpen(false);
-        showSuccess(t("applications.toast.created"));
-        void navigate({
-          to: "/applications/$applicationId",
-          params: { applicationId: application.id },
-        });
-      },
-    });
+    setOpen(false);
+    setApply({ job, open: true });
   }
 
   const popupProps = {
     title: t("applications.picker.title"),
     closeLabel: t("common.close"),
     open,
-    onOpenChange: changeOpen,
+    onOpenChange: setOpen,
     initialFocus: inputRef,
-    children: (
-      <>
-        <JobSearch inputRef={inputRef} onSelect={select} />
-        {apply.isError && (
-          <p role="alert" className={styles.error}>
-            {t("applications.createError")}
-          </p>
-        )}
-      </>
-    ),
+    children: <JobSearch inputRef={inputRef} onSelect={select} />,
   };
 
   return (
     <>
       <ShortcutTooltip hint={shortcutHints?.alt("N")}>
-        <Button ref={buttonRef} onClick={() => changeOpen(true)} aria-keyshortcuts="Alt+N">
+        <Button ref={buttonRef} onClick={() => setOpen(true)} aria-keyshortcuts="Alt+N">
           <IconPlayerPlay size={20} stroke={2.4} aria-hidden />
           {t("applications.apply")}
         </Button>
       </ShortcutTooltip>
       {isDesktop ? <Popover anchor={buttonRef} {...popupProps} /> : <Drawer {...popupProps} />}
+      <ApplyDrawer
+        job={apply.job}
+        open={apply.open}
+        onOpenChange={(nextOpen) => setApply((current) => ({ ...current, open: nextOpen }))}
+        onApplied={(application) =>
+          void navigate({
+            to: "/applications/$applicationId",
+            params: { applicationId: application.id },
+          })
+        }
+      />
     </>
   );
 }

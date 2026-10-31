@@ -43,6 +43,13 @@
       "when": 1793449998141,
       "tag": "0005_add_pins",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793453943299,
+      "tag": "0006_create_activities",
+      "breakpoints": true
     }
   ]
 }

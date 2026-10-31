@@ -88,7 +88,19 @@ async function createJob(input: JobInput = jobInput, userId?: string) {
 
 async function applyTo(jobId: string) {
   const response = await request("POST", "/applications", {
-    body: { jobId, appliedAt: "2026-10-30" },
+    body: {
+      jobId,
+      activity: {
+        type: "applicationSubmitted",
+        occurredAt: "2026-10-30T09:15:00.000Z",
+        terms: null,
+        appointmentAt: null,
+        dueDate: null,
+        responseDeadline: null,
+        notes: "",
+        attachments: [],
+      },
+    },
   });
   return response.json();
 }

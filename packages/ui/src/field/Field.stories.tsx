@@ -45,6 +45,20 @@ export const Date: Story = {
   render: () => <DeadlineField />,
 };
 
+function AppointmentField() {
+  const [appointment, setAppointment] = useState("2026-11-09T10:30");
+
+  return (
+    <Field label="Appointment">
+      <DateInput value={appointment} onValueChange={setAppointment} withTime />
+    </Field>
+  );
+}
+
+export const DateTime: Story = {
+  render: () => <AppointmentField />,
+};
+
 function SalaryFieldset() {
   const [currency, setCurrency] = useState<string | null>("EUR");
   const [min, setMin] = useState<number | null>(65_000);

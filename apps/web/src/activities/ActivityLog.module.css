@@ -1,0 +1,165 @@
+.empty {
+  color: var(--text-secondary);
+}
+
+.log {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  --dot-size: 9px;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: 0 0 var(--spacing-8) var(--spacing-6);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 0;
+    box-sizing: border-box;
+    width: var(--dot-size);
+    height: var(--dot-size);
+    border: var(--border-width-m) solid var(--text-secondary);
+    border-radius: var(--radius-full);
+    background: var(--background);
+  }
+
+  &:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: calc(7px + var(--dot-size) + var(--spacing-1));
+    bottom: calc(-7px + var(--spacing-1));
+    left: calc(var(--dot-size) / 2 - var(--border-width-s) / 2);
+    width: var(--border-width-s);
+    background: var(--separator);
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.latest::before {
+  background: var(--text-secondary);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.title {
+  margin: 0;
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+}
+
+.edit {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-0-5) var(--spacing-1);
+  border: none;
+  border-radius: var(--radius-m);
+  background: none;
+  color: var(--text-secondary);
+  font: var(--font-label-s);
+  letter-spacing: var(--tracking-label-s);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.properties {
+  padding: var(--spacing-5) var(--spacing-4);
+  border-radius: var(--radius-m);
+  background: var(--fill);
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attachment {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  max-width: 100%;
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-3);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  color: var(--text-primary);
+  text-decoration: none;
+
+  & svg {
+    flex-shrink: 0;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.attachmentText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.attachmentTitle,
+.attachmentMeta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentTitle {
+  font: var(--font-body-s);
+}
+
+.attachmentMeta {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+}

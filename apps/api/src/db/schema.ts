@@ -1,4 +1,5 @@
 import {
+  activityTypes,
   aiLanguages,
   aiProviders,
   applicationStatuses,
@@ -7,6 +8,8 @@ import {
   employmentTypes,
   salaryPeriods,
   workModels,
+  type ActivityTerms,
+  type Attachment,
   type ContractTerm,
   type NoticePeriod,
   type WorkingHours,
@@ -32,6 +35,7 @@ export const salaryPeriodEnum = pgEnum("salary_period", salaryPeriods);
 export const workModelEnum = pgEnum("work_model", workModels);
 export const employmentTypeEnum = pgEnum("employment_type", employmentTypes);
 export const applicationStatusEnum = pgEnum("application_status", applicationStatuses);
+export const activityTypeEnum = pgEnum("activity_type", activityTypes);
 export const aiProviderEnum = pgEnum("ai_provider", aiProviders);
 export const aiLanguageEnum = pgEnum("ai_language", aiLanguages);
 
@@ -97,7 +101,6 @@ export const applications = pgTable(
       .unique()
       .references(() => jobs.id, { onDelete: "restrict" }),
     status: applicationStatusEnum().notNull(),
-    appliedAt: date().notNull(),
     pinned: boolean().notNull().default(false),
     company: text().notNull(),
     position: text().notNull(),
@@ -106,6 +109,30 @@ export const applications = pgTable(
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index().on(table.userId, table.createdAt)],
+);
+
+export const activities = pgTable(
+  "activities",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    applicationId: uuid()
+      .notNull()
+      .references(() => applications.id, { onDelete: "cascade" }),
+    type: activityTypeEnum().notNull(),
+    occurredAt: timestamp({ withTimezone: true }).notNull(),
+    terms: jsonb().$type<ActivityTerms>(),
+    appointmentAt: timestamp({ withTimezone: true }),
+    dueDate: date(),
+    responseDeadline: date(),
+    notes: text().notNull().default(""),
+    attachments: jsonb()
+      .$type<Attachment[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index().on(table.applicationId, table.occurredAt)],
 );
 
 export const aiSettings = pgTable("ai_settings", {

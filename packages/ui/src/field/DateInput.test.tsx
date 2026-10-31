@@ -40,3 +40,11 @@ test("is not clearable by default", () => {
 
   expect(screen.queryByRole("button", { name: "Clear" })).not.toBeInTheDocument();
 });
+
+test("takes a time along with the date", () => {
+  render(
+    <DateInput aria-label="Time" value="2026-11-09T10:30" onValueChange={() => {}} withTime />,
+  );
+
+  expect(screen.getByLabelText("Time")).toHaveValue("2026-11-09T10:30");
+});

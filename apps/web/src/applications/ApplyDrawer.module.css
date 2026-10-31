@@ -1,0 +1,13 @@
+.job {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-3);
+  border: var(--border-width-s) solid var(--separator);
+  border-radius: var(--radius-m);
+  background: var(--fill);
+}
+
+.company {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+}

@@ -90,6 +90,12 @@ test("offers the open jobs, newest first, with the first one highlighted", async
   expect(options[0]).toHaveAttribute("data-highlighted");
 });
 
+async function submitApplication() {
+  const drawer = await screen.findByRole("dialog", { name: "Apply" });
+  await userEvent.click(within(drawer).getByRole("button", { name: "Apply" }));
+  return drawer;
+}
+
 test("applies for the highlighted job with Enter and opens the application", async () => {
   const api = createFakeApi([jobFixture, olderJob, oldestJob]);
   const router = renderApp("/applications");
@@ -97,6 +103,10 @@ test("applies for the highlighted job with Enter and opens the application", asy
   await within(picker).findAllByRole("option");
 
   await userEvent.keyboard("{ArrowDown}{Enter}");
+  expect(await screen.findByRole("dialog", { name: "Apply" })).toHaveTextContent(
+    "JobFrontend DeveloperInitech GmbH",
+  );
+  await submitApplication();
 
   expect(await screen.findByText("Application created")).toBeInTheDocument();
   expect(api.requestsWith("POST")[0]?.body).toMatchObject({ jobId: olderJob.id });
@@ -143,15 +153,17 @@ test("explains when there are no open jobs", async () => {
   expect(within(picker).queryByRole("option")).not.toBeInTheDocument();
 });
 
-test("keeps the picker open and shows an error when applying fails", async () => {
+test("keeps the apply drawer open and shows an error when applying fails", async () => {
   const api = createFakeApi([olderJob]);
   api.failWith("POST", 500);
   renderApp("/applications");
   const picker = await openPicker();
   await userEvent.click(await within(picker).findByRole("option", { name: /Frontend Developer/ }));
 
-  expect(await within(picker).findByRole("alert")).toHaveTextContent(
-    "The application could not be created. Please try again.",
+  const drawer = await submitApplication();
+
+  expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+    "The activity could not be saved. Please try again.",
   );
 });
 
@@ -237,6 +249,7 @@ test("takes over the pin of the job when applying", async () => {
 
   const picker = await openPicker();
   await userEvent.click(within(picker).getByRole("option", { name: /Lead Developer Frontend/ }));
+  await submitApplication();
 
   const pinned = await screen.findByRole("region", { name: "Pinned" });
   expect(within(pinned).getByRole("link", { name: /Applied$/ })).toHaveTextContent(

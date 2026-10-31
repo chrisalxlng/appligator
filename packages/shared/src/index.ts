@@ -1,4 +1,17 @@
 export {
+  activityInputSchema,
+  activityLimits,
+  activityListSchema,
+  activitySchema,
+  activityTypeFields,
+  activityTypes,
+  type Activity,
+  type ActivityInput,
+  type ActivityTerms,
+  type ActivityType,
+  type Attachment,
+} from "./activity.ts";
+export {
   aiErrorCodes,
   aiErrorSchema,
   aiLanguages,

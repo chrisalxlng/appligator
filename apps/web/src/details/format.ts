@@ -11,8 +11,16 @@ export function daysAgo(isoDateTime: string, now = new Date()) {
   return Math.round(difference / millisecondsPerDay);
 }
 
-export function formatDate(isoDateTime: string, locale: string) {
-  return new Date(isoDateTime).toLocaleDateString(locale, { dateStyle: "medium" });
+export function formatDate(
+  isoDateTime: string,
+  locale: string,
+  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "medium",
+) {
+  return new Date(isoDateTime).toLocaleDateString(locale, { dateStyle });
+}
+
+export function formatDateTime(isoDateTime: string, locale: string) {
+  return new Date(isoDateTime).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" });
 }
 
 export function formatIsoDate(isoDate: string, locale: string) {

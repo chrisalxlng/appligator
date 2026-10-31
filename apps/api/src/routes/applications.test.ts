@@ -1,4 +1,4 @@
-import type { ApplicationInput, JobInput } from "@appligator/shared";
+import type { ActivityInput, ApplicationInput, JobInput } from "@appligator/shared";
 import { beforeEach, expect, test } from "vite-plus/test";
 import { applications, jobs } from "../db/schema.ts";
 import { buildTestApp, signToken } from "../testAuth.ts";
@@ -50,6 +50,17 @@ const changedInput: ApplicationInput = {
   notes: "",
 };
 
+const submission: ActivityInput = {
+  type: "applicationSubmitted",
+  occurredAt: "2026-10-30T09:15:00.000Z",
+  terms: null,
+  appointmentAt: null,
+  dueDate: null,
+  responseDeadline: null,
+  notes: "<p>Sent via the career portal</p>",
+  attachments: [{ kind: "link", url: "https://join.com/applications/1", title: "Portal" }],
+};
+
 beforeEach(async () => {
   await db.delete(applications);
   await db.delete(jobs);
@@ -73,7 +84,7 @@ async function createJob(userId?: string, input: JobInput = jobInput) {
 }
 
 async function apply(jobId: string, userId?: string) {
-  return request("POST", "/applications", { body: { jobId, appliedAt: "2026-10-30" }, userId });
+  return request("POST", "/applications", { body: { jobId, activity: submission }, userId });
 }
 
 async function createApplication(userId?: string) {
@@ -81,22 +92,31 @@ async function createApplication(userId?: string) {
   return (await apply(job.id, userId)).json();
 }
 
-test("POST /applications applies to a job with its details", async () => {
+test("POST /applications applies to a job with its details and the submission", async () => {
   const job = await createJob();
 
   const response = await apply(job.id);
 
   expect(response.statusCode).toBe(201);
-  expect(response.json()).toEqual({
+  const application = response.json();
+  expect(application).toEqual({
     ...inheritedInput,
     id: expect.any(String),
     status: "applied",
-    appliedAt: "2026-10-30",
+    appliedAt: "2026-10-30T09:15:00.000Z",
     pinned: false,
     job: { id: job.id, position: "Lead Developer Frontend" },
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
   });
+  expect((await request("GET", `/applications/${application.id}/activities`)).json()).toEqual([
+    {
+      ...submission,
+      id: expect.any(String),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    },
+  ]);
 });
 
 test("POST /applications refuses a second application to the same job", async () => {
@@ -117,9 +137,15 @@ test("POST /applications does not apply to jobs of other users", async () => {
   expect(response.statusCode).toBe(404);
 });
 
+const unknownJobId = "00000000-0000-4000-8000-000000000000";
+
 test.each([
-  ["an invalid job id", { jobId: "not-a-uuid", appliedAt: "2026-10-30" }],
-  ["an invalid date", { jobId: "00000000-0000-4000-8000-000000000000", appliedAt: "30.10.2026" }],
+  ["an invalid job id", { jobId: "not-a-uuid", activity: submission }],
+  [
+    "an invalid date",
+    { jobId: unknownJobId, activity: { ...submission, occurredAt: "30.10.2026" } },
+  ],
+  ["no activity", { jobId: unknownJobId }],
 ])("POST /applications rejects %s", async (_, body) => {
   const response = await request("POST", "/applications", { body });
 
@@ -235,7 +261,7 @@ test("PUT /applications/:id changes the application but not the job", async () =
   expect(response.statusCode).toBe(200);
   expect(response.json()).toMatchObject({
     ...changedInput,
-    appliedAt: "2026-10-30",
+    appliedAt: "2026-10-30T09:15:00.000Z",
     job: { id: application.job.id, position: "Lead Developer Frontend" },
   });
   expect((await request("GET", `/jobs/${application.job.id}`)).json()).toMatchObject(jobInput);

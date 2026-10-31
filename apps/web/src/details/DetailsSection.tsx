@@ -24,13 +24,13 @@ import { useTranslation } from "react-i18next";
 import { Property, PropertyList, Section } from "../collection/DetailView.tsx";
 import { formatIsoDate, formatNumber, formatSalaryRange, formatUnit } from "./format.ts";
 
-interface Detail {
+export interface Detail {
   icon: Icon;
   label: string;
   value: ReactNode;
 }
 
-function useDetails(details: JobDetails): Detail[] {
+export function useDetails(details: JobDetails | null): Detail[] {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
 
@@ -55,6 +55,8 @@ function useDetails(details: JobDetails): Detail[] {
       ? t(`details.noticePeriodEndOf.${noticePeriod.endOf}`, { duration })
       : duration;
   }
+
+  if (!details) return [];
 
   const commute = [
     details.commuteDistance !== null && formatUnit(details.commuteDistance, "kilometer", locale),
