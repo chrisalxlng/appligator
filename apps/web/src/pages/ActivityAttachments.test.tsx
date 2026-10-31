@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vite-plus/test";
+import { toLocalDateTime } from "../details/localDateTime.ts";
 import { activityWith, applicationFor, createFakeApi, jobFixture } from "../testing/fakeApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
 
@@ -151,7 +152,9 @@ test("imports an email from an .eml file in the email drawer", async () => {
   expect(within(drawer).getByRole("textbox", { name: "From" })).toHaveValue(
     "hr@randstad-digital.de",
   );
-  expect(within(drawer).getByLabelText("Sent")).toHaveValue("2026-10-30T10:00");
+  expect(within(drawer).getByLabelText("Sent")).toHaveValue(
+    toLocalDateTime("2026-10-30T09:00:00.000Z"),
+  );
 });
 
 test("adds dropped .eml files as emails and uploads other dropped files", async () => {
