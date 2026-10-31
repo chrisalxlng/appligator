@@ -1,4 +1,4 @@
-import { jobLimits } from "@appligator/shared";
+import { activityTermsSchema, jobLimits } from "@appligator/shared";
 import { act, cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, onTestFinished, test, vi } from "vite-plus/test";
@@ -935,6 +935,9 @@ test("applies for a job from its detail view with the time and notes of the subm
   await userEvent.click(within(detail).getByRole("button", { name: "Apply" }));
   const drawer = await screen.findByRole("dialog", { name: "Apply" });
   expect(drawer).toHaveTextContent("JobLead Developer FrontendRandstad Digital Germany AG");
+  expect(within(drawer).getByRole("button", { name: "Edit terms" })).toHaveTextContent(
+    "Lead Developer FrontendCompany, Salary, Bonuses",
+  );
   const time = within(drawer).getByLabelText("Time");
   await userEvent.clear(time);
   await userEvent.type(time, "2026-10-17T08:30");
@@ -946,7 +949,7 @@ test("applies for a job from its detail view with the time and notes of the subm
     activity: {
       type: "applicationSubmitted",
       occurredAt: new Date("2026-10-17T08:30").toISOString(),
-      terms: null,
+      terms: activityTermsSchema.parse(jobFixture),
       appointmentAt: null,
       dueDate: null,
       responseDeadline: null,

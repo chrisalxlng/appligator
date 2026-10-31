@@ -9,24 +9,24 @@ import {
 } from "@appligator/shared";
 import {
   parseDetailsForm,
+  richTextError,
   toDetailsFormValues,
   type DetailsFormErrors,
   type DetailsFormValues,
   type FieldError,
 } from "../details/detailsForm.ts";
 
-export interface ActivityFormValues extends DetailsFormValues {
+export interface ActivityFormValues {
   occurredAt: string;
-  showsTerms: boolean;
-  position: string;
   appointmentAt: string;
   dueDate: string;
   responseDeadline: string;
+  terms: ActivityTerms | null;
+  notes: string;
   attachments: Attachment[];
 }
 
-export type ActivityFormErrors = DetailsFormErrors &
-  Partial<Record<"occurredAt" | "position", FieldError>>;
+export type ActivityFormErrors = Partial<Record<"occurredAt" | "notes", FieldError>>;
 
 type ValidationResult =
   | { input: ActivityInput; errors?: never }
@@ -46,19 +46,63 @@ function toIsoDateTime(localDateTime: string) {
   return new Date(localDateTime).toISOString();
 }
 
-export function toActivityFormValues(activity?: Activity): ActivityFormValues {
-  const terms = activity?.terms;
-
+export function toActivityFormValues(
+  activity?: Activity,
+  initialTerms: ActivityTerms | null = null,
+): ActivityFormValues {
   return {
-    ...toDetailsFormValues(terms ? { ...terms, notes: "" } : undefined),
-    notes: activity?.notes ?? "",
     occurredAt: toLocalDateTime(activity?.occurredAt ?? new Date().toISOString()),
-    showsTerms: Boolean(terms),
-    position: terms?.position ?? "",
     appointmentAt: activity?.appointmentAt ? toLocalDateTime(activity.appointmentAt) : "",
     dueDate: activity?.dueDate ?? "",
     responseDeadline: activity?.responseDeadline ?? "",
+    terms: activity ? activity.terms : initialTerms,
+    notes: activity?.notes ?? "",
     attachments: activity?.attachments ?? [],
+  };
+}
+
+export function validateActivityForm(
+  type: ActivityType,
+  values: ActivityFormValues,
+): ValidationResult {
+  const errors: ActivityFormErrors = {
+    occurredAt: values.occurredAt ? undefined : "dateRequired",
+    notes: richTextError(values.notes, jobLimits.notesLength),
+  };
+  if (Object.values(errors).some(Boolean)) return { errors };
+
+  const fields = activityTypeFields[type];
+  return {
+    input: {
+      type,
+      occurredAt: toIsoDateTime(values.occurredAt),
+      terms: fields.includes("terms") ? values.terms : null,
+      appointmentAt:
+        fields.includes("appointmentAt") && values.appointmentAt
+          ? toIsoDateTime(values.appointmentAt)
+          : null,
+      dueDate: (fields.includes("dueDate") && values.dueDate) || null,
+      responseDeadline: (fields.includes("responseDeadline") && values.responseDeadline) || null,
+      notes: values.notes,
+      attachments: values.attachments,
+    },
+  };
+}
+
+export interface TermsFormValues extends DetailsFormValues {
+  position: string;
+}
+
+export type TermsFormErrors = DetailsFormErrors & Partial<Record<"position", FieldError>>;
+
+type TermsResult =
+  | { terms: ActivityTerms | null; errors?: never }
+  | { terms?: never; errors: TermsFormErrors };
+
+export function toTermsFormValues(terms: ActivityTerms | null): TermsFormValues {
+  return {
+    ...toDetailsFormValues(terms ? { ...terms, notes: "" } : undefined),
+    position: terms?.position ?? "",
   };
 }
 
@@ -68,38 +112,17 @@ function isEmpty(terms: ActivityTerms) {
   );
 }
 
-export function validateActivityForm(
-  type: ActivityType,
-  values: ActivityFormValues,
-): ValidationResult {
+export function validateTermsForm(values: TermsFormValues): TermsResult {
   const position = values.position.trim();
   const details = parseDetailsForm(values);
 
-  const errors: ActivityFormErrors = {
-    occurredAt: values.occurredAt ? undefined : "dateRequired",
+  const errors: TermsFormErrors = {
     position: position.length > jobLimits.textLength ? "tooLong" : undefined,
     ...details.errors,
   };
-
   if (Object.values(errors).some(Boolean) || !details.details) return { errors };
 
-  const { notes, ...detailTerms } = details.details;
+  const { notes: _notes, ...detailTerms } = details.details;
   const terms = { ...detailTerms, position: position || null };
-  const fields = activityTypeFields[type];
-
-  return {
-    input: {
-      type,
-      occurredAt: toIsoDateTime(values.occurredAt),
-      terms: fields.includes("terms") && !isEmpty(terms) ? terms : null,
-      appointmentAt:
-        fields.includes("appointmentAt") && values.appointmentAt
-          ? toIsoDateTime(values.appointmentAt)
-          : null,
-      dueDate: (fields.includes("dueDate") && values.dueDate) || null,
-      responseDeadline: (fields.includes("responseDeadline") && values.responseDeadline) || null,
-      notes,
-      attachments: values.attachments,
-    },
-  };
+  return { terms: isEmpty(terms) ? null : terms };
 }

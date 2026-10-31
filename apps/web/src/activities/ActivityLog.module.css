@@ -12,18 +12,20 @@
 
 .entry {
   --dot-size: 9px;
+  --header-center: calc(var(--spacing-2-5) + 11px);
 
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-2);
   padding: 0 0 var(--spacing-8) var(--spacing-6);
 
   &::before {
     content: "";
     position: absolute;
-    top: 7px;
+    top: calc(var(--header-center) - var(--dot-size) / 2);
     left: 0;
+    z-index: 1;
     box-sizing: border-box;
     width: var(--dot-size);
     height: var(--dot-size);
@@ -35,8 +37,8 @@
   &:not(:last-child)::after {
     content: "";
     position: absolute;
-    top: calc(7px + var(--dot-size) + var(--spacing-1));
-    bottom: calc(-7px + var(--spacing-1));
+    top: var(--header-center);
+    bottom: calc(-1 * var(--header-center));
     left: calc(var(--dot-size) / 2 - var(--border-width-s) / 2);
     width: var(--border-width-s);
     background: var(--separator);
@@ -52,10 +54,29 @@
 }
 
 .header {
+  position: relative;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
+  padding: var(--spacing-2-5) var(--spacing-4);
+  border-radius: var(--radius-m);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  &:active {
+    background: var(--surface-press);
+  }
+
+  &:has(.edit:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
 }
 
 .title {
@@ -68,34 +89,29 @@
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-0-5) var(--spacing-1);
+  gap: var(--spacing-1-5);
+  padding: 0;
   border: none;
-  border-radius: var(--radius-m);
   background: none;
   color: var(--text-secondary);
   font: var(--font-label-s);
   letter-spacing: var(--tracking-label-s);
   cursor: pointer;
 
-  @media (hover: hover) {
-    &:hover {
-      background: var(--surface-hover);
-      color: var(--text-primary);
-    }
-  }
-
-  &:active {
-    background: var(--surface-press);
-  }
-
   &:focus-visible {
-    outline: var(--focus-ring-width) solid var(--active-separator);
-    outline-offset: var(--focus-ring-offset);
+    outline: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-m);
   }
 }
 
 .properties {
+  margin-top: var(--spacing-2);
   padding: var(--spacing-5) var(--spacing-4);
   border-radius: var(--radius-m);
   background: var(--fill);
@@ -118,7 +134,7 @@
   padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-3);
   border: var(--border-width-s) solid var(--separator);
   border-radius: var(--radius-m);
-  background: var(--surface);
+  background: var(--fill);
   color: var(--text-primary);
   text-decoration: none;
 
@@ -128,12 +144,12 @@
 
   @media (hover: hover) {
     &:hover {
-      background: var(--surface-hover);
+      background: var(--fill-hover);
     }
   }
 
   &:active {
-    background: var(--surface-press);
+    background: var(--fill-press);
   }
 
   &:focus-visible {

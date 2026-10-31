@@ -48,7 +48,7 @@ export const activityLimits = {
   linkLength: 2_000,
 };
 
-const activityTermsSchema = jobDetailsSchema.omit({ notes: true }).extend({
+export const activityTermsSchema = jobDetailsSchema.omit({ notes: true }).extend({
   position: requiredText.nullable(),
 });
 

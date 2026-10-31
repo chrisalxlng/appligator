@@ -2,17 +2,16 @@ import {
   activityTypeFields,
   type Activity,
   type ActivityInput,
+  type ActivityTerms,
   type ActivityType,
 } from "@appligator/shared";
-import { Button, DateInput, Field, submitKeyShortcuts, TextInput } from "@appligator/ui";
-import { IconPlus, type Icon } from "@tabler/icons-react";
+import { Button, DateInput, Field, submitKeyShortcuts } from "@appligator/ui";
+import type { Icon } from "@tabler/icons-react";
 import type { UseMutationResult } from "@tanstack/react-query";
-import { useId, useState, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { DetailsFields } from "../details/DetailsFields.tsx";
 import { NotesField } from "../details/NotesField.tsx";
 import formStyles from "../details/form.module.css";
-import listStyles from "../details/TextList.module.css";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import {
   toActivityFormValues,
@@ -20,12 +19,13 @@ import {
   type ActivityFormErrors,
   type ActivityFormValues,
 } from "./activityFormValues.ts";
-import styles from "./ActivityForm.module.css";
 import { AttachmentList } from "./AttachmentList.tsx";
+import { TermsField } from "./TermsField.tsx";
 
 interface ActivityFormProps<Result> {
   type: ActivityType;
   activity?: Activity;
+  initialTerms?: ActivityTerms | null;
   save: UseMutationResult<Result, Error, ActivityInput>;
   onSaved: (result: Result) => void;
   submit: { label: string; icon: Icon };
@@ -36,6 +36,7 @@ interface ActivityFormProps<Result> {
 export function ActivityForm<Result>({
   type,
   activity,
+  initialTerms,
   save,
   onSaved,
   submit: { label: submitLabel, icon: SubmitIcon },
@@ -43,19 +44,15 @@ export function ActivityForm<Result>({
   footer,
 }: ActivityFormProps<Result>) {
   const { t } = useTranslation();
-  const [values, setValues] = useState(() => toActivityFormValues(activity));
+  const [values, setValues] = useState(() => toActivityFormValues(activity, initialTerms));
   const [errors, setErrors] = useState<ActivityFormErrors>({});
   const shortcutHints = useShortcutHints();
-  const termsTitleId = useId();
   const fields = activityTypeFields[type];
   const clearLabel = t("fields.clear");
 
-  function update(changes: Partial<ActivityFormValues>) {
-    setValues((current) => ({ ...current, ...changes }));
-  }
-
   function setValue<Key extends keyof ActivityFormValues>(key: Key) {
-    return (value: ActivityFormValues[Key]) => update({ [key]: value });
+    return (value: ActivityFormValues[Key]) =>
+      setValues((current) => ({ ...current, [key]: value }));
   }
 
   function errorFor(field: keyof ActivityFormErrors) {
@@ -107,33 +104,13 @@ export function ActivityForm<Result>({
           />
         </Field>
       )}
+      {fields.includes("terms") && <TermsField terms={values.terms} onChange={setValue("terms")} />}
       <NotesField
         value={values.notes}
         onValueChange={setValue("notes")}
         error={errorFor("notes")}
       />
       <AttachmentList attachments={values.attachments} onChange={setValue("attachments")} />
-      {fields.includes("terms") &&
-        (values.showsTerms ? (
-          <section className={styles.terms} aria-labelledby={termsTitleId}>
-            <h3 id={termsTitleId} className={styles.termsTitle}>
-              {t("activities.form.terms")}
-            </h3>
-            <Field label={t("fields.position")} error={errorFor("position")}>
-              <TextInput value={values.position} onValueChange={setValue("position")} />
-            </Field>
-            <DetailsFields values={values} onChange={update} errorFor={errorFor} />
-          </section>
-        ) : (
-          <button
-            type="button"
-            className={listStyles.addButton}
-            onClick={() => update({ showsTerms: true })}
-          >
-            <IconPlus size={20} stroke={2.4} aria-hidden />
-            {t("activities.form.addTerms")}
-          </button>
-        ))}
       {save.isError && (
         <p role="alert" className={formStyles.saveError}>
           {t("activities.form.saveError")}

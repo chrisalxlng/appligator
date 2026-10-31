@@ -21,8 +21,8 @@ export function JobPicker() {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [apply, setApply] = useState<{ job: JobListItem | null; open: boolean }>({
-    job: null,
+  const [apply, setApply] = useState<{ jobId: string | null; open: boolean }>({
+    jobId: null,
     open: false,
   });
   const shortcutHints = useShortcutHints();
@@ -30,7 +30,7 @@ export function JobPicker() {
 
   function select(job: JobListItem) {
     setOpen(false);
-    setApply({ job, open: true });
+    setApply({ jobId: job.id, open: true });
   }
 
   const popupProps = {
@@ -52,7 +52,7 @@ export function JobPicker() {
       </ShortcutTooltip>
       {isDesktop ? <Popover anchor={buttonRef} {...popupProps} /> : <Drawer {...popupProps} />}
       <ApplyDrawer
-        job={apply.job}
+        jobId={apply.jobId}
         open={apply.open}
         onOpenChange={(nextOpen) => setApply((current) => ({ ...current, open: nextOpen }))}
         onApplied={(application) =>

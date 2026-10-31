@@ -3,6 +3,7 @@ export {
   activityLimits,
   activityListSchema,
   activitySchema,
+  activityTermsSchema,
   activityTypeFields,
   activityTypes,
   type Activity,

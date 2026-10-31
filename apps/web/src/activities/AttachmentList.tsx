@@ -12,10 +12,9 @@ import { IconPencil, IconPlus, IconTrash, IconWorld } from "@tabler/icons-react"
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { hostname } from "../details/format.ts";
-import listStyles from "../details/TextList.module.css";
+import listStyles from "../details/list.module.css";
 import { parseLink } from "../jobs/jobForm.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
-import styles from "./AttachmentList.module.css";
 
 type LinkAttachment = Extract<Attachment, { kind: "link" }>;
 
@@ -54,17 +53,18 @@ export function AttachmentList({ attachments, onChange }: AttachmentListProps) {
             <li key={`${index}-${attachment.url}`} className={listStyles.item}>
               <button
                 type="button"
-                className={`${listStyles.itemButton} ${styles.attachment}`}
+                className={listStyles.itemButton}
                 onClick={() => setDrawer({ open: true, index })}
               >
                 <IconWorld size={20} stroke={2} aria-hidden />
-                <span className={styles.text}>
+                <span className={listStyles.itemText}>
                   <span>{attachmentTitle(attachment)}</span>
-                  <span className={styles.meta}>{hostname(attachment.url)}</span>
+                  <span className={listStyles.itemMeta}>{hostname(attachment.url)}</span>
                 </span>
               </button>
               <IconButton
                 variant="surface"
+                className={listStyles.itemAction}
                 label={t("activities.attachments.remove", { title: attachmentTitle(attachment) })}
                 onClick={() => onChange(attachments.filter((_, current) => current !== index))}
               >

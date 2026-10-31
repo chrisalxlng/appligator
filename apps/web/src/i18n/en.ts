@@ -282,11 +282,16 @@ export const en = {
       appointmentAt: "Appointment",
       dueDate: "Due date",
       responseDeadline: "Response deadline",
-      terms: "Terms",
-      addTerms: "Add terms",
       add: "Add",
       update: "Update",
       saveError: "The activity could not be saved. Please try again.",
+    },
+    terms: {
+      legend: "Terms",
+      add: "Add",
+      addTitle: "Add terms",
+      editTitle: "Edit terms",
+      remove: "Remove terms",
     },
     attachments: {
       legend: "Attachments",

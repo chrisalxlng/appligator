@@ -290,11 +290,16 @@ export const de: Translations = {
       appointmentAt: "Termin",
       dueDate: "Abgabefrist",
       responseDeadline: "Rückmeldefrist",
-      terms: "Konditionen",
-      addTerms: "Konditionen hinzufügen",
       add: "Hinzufügen",
       update: "Aktualisieren",
       saveError: "Die Aktivität konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    },
+    terms: {
+      legend: "Konditionen",
+      add: "Hinzufügen",
+      addTitle: "Konditionen hinzufügen",
+      editTitle: "Konditionen bearbeiten",
+      remove: "Konditionen entfernen",
     },
     attachments: {
       legend: "Anhänge",

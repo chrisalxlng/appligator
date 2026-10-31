@@ -8,6 +8,7 @@
 }
 
 .item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
@@ -15,14 +16,36 @@
   border: var(--border-width-s) solid var(--separator);
   border-radius: var(--radius-m);
   background: var(--fill);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--fill-hover);
+    }
+  }
+
+  &:active {
+    background: var(--fill-press);
+  }
+
+  &:active:has(.itemAction:active) {
+    background: var(--fill-hover);
+  }
+
+  &:has(.itemButton:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+  }
 }
 
 .itemButton {
+  display: flex;
   flex: 1;
+  align-items: center;
+  gap: var(--spacing-3);
   min-width: 0;
   padding: var(--spacing-5) var(--spacing-3);
   border: none;
-  border-radius: var(--radius-m);
   background: none;
   color: var(--text-primary);
   font: var(--font-body-m);
@@ -30,9 +53,39 @@
   overflow-wrap: anywhere;
   cursor: pointer;
 
-  &:focus-visible {
-    outline: var(--focus-ring-width) solid var(--active-separator);
+  & > svg {
+    flex-shrink: 0;
   }
+
+  &:has(.itemText) {
+    padding-block: var(--spacing-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-m);
+  }
+}
+
+.itemAction {
+  position: relative;
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.itemMeta {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
 }
 
 .addButton {

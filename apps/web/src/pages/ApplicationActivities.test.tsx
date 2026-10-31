@@ -1,4 +1,4 @@
-import { activityTypes } from "@appligator/shared";
+import { activityTermsSchema, activityTypes } from "@appligator/shared";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test } from "vite-plus/test";
@@ -170,9 +170,13 @@ test("adds the terms of an offer", async () => {
 
   await userEvent.type(within(form).getByLabelText("Response deadline"), "2026-11-30");
   await userEvent.click(within(form).getByRole("button", { name: "Add terms" }));
-  const terms = within(form).getByRole("region", { name: "Terms" });
+  const terms = await screen.findByRole("dialog", { name: "Add terms" });
   await userEvent.type(within(terms).getByRole("textbox", { name: "Position" }), "Lead Developer");
   await userEvent.type(within(terms).getByRole("textbox", { name: "Vacation days" }), "30");
+  await userEvent.click(within(terms).getByRole("button", { name: "Add" }));
+  expect(await within(form).findByRole("button", { name: "Edit terms" })).toHaveTextContent(
+    "Lead DeveloperVacation days",
+  );
   await userEvent.click(within(form).getByRole("button", { name: "Add" }));
 
   await waitFor(() =>
@@ -239,4 +243,44 @@ test("deletes an activity after confirmation", async () => {
   await waitFor(() =>
     expect(titlesOf(log)).toEqual(["Interview scheduled", "Application submitted"]),
   );
+});
+
+test("edits and removes the terms of an activity", async () => {
+  const offer = activityWith({
+    type: "offerReceived",
+    occurredAt: "2026-10-30T09:00:00.000Z",
+    terms: {
+      ...activityTermsSchema.parse(jobFixture),
+      position: "Lead Developer",
+      salary: { currency: "EUR", period: "year", min: 70_000, max: 70_000 },
+    },
+  });
+  const api = renderActivities([offer, submission]);
+  const log = await findLog();
+  await userEvent.click(within(log).getByRole("button", { name: /Edit Offer received$/ }));
+  const form = await screen.findByRole("dialog", { name: "Offer received" });
+
+  await userEvent.click(within(form).getByRole("button", { name: "Edit terms" }));
+  const terms = await screen.findByRole("dialog", { name: "Edit terms" });
+  const position = within(terms).getByRole("textbox", { name: "Position" });
+  expect(position).toHaveValue("Lead Developer");
+  await userEvent.clear(position);
+  await userEvent.type(position, "Staff Engineer");
+  await userEvent.click(within(terms).getByRole("button", { name: "Update" }));
+  await userEvent.click(within(form).getByRole("button", { name: "Update" }));
+
+  await waitFor(() =>
+    expect(api.requestsWith("PUT")[0]?.body?.terms).toMatchObject({
+      position: "Staff Engineer",
+      salary: offer.terms!.salary,
+    }),
+  );
+
+  await userEvent.click(within(log).getByRole("button", { name: /Edit Offer received$/ }));
+  const reopened = await screen.findByRole("dialog", { name: "Offer received" });
+  await userEvent.click(within(reopened).getByRole("button", { name: "Remove terms" }));
+  expect(within(reopened).getByRole("button", { name: "Add terms" })).toBeVisible();
+  await userEvent.click(within(reopened).getByRole("button", { name: "Update" }));
+
+  await waitFor(() => expect(api.requestsWith("PUT")[1]?.body?.terms).toBeNull());
 });

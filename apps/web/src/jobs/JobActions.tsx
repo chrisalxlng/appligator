@@ -104,7 +104,7 @@ function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
         menuItems={deleteItem}
         error={pinError}
       />
-      <ApplyDrawer job={job} open={isApplying} onOpenChange={setIsApplying} />
+      <ApplyDrawer jobId={job.id} open={isApplying} onOpenChange={setIsApplying} />
       <JobFormDrawer job={job} open={isEditing} onOpenChange={setIsEditing} />
       <ConfirmDialog
         open={isConfirmingDelete}

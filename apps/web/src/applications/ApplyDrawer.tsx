@@ -1,25 +1,21 @@
-import type { Application } from "@appligator/shared";
-import { Drawer, Fieldset, useSuccessToast } from "@appligator/ui";
+import { activityTermsSchema, type Application, type Job } from "@appligator/shared";
+import { Drawer, Fieldset, Spinner, useSuccessToast } from "@appligator/ui";
 import { IconSend } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { ActivityForm } from "../activities/ActivityForm.tsx";
+import { useJob } from "../jobs/jobQueries.ts";
+import { LoadError } from "../loading/LoadError.tsx";
 import { useApply } from "./applicationQueries.ts";
 import styles from "./ApplyDrawer.module.css";
 
-interface ApplyJob {
-  id: string;
-  company: string;
-  position: string;
-}
-
 interface ApplyDrawerProps {
-  job: ApplyJob | null;
+  jobId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onApplied?: (application: Application) => void;
 }
 
-export function ApplyDrawer({ job, open, onOpenChange, onApplied }: ApplyDrawerProps) {
+export function ApplyDrawer({ jobId, open, onOpenChange, onApplied }: ApplyDrawerProps) {
   const { t } = useTranslation();
 
   return (
@@ -29,10 +25,10 @@ export function ApplyDrawer({ job, open, onOpenChange, onApplied }: ApplyDrawerP
       open={open}
       onOpenChange={onOpenChange}
     >
-      {job && (
-        <ApplyForm
-          key={job.id}
-          job={job}
+      {jobId && (
+        <ApplyContent
+          key={jobId}
+          jobId={jobId}
           onApplied={(application) => {
             onOpenChange(false);
             onApplied?.(application);
@@ -43,12 +39,29 @@ export function ApplyDrawer({ job, open, onOpenChange, onApplied }: ApplyDrawerP
   );
 }
 
-interface ApplyFormProps {
-  job: ApplyJob;
+interface ApplyContentProps {
+  jobId: string;
   onApplied: (application: Application) => void;
 }
 
-function ApplyForm({ job, onApplied }: ApplyFormProps) {
+function ApplyContent({ jobId, onApplied }: ApplyContentProps) {
+  const { t } = useTranslation();
+  const job = useJob(jobId);
+
+  if (job.isPending) return <Spinner label={t("jobs.loadingJob")} />;
+  if (job.isError) {
+    return (
+      <LoadError
+        title={t("jobs.detailLoadError.title")}
+        description={t("jobs.detailLoadError.description")}
+        onRetry={() => void job.refetch()}
+      />
+    );
+  }
+  return <ApplyForm job={job.data} onApplied={onApplied} />;
+}
+
+function ApplyForm({ job, onApplied }: { job: Job; onApplied: ApplyContentProps["onApplied"] }) {
   const { t } = useTranslation();
   const apply = useApply(job.id);
   const showSuccess = useSuccessToast();
@@ -56,6 +69,7 @@ function ApplyForm({ job, onApplied }: ApplyFormProps) {
   return (
     <ActivityForm
       type="applicationSubmitted"
+      initialTerms={activityTermsSchema.parse(job)}
       save={apply}
       onSaved={(application) => {
         showSuccess(t("applications.toast.created"));

@@ -25,7 +25,7 @@
 }
 
 .sectionCount {
-  padding: 0 var(--spacing-1-5);
+  padding: var(--spacing-0-5) var(--spacing-2);
   border-radius: var(--radius-full);
   background: var(--fill);
 }
