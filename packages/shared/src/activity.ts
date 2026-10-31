@@ -65,6 +65,7 @@ const emailAttachmentSchema = z.object({
   kind: z.literal("email"),
   subject: z.string().trim().max(activityLimits.emailHeaderLength),
   from: z.string().trim().max(activityLimits.emailHeaderLength),
+  to: z.string().trim().max(activityLimits.emailHeaderLength).default(""),
   sentAt: z.iso.datetime().nullable(),
   body: z.string().max(activityLimits.emailBodyLength),
 });

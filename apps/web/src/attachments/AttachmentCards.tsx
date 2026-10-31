@@ -1,6 +1,6 @@
 import type { Attachment } from "@appligator/shared";
 import { Drawer, RichText } from "@appligator/ui";
-import { IconCalendarEvent, IconUser } from "@tabler/icons-react";
+import { IconCalendarEvent, IconUser, IconUsers } from "@tabler/icons-react";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Property, PropertyList } from "../collection/DetailView.tsx";
@@ -89,11 +89,16 @@ function Email({ email }: { email: EmailAttachment }) {
 
   return (
     <div className={styles.email}>
-      {(email.from || email.sentAt) && (
+      {(email.from || email.to || email.sentAt) && (
         <PropertyList>
           {email.from && (
             <Property icon={IconUser} label={t("attachments.email.from")}>
               {email.from}
+            </Property>
+          )}
+          {email.to && (
+            <Property icon={IconUsers} label={t("attachments.email.to")}>
+              {email.to}
             </Property>
           )}
           {email.sentAt && (

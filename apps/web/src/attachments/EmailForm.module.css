@@ -1,0 +1,11 @@
+.import {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.importHint {
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+  text-align: center;
+}

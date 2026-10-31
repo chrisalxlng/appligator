@@ -120,7 +120,7 @@ test("POST /applications/:id/activities adds an activity with its fields", async
   });
 });
 
-test("POST /applications/:id/activities stores email and file attachments", async () => {
+test("POST /applications/:id/activities stores email and file attachments, emails without recipient included", async () => {
   const applicationId = await createApplication();
   const attachments = [
     {
@@ -144,7 +144,7 @@ test("POST /applications/:id/activities stores email and file attachments", asyn
   });
 
   expect(response.statusCode).toBe(201);
-  expect(response.json().attachments).toEqual(attachments);
+  expect(response.json().attachments).toEqual([{ ...attachments[0], to: "" }, attachments[1]]);
 });
 
 test("GET /applications/:id/activities lists the activities, latest first", async () => {

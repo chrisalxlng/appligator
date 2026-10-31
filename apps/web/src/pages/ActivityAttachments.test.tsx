@@ -11,6 +11,7 @@ const offerEmail = {
   kind: "email" as const,
   subject: "Unser Angebot an dich",
   from: "hr@randstad-digital.de",
+  to: "jd@example.com",
   sentAt: "2026-10-30T09:00:00.000Z",
   body: "<p>Hallo, anbei unser Angebot.</p>",
 };
@@ -40,6 +41,7 @@ const eml = [
 
 const htmlEml = [
   "From: Jasmin Habegger <J.HABEGGER@optadata-gruppe.de>",
+  "To: Christopher <Contact@Example.com>, Team: frank@example.com, marcel@example.com;",
   "Subject: Deep Dive und Kennenlernen",
   "Date: Mon, 04 Dec 2023 11:59:00 +0100",
   "Content-Type: text/html; charset=utf-8",
@@ -149,7 +151,14 @@ test("adds an email by hand", async () => {
     expect(api.requestsWith("PUT")[0]?.body?.attachments).toEqual([
       cv,
       offerEmail,
-      { kind: "email", subject: "Rückfrage", from: "hr@example.com", sentAt: null, body: "" },
+      {
+        kind: "email",
+        subject: "Rückfrage",
+        from: "hr@example.com",
+        to: "",
+        sentAt: null,
+        body: "",
+      },
     ]),
   );
 });
@@ -161,7 +170,7 @@ test("imports an email with its text and links from an .eml file", async () => {
   const drawer = await screen.findByRole("dialog", { name: "Add email" });
 
   await userEvent.upload(
-    within(drawer).getByLabelText("Import .eml file", { selector: "input" }),
+    within(drawer).getByLabelText("Import from file", { selector: "input" }),
     emlFile(htmlEml),
   );
 
@@ -172,6 +181,9 @@ test("imports an email with its text and links from an .eml file", async () => {
   );
   expect(within(drawer).getByRole("textbox", { name: "From" })).toHaveValue(
     "j.habegger@optadata-gruppe.de",
+  );
+  expect(within(drawer).getByRole("textbox", { name: "To" })).toHaveValue(
+    "contact@example.com, frank@example.com, marcel@example.com",
   );
   expect(within(drawer).getByLabelText("Sent")).toHaveValue(
     toLocalDateTime("2023-12-04T10:59:00.000Z"),

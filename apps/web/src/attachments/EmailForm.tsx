@@ -8,7 +8,7 @@ import {
   TextInput,
 } from "@appligator/ui";
 import { IconPencil, IconPlus, IconUpload } from "@tabler/icons-react";
-import { useRef, useState, type FormEvent, type RefObject } from "react";
+import { useId, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { richTextError, type FieldError } from "../details/detailsForm.ts";
 import listStyles from "../details/list.module.css";
@@ -16,6 +16,7 @@ import { toIsoDateTime, toLocalDateTime } from "../details/localDateTime.ts";
 import { useFormatLabels } from "../details/useFormatLabels.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { DropZone } from "./DropZone.tsx";
+import styles from "./EmailForm.module.css";
 import { importEmail, isEmailFile } from "./emailImport.ts";
 
 type EmailAttachment = Extract<Attachment, { kind: "email" }>;
@@ -24,6 +25,7 @@ type LinkAttachment = Extract<Attachment, { kind: "link" }>;
 interface EmailFormValues {
   subject: string;
   from: string;
+  to: string;
   sentAt: string;
   body: string;
 }
@@ -32,6 +34,7 @@ function toFormValues(email?: Omit<EmailAttachment, "kind">): EmailFormValues {
   return {
     subject: email?.subject ?? "",
     from: email?.from.toLowerCase() ?? "",
+    to: email?.to.toLowerCase() ?? "",
     sentAt: email?.sentAt ? toLocalDateTime(email.sentAt) : "",
     body: email?.body ?? "",
   };
@@ -55,6 +58,7 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
   const [importError, setImportError] = useState<"importFailed" | "notAnEmail">();
   const [links, setLinks] = useState<LinkAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importHintId = useId();
   const shortcutHints = useShortcutHints();
 
   function setValue(key: keyof EmailFormValues) {
@@ -80,9 +84,11 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
     event.stopPropagation();
     const subject = values.subject.trim();
     const from = values.from.trim();
+    const to = values.to.trim();
     const nextErrors = {
       subject: headerError(subject),
       from: headerError(from),
+      to: headerError(to),
       body: richTextError(values.body, activityLimits.emailBodyLength),
     };
     setErrors(nextErrors);
@@ -93,6 +99,7 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
         kind: "email",
         subject,
         from,
+        to,
         sentAt: values.sentAt ? toIsoDateTime(values.sentAt) : null,
         body: values.body,
       },
@@ -111,10 +118,20 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
       onFiles={(files) => void importFile(files[0])}
     >
       <form className={listStyles.form} onSubmit={submit} noValidate>
-        <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
-          <IconUpload size={20} stroke={2.4} aria-hidden />
-          {t("attachments.email.import")}
-        </Button>
+        <div className={styles.import}>
+          <Button
+            type="button"
+            variant="secondary"
+            aria-describedby={importHintId}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <IconUpload size={20} stroke={2.4} aria-hidden />
+            {t("attachments.email.import")}
+          </Button>
+          <p id={importHintId} className={styles.importHint}>
+            {t("attachments.email.importFormat")}
+          </p>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -140,6 +157,9 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
             value={values.from}
             onValueChange={(from) => setValue("from")(from.toLowerCase())}
           />
+        </Field>
+        <Field label={t("attachments.email.to")} error={errorFor("to")}>
+          <TextInput value={values.to} onValueChange={(to) => setValue("to")(to.toLowerCase())} />
         </Field>
         <Field label={t("attachments.email.sentAt")}>
           <DateInput

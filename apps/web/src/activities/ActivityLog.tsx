@@ -131,7 +131,6 @@ function ActivityEntry({ applicationId, activity, isLatest }: ActivityEntryProps
       <EditActivityDrawer
         applicationId={applicationId}
         activity={activity}
-        dateLabel={dateLabel}
         open={isEditing}
         onOpenChange={setIsEditing}
       />

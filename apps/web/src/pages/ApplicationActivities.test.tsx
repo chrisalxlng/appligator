@@ -235,6 +235,7 @@ test("deletes an activity after confirmation", async () => {
   const form = await screen.findByRole("dialog", { name: "Task received" });
   await userEvent.click(within(form).getByRole("button", { name: "Delete" }));
   const dialog = await screen.findByRole("alertdialog", { name: "Delete activity?" });
+  expect(dialog).toHaveTextContent("“Task received” from October 29, 2026 will be deleted");
   await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
 
   expect(await screen.findByText("Activity deleted")).toBeInTheDocument();

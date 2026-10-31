@@ -1,6 +1,6 @@
 import { activityLimits, jobLimits, type Attachment } from "@appligator/shared";
 import { toRichText } from "@appligator/ui";
-import PostalMime from "postal-mime";
+import PostalMime, { type Address } from "postal-mime";
 
 type LinkAttachment = Extract<Attachment, { kind: "link" }>;
 
@@ -53,19 +53,27 @@ function findLinks(html: string | undefined, text: string | undefined): LinkAtta
   return [...unique.values()];
 }
 
+function addressesOf(addresses: Address[]) {
+  return addresses
+    .flatMap((address) => address.group ?? [address])
+    .map(({ address, name }) => address || name)
+    .join(", ")
+    .toLowerCase();
+}
+
 export function isEmailFile(file: File) {
   return file.name.toLowerCase().endsWith(".eml") || file.type === "message/rfc822";
 }
 
 export async function importEmail(file: File) {
-  const { subject, from, date, html, text } = await PostalMime.parse(file);
-  const sender = from && "address" in from ? from.address || from.name : "";
+  const { subject, from, to, date, html, text } = await PostalMime.parse(file);
 
   return {
     email: {
       kind: "email" as const,
       subject: subject?.trim() ?? "",
-      from: sender.toLowerCase(),
+      from: addressesOf(from ? [from] : []),
+      to: addressesOf(to ?? []),
       sentAt: toIsoDateTime(date),
       body: html ? toRichText(html) : textToHtml(text ?? ""),
     },
