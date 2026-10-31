@@ -17,6 +17,7 @@ export const applicationSchema = applicationInputSchema.extend({
   id: z.uuid(),
   status: z.enum(applicationStatuses),
   appliedAt: z.iso.date(),
+  favorite: z.boolean(),
   job: jobListItemSchema.pick({ id: true, position: true }),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -27,6 +28,7 @@ export const applicationListItemSchema = applicationSchema.pick({
   company: true,
   position: true,
   status: true,
+  favorite: true,
   createdAt: true,
 });
 

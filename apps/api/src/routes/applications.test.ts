@@ -92,6 +92,7 @@ test("POST /applications applies to a job with its details", async () => {
     id: expect.any(String),
     status: "applied",
     appliedAt: "2026-10-30",
+    favorite: false,
     job: { id: job.id, position: "Lead Developer Frontend" },
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
@@ -133,11 +134,12 @@ test("GET /applications lists only the user's applications, newest first", async
   const response = await request("GET", "/applications");
 
   expect(response.json()).toEqual({
-    items: [newer, older].map(({ id, company, position, status, createdAt }) => ({
+    items: [newer, older].map(({ id, company, position, status, favorite, createdAt }) => ({
       id,
       company,
       position,
       status,
+      favorite,
       createdAt,
     })),
     nextCursor: null,
@@ -163,18 +165,59 @@ test("GET /applications pages through the applications with a cursor", async () 
   });
 });
 
-test("GET /applications/status-counts counts the user's applications by status", async () => {
-  await createApplication();
-  await createApplication();
-  await createApplication("other-user");
+async function markFavorite(id: string, favorite = true, userId?: string) {
+  return request("PUT", `/applications/${id}/favorite`, { body: { favorite }, userId });
+}
 
-  const response = await request("GET", "/applications/status-counts");
+test("GET /applications/counts counts the user's applications by status and favorites", async () => {
+  const favorite = await createApplication();
+  await createApplication();
+  await markFavorite(favorite.id);
+  await markFavorite((await createApplication("other-user")).id, true, "other-user");
 
-  expect(response.json()).toEqual([{ status: "applied", count: 2 }]);
+  const response = await request("GET", "/applications/counts");
+
+  expect(response.json()).toEqual({ statuses: [{ status: "applied", count: 2 }], favorites: 1 });
 });
 
-test("GET /applications/status-counts has no statuses without applications", async () => {
-  expect((await request("GET", "/applications/status-counts")).json()).toEqual([]);
+test("GET /applications/counts counts nothing without applications", async () => {
+  expect((await request("GET", "/applications/counts")).json()).toEqual({
+    statuses: [],
+    favorites: 0,
+  });
+});
+
+test("PUT /applications/:id/favorite marks and unmarks the application", async () => {
+  const application = await createApplication();
+
+  expect((await markFavorite(application.id)).statusCode).toBe(204);
+  expect((await request("GET", `/applications/${application.id}`)).json()).toMatchObject({
+    favorite: true,
+  });
+
+  await markFavorite(application.id, false);
+  expect((await request("GET", `/applications/${application.id}`)).json()).toMatchObject({
+    favorite: false,
+  });
+});
+
+test("GET /applications filters the favorite applications", async () => {
+  const favorite = await createApplication();
+  await createApplication();
+  await markFavorite(favorite.id);
+
+  const { items } = (await request("GET", "/applications?favorite=true")).json();
+
+  expect(items).toEqual([expect.objectContaining({ id: favorite.id, favorite: true })]);
+});
+
+test("POST /applications takes over the mark of the job", async () => {
+  const job = await createJob();
+  await request("PUT", `/jobs/${job.id}/favorite`, { body: { favorite: true } });
+
+  const response = await apply(job.id);
+
+  expect(response.json()).toMatchObject({ favorite: true });
 });
 
 test("GET /applications/:id returns the application", async () => {
@@ -226,15 +269,16 @@ test("DELETE /applications/:id deletes the application and reopens the job", asy
 });
 
 test.each([
-  ["GET", undefined],
-  ["PUT", changedInput],
-  ["DELETE", undefined],
+  ["GET", "", undefined],
+  ["PUT", "", changedInput],
+  ["DELETE", "", undefined],
+  ["PUT", "/favorite", { favorite: true }],
 ] as const)(
-  "%s /applications/:id does not reveal applications of other users",
-  async (method, body) => {
+  "%s /applications/:id%s does not reveal applications of other users",
+  async (method, path, body) => {
     const application = await createApplication("other-user");
 
-    const response = await request(method, `/applications/${application.id}`, { body });
+    const response = await request(method, `/applications/${application.id}${path}`, { body });
 
     expect(response.statusCode).toBe(404);
     expect(

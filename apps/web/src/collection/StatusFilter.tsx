@@ -1,12 +1,18 @@
-import type { StatusCount } from "@appligator/shared";
+import type { Counts } from "@appligator/shared";
 import { useTranslation } from "react-i18next";
 import styles from "./StatusFilter.module.css";
-import { minFilterStatuses } from "./useStatusFilter.ts";
+import { favoritesFilter, filterOptions, type CollectionFilter } from "./useStatusFilter.ts";
+
+interface FilterOption<Status extends string> {
+  filter: CollectionFilter<Status>;
+  count: number;
+  label: string;
+}
 
 interface StatusFilterProps<Status extends string> {
-  counts: StatusCount<Status>[];
-  selected: Status | null;
-  onSelect: (status: Status | null) => void;
+  counts: Counts<Status> | undefined;
+  selected: CollectionFilter<Status>;
+  onSelect: (filter: CollectionFilter<Status>) => void;
   statusLabel: (status: Status) => string;
 }
 
@@ -17,24 +23,35 @@ export function StatusFilter<Status extends string>({
   statusLabel,
 }: StatusFilterProps<Status>) {
   const { t } = useTranslation();
+  if (!counts) return null;
 
-  if (counts.length < minFilterStatuses) return null;
+  const { statuses, favorites } = filterOptions(counts);
+  const options: FilterOption<Status>[] = statuses.map(({ status, count }) => ({
+    filter: status,
+    count,
+    label: statusLabel(status),
+  }));
+  if (favorites !== null) {
+    options.push({ filter: favoritesFilter, count: favorites, label: t("common.favorites") });
+  }
+  if (options.length === 0) return null;
 
-  const total = counts.reduce((sum, { count }) => sum + count, 0);
-  const options = [
-    { status: null, count: total, label: t("common.allStatuses") },
-    ...counts.map(({ status, count }) => ({ status, count, label: statusLabel(status) })),
-  ];
+  const total = counts.statuses.reduce((sum, { count }) => sum + count, 0);
+  const allOption: FilterOption<Status> = {
+    filter: null,
+    count: total,
+    label: t("common.allStatuses"),
+  };
 
   return (
     <fieldset aria-label={t("common.statusFilter")} className={styles.filter}>
-      {options.map(({ status, count, label }) => (
+      {[allOption, ...options].map(({ filter, count, label }) => (
         <button
-          key={status ?? "all"}
+          key={filter ?? "all"}
           type="button"
           className={styles.option}
-          aria-pressed={status === selected}
-          onClick={() => onSelect(status)}
+          aria-pressed={filter === selected}
+          onClick={() => onSelect(filter)}
         >
           <span className={styles.count}>{count}</span> {label}
         </button>

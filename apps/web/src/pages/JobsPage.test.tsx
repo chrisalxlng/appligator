@@ -625,6 +625,7 @@ test("edits a job", async () => {
     id: _id,
     status: _status,
     isNew: _isNew,
+    favorite: _favorite,
     application: _application,
     createdAt: _createdAt,
     updatedAt: _updatedAt,
@@ -800,6 +801,88 @@ test("hides the status filter while all jobs have the same status", async () => 
   await screen.findAllByRole("link", { name: /Developer/ });
 
   expect(screen.queryByRole("group", { name: "Filter by status" })).not.toBeInTheDocument();
+});
+
+test("stars a job and filters the starred jobs", async () => {
+  const api = createFakeApi([jobFixture, olderJob]);
+  renderApp(`/jobs/${olderJob.id}`);
+
+  const detail = await screen.findByRole("article");
+  const star = within(detail).getByRole("button", { name: "Star" });
+  expect(star).toHaveAttribute("aria-pressed", "false");
+  await userEvent.click(star);
+
+  expect(star).toHaveAttribute("aria-pressed", "true");
+  expect(api.requestsWith("PUT")).toEqual([
+    expect.objectContaining({ path: `/jobs/${olderJob.id}/favorite`, body: { favorite: true } }),
+  ]);
+  const filter = await screen.findByRole("group", { name: "Filter by status" });
+  expect(
+    within(filter)
+      .getAllByRole("button")
+      .map((button) => button.textContent),
+  ).toEqual(["2 All", "1 Starred"]);
+  expect(screen.getByRole("link", { name: /Frontend Developer/ })).toHaveTextContent(
+    "YesterdayStarredOpen",
+  );
+
+  await userEvent.click(within(filter).getByRole("button", { name: "1 Starred" }));
+
+  await waitFor(() => expect(screen.getAllByRole("link", { name: /Developer/ })).toHaveLength(1));
+  expect(screen.getByRole("link", { name: /Developer/ })).toHaveTextContent("Frontend Developer");
+});
+
+test("shows the starred filter after the statuses and leaves it once nothing is starred", async () => {
+  const starred = jobWith({ favorite: true });
+  createFakeApi([starred, olderJob], [applicationFor(olderJob)]);
+  renderApp(`/jobs/${starred.id}`);
+  const findFilter = () => screen.findByRole("group", { name: "Filter by status" });
+
+  expect(
+    within(await findFilter())
+      .getAllByRole("button")
+      .map((button) => button.textContent),
+  ).toEqual(["2 All", "1 Open", "1 Applied", "1 Starred"]);
+  await userEvent.click(within(await findFilter()).getByRole("button", { name: "1 Starred" }));
+  await waitFor(() => expect(screen.getAllByRole("link", { name: /Developer/ })).toHaveLength(1));
+
+  await userEvent.click(
+    within(await screen.findByRole("article")).getByRole("button", { name: "Star" }),
+  );
+
+  await waitFor(async () =>
+    expect(within(await findFilter()).queryByRole("button", { name: /Starred/ })).toBeNull(),
+  );
+  expect(within(await findFilter()).getByRole("button", { name: "2 All" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(await screen.findAllByRole("link", { name: /Developer/ })).toHaveLength(2);
+});
+
+test("stars a job with an application", async () => {
+  const api = createFakeApi([jobFixture], [applicationFor(jobFixture)]);
+  renderApp(`/jobs/${jobFixture.id}`);
+
+  await userEvent.click(
+    within(await screen.findByRole("article")).getByRole("button", { name: "Star" }),
+  );
+
+  await waitFor(() => expect(api.requestsWith("PUT")).toHaveLength(1));
+});
+
+test("shows an error when starring a job fails", async () => {
+  const api = createFakeApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  const star = within(await screen.findByRole("article")).getByRole("button", { name: "Star" });
+
+  api.failWith("PUT", 500);
+  await userEvent.click(star);
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "The star could not be saved. Please try again.",
+  );
+  expect(star).toHaveAttribute("aria-pressed", "false");
 });
 
 test("applies for a job from its detail view", async () => {

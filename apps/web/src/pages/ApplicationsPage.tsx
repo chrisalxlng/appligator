@@ -2,7 +2,7 @@ import type { ApplicationStatus } from "@appligator/shared";
 import { Link, useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { JobPicker } from "../applications/JobPicker.tsx";
-import { useApplications, useApplicationStatusCounts } from "../applications/applicationQueries.ts";
+import { useApplications, useApplicationCounts } from "../applications/applicationQueries.ts";
 import { useApplicationStatus } from "../applications/useApplicationStatus.ts";
 import { CardList } from "../collection/CardList.tsx";
 import { CollectionPage } from "../collection/CollectionPage.tsx";
@@ -12,9 +12,9 @@ import { useStatusFilter } from "../collection/useStatusFilter.ts";
 export function ApplicationsPage() {
   const { t } = useTranslation();
   const { applicationId } = useParams({ strict: false });
-  const statusCounts = useApplicationStatusCounts();
-  const [status, setStatus] = useStatusFilter<ApplicationStatus>(statusCounts.data);
-  const applications = useApplications(status);
+  const counts = useApplicationCounts();
+  const [filter, setFilter] = useStatusFilter<ApplicationStatus>(counts.data);
+  const applications = useApplications(filter);
   const applicationStatus = useApplicationStatus();
 
   return (
@@ -32,9 +32,9 @@ export function ApplicationsPage() {
       action={<JobPicker />}
       filter={
         <StatusFilter
-          counts={statusCounts.data ?? []}
-          selected={status}
-          onSelect={setStatus}
+          counts={counts.data}
+          selected={filter}
+          onSelect={setFilter}
           statusLabel={(status) => applicationStatus(status).label}
         />
       }

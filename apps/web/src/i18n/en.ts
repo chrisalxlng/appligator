@@ -17,6 +17,9 @@ export const en = {
     notSpecified: "Not specified",
     new: "New",
     allStatuses: "All",
+    favorites: "Starred",
+    markFavorite: "Star",
+    favoriteError: "The star could not be saved. Please try again.",
     statusFilter: "Filter by status",
   },
   jobs: {

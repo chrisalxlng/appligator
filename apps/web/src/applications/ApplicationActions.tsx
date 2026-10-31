@@ -5,16 +5,18 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DetailActions } from "../collection/DetailActions.tsx";
+import { FavoriteButton } from "../collection/FavoriteButton.tsx";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { ApplicationFormDrawer } from "./ApplicationFormDrawer.tsx";
-import { useDeleteApplication } from "./applicationQueries.ts";
+import { useDeleteApplication, useMarkApplicationFavorite } from "./applicationQueries.ts";
 
 export function ApplicationActions({ application }: { application: Application }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deleteApplication = useDeleteApplication(application);
+  const markFavorite = useMarkApplicationFavorite(application.id);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const showSuccess = useSuccessToast();
@@ -51,10 +53,17 @@ export function ApplicationActions({ application }: { application: Application }
       </Button>
     </ShortcutTooltip>
   );
+  const favoriteButton = (
+    <FavoriteButton favorite={application.favorite} markFavorite={markFavorite} />
+  );
 
   return (
     <>
-      <DetailActions buttons={[editButton]} menuItems={deleteItem} />
+      <DetailActions
+        buttons={[editButton, favoriteButton]}
+        menuItems={deleteItem}
+        error={markFavorite.isError && t("common.favoriteError")}
+      />
       <ApplicationFormDrawer
         application={application}
         open={isEditing}

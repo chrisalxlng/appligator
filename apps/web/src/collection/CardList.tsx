@@ -1,4 +1,5 @@
 import { Badge, type BadgeTone } from "@appligator/ui";
+import { IconStarFilled } from "@tabler/icons-react";
 import {
   useEffect,
   useEffectEvent,
@@ -35,6 +36,7 @@ export interface CardItem {
   company: string;
   position: string;
   isNew?: boolean;
+  favorite: boolean;
   createdAt: string;
 }
 
@@ -105,7 +107,15 @@ export function CardList<Item extends CardItem>({
                     <span className={styles.company}>{item.company}</span>
                     <span className={styles.footer}>
                       <span className={styles.created}>{createdLabel(item.createdAt)}</span>
-                      <Badge tone={item.id === openedId ? "active" : tone}>{label}</Badge>
+                      <span className={styles.footerEnd}>
+                        {item.favorite && (
+                          <>
+                            <IconStarFilled size={16} className={styles.star} aria-hidden />
+                            <span className={a11y.visuallyHidden}>{t("common.favorites")}</span>
+                          </>
+                        )}
+                        <Badge tone={item.id === openedId ? "active" : tone}>{label}</Badge>
+                      </span>
                     </span>
                   </>
                 ),

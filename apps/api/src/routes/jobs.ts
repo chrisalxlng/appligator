@@ -1,8 +1,9 @@
 import {
+  favoriteInputSchema,
+  jobCountsSchema,
   jobInputSchema,
   jobListPageSchema,
   jobSchema,
-  jobStatusCountsSchema,
   jobStatuses,
   type Job,
   type JobStatus,
@@ -23,6 +24,7 @@ const jobParamsSchema = z.object({ id: z.uuid() });
 
 const jobListQuerySchema = pageQuerySchema.extend({
   status: z.enum(jobStatuses).optional(),
+  favorite: z.stringbool().optional(),
   search: z.string().trim().max(200).optional(),
 });
 
@@ -76,7 +78,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     "/jobs",
     { schema: { querystring: jobListQuerySchema, response: { 200: jobListPageSchema } } },
     async (request) => {
-      const { limit, cursor, status, search } = request.query;
+      const { limit, cursor, status, favorite, search } = request.query;
       const rows = await app.db
         .select({
           id: jobs.id,
@@ -84,6 +86,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
           position: jobs.position,
           status: jobStatus,
           isNew: sql<boolean>`${jobs.viewedAt} is null`,
+          favorite: jobs.favorite,
           createdAt: jobs.createdAt,
           cursorCreatedAt: cursorCreatedAt(jobs),
         })
@@ -93,6 +96,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
           and(
             eq(jobs.userId, request.userId),
             status && hasStatus(status),
+            favorite ? eq(jobs.favorite, true) : undefined,
             search ? matchesSearch(search) : undefined,
             afterCursor(jobs, cursor),
           ),
@@ -104,20 +108,20 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  app.get(
-    "/jobs/status-counts",
-    { schema: { response: { 200: jobStatusCountsSchema } } },
-    async (request) => {
-      const rows = await app.db
-        .select({ status: jobStatus, count: count() })
-        .from(jobs)
-        .leftJoin(applications, eq(applications.jobId, jobs.id))
-        .where(eq(jobs.userId, request.userId))
-        .groupBy(jobStatus);
+  app.get("/jobs/counts", { schema: { response: { 200: jobCountsSchema } } }, async (request) => {
+    const statuses = await app.db
+      .select({ status: jobStatus, count: count() })
+      .from(jobs)
+      .leftJoin(applications, eq(applications.jobId, jobs.id))
+      .where(eq(jobs.userId, request.userId))
+      .groupBy(jobStatus);
+    const favorites = await app.db.$count(
+      jobs,
+      and(eq(jobs.userId, request.userId), eq(jobs.favorite, true)),
+    );
 
-      return sortByStatus(rows, jobStatuses);
-    },
-  );
+    return { statuses: sortByStatus(statuses, jobStatuses), favorites };
+  });
 
   app.get(
     "/jobs/:id",
@@ -150,6 +154,27 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
       const [row] = await app.db
         .update(jobs)
         .set({ viewedAt: sql`coalesce(${jobs.viewedAt}, now())` })
+        .where(ownJob(request.params.id, request.userId))
+        .returning({ id: jobs.id });
+
+      if (!row) return reply.code(404).send({ error: "Not Found" });
+      return reply.code(204).send(null);
+    },
+  );
+
+  app.put(
+    "/jobs/:id/favorite",
+    {
+      schema: {
+        params: jobParamsSchema,
+        body: favoriteInputSchema,
+        response: { 204: z.null(), 404: notFoundSchema },
+      },
+    },
+    async (request, reply) => {
+      const [row] = await app.db
+        .update(jobs)
+        .set({ favorite: request.body.favorite })
         .where(ownJob(request.params.id, request.userId))
         .returning({ id: jobs.id });
 

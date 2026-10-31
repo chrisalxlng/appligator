@@ -10,20 +10,21 @@ import {
 } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useApiClient } from "../api/useApiClient.ts";
+import { filterParams, type CollectionFilter } from "../collection/useStatusFilter.ts";
 import { createJobsApi } from "./jobsApi.ts";
 
 const searchLimit = 20;
 
 export const jobKeys = {
-  list: (status: JobStatus | null) => ["jobs", "list", status] as const,
+  list: (filter: CollectionFilter<JobStatus>) => ["jobs", "list", filter] as const,
   search: (search: string) => ["jobs", "search", search] as const,
-  statusCounts: ["jobs", "status-counts"] as const,
+  counts: ["jobs", "counts"] as const,
   detail: (id: string) => ["jobs", "detail", id] as const,
 };
 
 export function invalidateJobCollections(queryClient: QueryClient) {
   return Promise.all(
-    [["jobs", "list"], ["jobs", "search"], jobKeys.statusCounts].map((queryKey) =>
+    [["jobs", "list"], ["jobs", "search"], jobKeys.counts].map((queryKey) =>
       queryClient.invalidateQueries({ queryKey }),
     ),
   );
@@ -33,11 +34,11 @@ function useJobsApi() {
   return createJobsApi(useApiClient());
 }
 
-export function useJobs(status: JobStatus | null = null) {
+export function useJobs(filter: CollectionFilter<JobStatus> = null) {
   const jobsApi = useJobsApi();
   return useInfiniteQuery({
-    queryKey: jobKeys.list(status),
-    queryFn: ({ pageParam }) => jobsApi.list({ cursor: pageParam, status }),
+    queryKey: jobKeys.list(filter),
+    queryFn: ({ pageParam }) => jobsApi.list({ cursor: pageParam, ...filterParams(filter) }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     select: (data) => data.pages.flatMap((page) => page.items),
@@ -54,9 +55,9 @@ export function useOpenJobSearch(search: string) {
   });
 }
 
-export function useJobStatusCounts() {
+export function useJobCounts() {
   const jobsApi = useJobsApi();
-  return useQuery({ queryKey: jobKeys.statusCounts, queryFn: jobsApi.statusCounts });
+  return useQuery({ queryKey: jobKeys.counts, queryFn: jobsApi.counts });
 }
 
 export function useJob(id: string) {
@@ -84,6 +85,19 @@ export function useDeleteJob(id: string) {
   return useMutation({
     mutationFn: () => jobsApi.remove(id),
     onSuccess: () => invalidateJobCollections(queryClient),
+  });
+}
+
+export function useMarkJobFavorite(id: string) {
+  const jobsApi = useJobsApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (favorite: boolean) => jobsApi.markFavorite(id, favorite),
+    onSuccess: (_, favorite) => {
+      queryClient.setQueryData<Job>(jobKeys.detail(id), (job) => job && { ...job, favorite });
+      return invalidateJobCollections(queryClient);
+    },
   });
 }
 

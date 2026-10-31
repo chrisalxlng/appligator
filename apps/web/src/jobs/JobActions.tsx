@@ -2,23 +2,33 @@ import type { Job } from "@appligator/shared";
 import { Button, ConfirmDialog, LinkButton, MenuItem, useSuccessToast } from "@appligator/ui";
 import { IconArrowUpRight, IconPencil, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useApply } from "../applications/applicationQueries.ts";
 import { DetailActions } from "../collection/DetailActions.tsx";
+import { FavoriteButton } from "../collection/FavoriteButton.tsx";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { JobFormDrawer } from "./JobFormDrawer.tsx";
-import { useDeleteJob } from "./jobQueries.ts";
+import { useDeleteJob, useMarkJobFavorite } from "./jobQueries.ts";
 
 export function JobActions({ job }: { job: Job }) {
+  const { t } = useTranslation();
+  const markFavorite = useMarkJobFavorite(job.id);
+  const favoriteButton = <FavoriteButton favorite={job.favorite} markFavorite={markFavorite} />;
+  const favoriteError = markFavorite.isError && t("common.favoriteError");
+
   return job.application ? (
     <DetailActions
-      buttons={[<ApplicationLink key="application" applicationId={job.application.id} />]}
+      buttons={[
+        <ApplicationLink key="application" applicationId={job.application.id} />,
+        favoriteButton,
+      ]}
+      error={favoriteError}
     />
   ) : (
-    <OpenJobActions job={job} />
+    <OpenJobActions job={job} favoriteButton={favoriteButton} favoriteError={favoriteError} />
   );
 }
 
@@ -33,7 +43,13 @@ function ApplicationLink({ applicationId }: { applicationId: string }) {
   );
 }
 
-function OpenJobActions({ job }: { job: Job }) {
+interface OpenJobActionsProps {
+  job: Job;
+  favoriteButton: ReactNode;
+  favoriteError: string | false;
+}
+
+function OpenJobActions({ job, favoriteButton, favoriteError }: OpenJobActionsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const apply = useApply();
@@ -89,9 +105,9 @@ function OpenJobActions({ job }: { job: Job }) {
   return (
     <>
       <DetailActions
-        buttons={[applyButton, editButton]}
+        buttons={[applyButton, editButton, favoriteButton]}
         menuItems={deleteItem}
-        error={apply.isError && t("applications.createError")}
+        error={apply.isError ? t("applications.createError") : favoriteError}
       />
       <JobFormDrawer job={job} open={isEditing} onOpenChange={setIsEditing} />
       <ConfirmDialog

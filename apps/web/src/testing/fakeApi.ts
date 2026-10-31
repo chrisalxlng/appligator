@@ -4,6 +4,7 @@ import {
   type Application,
   type ApplicationCreate,
   type ApplicationInput,
+  type FavoriteInput,
   type Job,
   type JobInput,
 } from "@appligator/shared";
@@ -12,7 +13,7 @@ import { vi } from "vite-plus/test";
 interface RecordedRequest {
   method: string;
   path: string;
-  body?: JobInput & ApplicationInput & ApplicationCreate;
+  body?: JobInput & ApplicationInput & ApplicationCreate & FavoriteInput;
 }
 
 export const jobFixture: Job = {
@@ -43,6 +44,7 @@ export const jobFixture: Job = {
   applicationDeadline: "2026-12-31",
   status: "open",
   isNew: false,
+  favorite: false,
   application: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -89,13 +91,35 @@ function page<Item extends { id: string }>(items: Item[], cursor: string | null,
   return { pageItems, nextCursor: hasMore ? pageItems.at(-1)!.id : null };
 }
 
-function countByStatus<Status extends string>(
-  items: { status: Status }[],
+function countItems<Status extends string>(
+  items: { status: Status; favorite: boolean }[],
   statuses: readonly Status[],
 ) {
-  return statuses
-    .map((status) => ({ status, count: items.filter((item) => item.status === status).length }))
-    .filter(({ count }) => count > 0);
+  return {
+    statuses: statuses
+      .map((status) => ({ status, count: items.filter((item) => item.status === status).length }))
+      .filter(({ count }) => count > 0),
+    favorites: items.filter((item) => item.favorite).length,
+  };
+}
+
+function matchesFilter(item: { status: string; favorite: boolean }, params: URLSearchParams) {
+  const status = params.get("status");
+  return (!status || item.status === status) && (!params.has("favorite") || item.favorite);
+}
+
+function toListItem(item: ListItemFields): ListItemFields {
+  const { id, company, position, status, favorite, createdAt } = item;
+  return { id, company, position, status, favorite, createdAt };
+}
+
+interface ListItemFields {
+  id: string;
+  company: string;
+  position: string;
+  status: string;
+  favorite: boolean;
+  createdAt: string;
 }
 
 export function createFakeApi(initialJobs: Job[] = [], initialApplications: Application[] = []) {
@@ -117,39 +141,24 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
   }
 
   function listJobs(searchParams: URLSearchParams) {
-    const status = searchParams.get("status");
     const search = searchParams.get("search")?.toLowerCase() ?? "";
     const matches = jobs
       .map(withStatus)
-      .filter((job) => !status || job.status === status)
+      .filter((job) => matchesFilter(job, searchParams))
       .filter((job) => `${job.company} ${job.position}`.toLowerCase().includes(search));
     const limit = Number(searchParams.get("limit") ?? fakePageSize);
     const { pageItems, nextCursor } = page(matches, searchParams.get("cursor"), limit);
     return {
-      items: pageItems.map(({ id, company, position, status, isNew, createdAt }) => ({
-        id,
-        company,
-        position,
-        status,
-        isNew,
-        createdAt,
-      })),
+      items: pageItems.map((job) => ({ ...toListItem(job), isNew: job.isNew })),
       nextCursor,
     };
   }
 
   function listApplications(searchParams: URLSearchParams) {
-    const status = searchParams.get("status");
-    const matches = applications.filter((application) => !status || application.status === status);
+    const matches = applications.filter((application) => matchesFilter(application, searchParams));
     const { pageItems, nextCursor } = page(matches, searchParams.get("cursor"), fakePageSize);
     return {
-      items: pageItems.map(({ id, company, position, status, createdAt }) => ({
-        id,
-        company,
-        position,
-        status,
-        createdAt,
-      })),
+      items: pageItems.map(toListItem),
       nextCursor,
     };
   }
@@ -162,15 +171,14 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
   ) {
     const now = new Date().toISOString();
     if (pathname === "/jobs" && method === "GET") return json(listJobs(searchParams));
-    if (pathname === "/jobs/status-counts") {
-      return json(countByStatus(jobs.map(withStatus), jobStatuses));
-    }
+    if (pathname === "/jobs/counts") return json(countItems(jobs.map(withStatus), jobStatuses));
     if (pathname === "/jobs" && method === "POST") {
       const created: Job = {
         ...body!,
         id: crypto.randomUUID(),
         status: "open",
         isNew: false,
+        favorite: false,
         application: null,
         createdAt: now,
         updatedAt: now,
@@ -183,8 +191,9 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
     const job = jobs.find((current) => current.id === id);
     if (!job) return json({ error: "Not Found" }, 404);
     if (method === "GET") return json(withStatus(job));
-    if (action === "view") {
-      jobs = jobs.map((current) => (current.id === id ? { ...current, isNew: false } : current));
+    if (action) {
+      const change = action === "view" ? { isNew: false } : { favorite: body!.favorite };
+      jobs = jobs.map((current) => (current.id === id ? { ...current, ...change } : current));
       return new Response(null, { status: 204 });
     }
     if (withStatus(job).application) return json({ error: "applied" }, 409);
@@ -207,8 +216,8 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
     if (pathname === "/applications" && method === "GET") {
       return json(listApplications(searchParams));
     }
-    if (pathname === "/applications/status-counts") {
-      return json(countByStatus(applications, applicationStatuses));
+    if (pathname === "/applications/counts") {
+      return json(countItems(applications, applicationStatuses));
     }
     if (pathname === "/applications" && method === "POST") {
       const job = jobs.find((current) => current.id === body!.jobId);
@@ -222,10 +231,16 @@ export function createFakeApi(initialJobs: Job[] = [], initialApplications: Appl
       return json(created, 201);
     }
 
-    const id = pathname.match(/^\/applications\/(.+)$/)?.[1];
+    const [, id, action] = pathname.match(/^\/applications\/([^/]+)(?:\/(.+))?$/) ?? [];
     const application = applications.find((current) => current.id === id);
     if (!application) return json({ error: "Not Found" }, 404);
     if (method === "GET") return json(application);
+    if (action === "favorite") {
+      applications = applications.map((current) =>
+        current.id === id ? { ...current, favorite: body!.favorite } : current,
+      );
+      return new Response(null, { status: 204 });
+    }
     if (method === "PUT") {
       const updated = { ...application, ...body!, updatedAt: now };
       applications = applications.map((current) => (current.id === id ? updated : current));

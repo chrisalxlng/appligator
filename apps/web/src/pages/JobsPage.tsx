@@ -9,7 +9,7 @@ import { CollectionPage } from "../collection/CollectionPage.tsx";
 import { StatusFilter } from "../collection/StatusFilter.tsx";
 import { useStatusFilter } from "../collection/useStatusFilter.ts";
 import { JobFormDrawer } from "../jobs/JobFormDrawer.tsx";
-import { useJobs, useJobStatusCounts } from "../jobs/jobQueries.ts";
+import { useJobs, useJobCounts } from "../jobs/jobQueries.ts";
 import { useJobStatus } from "../jobs/useJobStatus.ts";
 import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
@@ -19,9 +19,9 @@ export function JobsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { jobId } = useParams({ strict: false });
-  const statusCounts = useJobStatusCounts();
-  const [status, setStatus] = useStatusFilter<JobStatus>(statusCounts.data);
-  const jobs = useJobs(status);
+  const counts = useJobCounts();
+  const [filter, setFilter] = useStatusFilter<JobStatus>(counts.data);
+  const jobs = useJobs(filter);
   const jobStatus = useJobStatus();
   const [isAdding, setIsAdding] = useState(false);
   const shortcutHints = useShortcutHints();
@@ -49,9 +49,9 @@ export function JobsPage() {
       }
       filter={
         <StatusFilter
-          counts={statusCounts.data ?? []}
-          selected={status}
-          onSelect={setStatus}
+          counts={counts.data}
+          selected={filter}
+          onSelect={setFilter}
           statusLabel={(status) => jobStatus(status).label}
         />
       }

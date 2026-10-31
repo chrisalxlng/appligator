@@ -212,3 +212,35 @@ test("deletes an application after confirmation", async () => {
   expect(api.requestsWith("DELETE")[0]?.path).toBe(`/applications/${application.id}`);
   await waitFor(() => expect(router.state.location.pathname).toBe("/applications"));
 });
+
+test("stars an application and filters the starred applications", async () => {
+  const other = applicationFor(olderJob, { createdAt: yesterday });
+  const api = createFakeApi([jobFixture, olderJob], [application, other]);
+  renderApp(`/applications/${other.id}`);
+
+  await userEvent.click(
+    within(await screen.findByRole("article")).getByRole("button", { name: "Star" }),
+  );
+
+  expect(api.requestsWith("PUT")).toEqual([
+    expect.objectContaining({
+      path: `/applications/${other.id}/favorite`,
+      body: { favorite: true },
+    }),
+  ]);
+  const filter = await screen.findByRole("group", { name: "Filter by status" });
+  await userEvent.click(within(filter).getByRole("button", { name: "1 Starred" }));
+
+  await waitFor(() => expect(screen.getAllByRole("link", { name: /Applied$/ })).toHaveLength(1));
+  expect(screen.getByRole("link", { name: /Applied$/ })).toHaveTextContent("Frontend Developer");
+});
+
+test("takes over the star of the job when applying", async () => {
+  createFakeApi([jobWith({ favorite: true })]);
+  renderApp("/applications");
+
+  const picker = await openPicker();
+  await userEvent.click(within(picker).getByRole("option", { name: /Lead Developer Frontend/ }));
+
+  expect(await screen.findByRole("link", { name: /Applied$/ })).toHaveTextContent("Starred");
+});

@@ -114,6 +114,7 @@ export const jobSchema = jobInputSchema.extend({
   id: z.uuid(),
   status: z.enum(jobStatuses),
   isNew: z.boolean(),
+  favorite: z.boolean(),
   application: z
     .object({ id: z.uuid(), position: z.string(), status: z.enum(applicationStatuses) })
     .nullable(),
@@ -127,6 +128,7 @@ export const jobListItemSchema = jobSchema.pick({
   position: true,
   status: true,
   isNew: true,
+  favorite: true,
   createdAt: true,
 });
 

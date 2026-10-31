@@ -87,6 +87,16 @@
   margin-top: var(--spacing-3);
 }
 
+.footerEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.star {
+  color: var(--highlight-separator);
+}
+
 .created {
   color: var(--text-secondary);
   font: var(--font-caption);

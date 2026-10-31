@@ -1,10 +1,11 @@
 import {
+  applicationCountsSchema,
   applicationCreateSchema,
   applicationInputSchema,
   applicationListPageSchema,
   applicationSchema,
-  applicationStatusCountsSchema,
   applicationStatuses,
+  favoriteInputSchema,
 } from "@appligator/shared";
 import { and, count, desc, eq } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
@@ -22,6 +23,7 @@ const applicationParamsSchema = z.object({ id: z.uuid() });
 
 const applicationListQuerySchema = pageQuerySchema.extend({
   status: z.enum(applicationStatuses).optional(),
+  favorite: z.stringbool().optional(),
 });
 
 const alreadyAppliedSchema = z.object({ error: z.literal("alreadyApplied") });
@@ -75,13 +77,14 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request) => {
-      const { limit, cursor, status } = request.query;
+      const { limit, cursor, status, favorite } = request.query;
       const rows = await app.db
         .select({
           id: applications.id,
           company: applications.company,
           position: applications.position,
           status: applications.status,
+          favorite: applications.favorite,
           createdAt: applications.createdAt,
           cursorCreatedAt: cursorCreatedAt(applications),
         })
@@ -90,6 +93,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
           and(
             eq(applications.userId, request.userId),
             status ? eq(applications.status, status) : undefined,
+            favorite ? eq(applications.favorite, true) : undefined,
             afterCursor(applications, cursor),
           ),
         )
@@ -101,16 +105,20 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   app.get(
-    "/applications/status-counts",
-    { schema: { response: { 200: applicationStatusCountsSchema } } },
+    "/applications/counts",
+    { schema: { response: { 200: applicationCountsSchema } } },
     async (request) => {
-      const rows = await app.db
+      const statuses = await app.db
         .select({ status: applications.status, count: count() })
         .from(applications)
         .where(eq(applications.userId, request.userId))
         .groupBy(applications.status);
+      const favorites = await app.db.$count(
+        applications,
+        and(eq(applications.userId, request.userId), eq(applications.favorite, true)),
+      );
 
-      return sortByStatus(rows, applicationStatuses);
+      return { statuses: sortByStatus(statuses, applicationStatuses), favorites };
     },
   );
 
@@ -164,6 +172,27 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
         .returning();
 
       return reply.code(201).send(toApplication(row!, job));
+    },
+  );
+
+  app.put(
+    "/applications/:id/favorite",
+    {
+      schema: {
+        params: applicationParamsSchema,
+        body: favoriteInputSchema,
+        response: { 204: z.null(), 404: notFoundSchema },
+      },
+    },
+    async (request, reply) => {
+      const [row] = await app.db
+        .update(applications)
+        .set({ favorite: request.body.favorite })
+        .where(ownApplication(request.params.id, request.userId))
+        .returning({ id: applications.id });
+
+      if (!row) return reply.code(404).send({ error: "Not Found" });
+      return reply.code(204).send(null);
     },
   );
 

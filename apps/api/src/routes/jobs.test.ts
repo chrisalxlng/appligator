@@ -102,6 +102,7 @@ test("POST /jobs creates a job", async () => {
     id: expect.any(String),
     status: "open",
     isNew: false,
+    favorite: false,
     application: null,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
@@ -139,8 +140,16 @@ test.each([
   expect(response.statusCode).toBe(400);
 });
 
-function toListItem({ id, company, position, status, isNew, createdAt }: Record<string, unknown>) {
-  return { id, company, position, status, isNew, createdAt };
+function toListItem({
+  id,
+  company,
+  position,
+  status,
+  isNew,
+  favorite,
+  createdAt,
+}: Record<string, unknown>) {
+  return { id, company, position, status, isNew, favorite, createdAt };
 }
 
 async function insertJobs(count: number, createdAt: string) {
@@ -286,26 +295,69 @@ test("POST /jobs/:id/view marks a job with an application as viewed", async () =
   expect(response.statusCode).toBe(204);
 });
 
-test("GET /jobs/status-counts counts the user's jobs by status", async () => {
+async function markFavorite(id: string, favorite = true, userId?: string) {
+  return request("PUT", `/jobs/${id}/favorite`, { body: { favorite }, userId });
+}
+
+test("GET /jobs/counts counts the user's jobs by status and favorites", async () => {
   await createJob(emptyInput);
-  await createJob(emptyInput);
+  await markFavorite((await createJob(emptyInput)).id);
   await applyTo((await createJob()).id);
-  await createJob(jobInput, "other-user");
+  await markFavorite((await createJob(jobInput, "other-user")).id, true, "other-user");
 
-  const response = await request("GET", "/jobs/status-counts");
+  const response = await request("GET", "/jobs/counts");
 
-  expect(response.json()).toEqual([
-    { status: "open", count: 2 },
-    { status: "applied", count: 1 },
-  ]);
+  expect(response.json()).toEqual({
+    statuses: [
+      { status: "open", count: 2 },
+      { status: "applied", count: 1 },
+    ],
+    favorites: 1,
+  });
 });
 
-test("GET /jobs/status-counts leaves out statuses without jobs", async () => {
+test("GET /jobs/counts leaves out statuses without jobs", async () => {
   await createJob();
 
-  expect((await request("GET", "/jobs/status-counts")).json()).toEqual([
-    { status: "open", count: 1 },
-  ]);
+  expect((await request("GET", "/jobs/counts")).json()).toEqual({
+    statuses: [{ status: "open", count: 1 }],
+    favorites: 0,
+  });
+});
+
+test("PUT /jobs/:id/favorite marks and unmarks the job", async () => {
+  const job = await createJob();
+
+  expect((await markFavorite(job.id)).statusCode).toBe(204);
+  expect((await request("GET", `/jobs/${job.id}`)).json()).toMatchObject({ favorite: true });
+
+  await markFavorite(job.id, false);
+  expect((await request("GET", `/jobs/${job.id}`)).json()).toMatchObject({ favorite: false });
+});
+
+test("PUT /jobs/:id/favorite marks a job with an application", async () => {
+  const job = await createJob();
+  await applyTo(job.id);
+
+  expect((await markFavorite(job.id)).statusCode).toBe(204);
+});
+
+test("PUT /jobs/:id/favorite rejects a missing mark", async () => {
+  const job = await createJob();
+
+  const response = await request("PUT", `/jobs/${job.id}/favorite`, { body: {} });
+
+  expect(response.statusCode).toBe(400);
+});
+
+test("GET /jobs filters the favorite jobs", async () => {
+  const favorite = await createJob();
+  await createJob(emptyInput);
+  await markFavorite(favorite.id);
+
+  const { items } = (await request("GET", "/jobs?favorite=true")).json();
+
+  expect(items).toEqual([expect.objectContaining({ id: favorite.id, favorite: true })]);
 });
 
 test("GET /jobs/:id returns the job", async () => {
@@ -369,6 +421,7 @@ test.each([
   ["PUT", "", emptyInput],
   ["DELETE", "", undefined],
   ["POST", "/view", undefined],
+  ["PUT", "/favorite", { favorite: true }],
 ] as const)("%s /jobs/:id%s does not reveal jobs of other users", async (method, path, body) => {
   const job = await createJob(jobInput, "other-user");
 

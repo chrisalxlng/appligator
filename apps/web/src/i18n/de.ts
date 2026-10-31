@@ -19,6 +19,9 @@ export const de: Translations = {
     notSpecified: "Keine Angabe",
     new: "Neu",
     allStatuses: "Alle",
+    favorites: "Markiert",
+    markFavorite: "Markieren",
+    favoriteError: "Die Markierung konnte nicht gespeichert werden. Bitte versuche es erneut.",
     statusFilter: "Nach Status filtern",
   },
   jobs: {

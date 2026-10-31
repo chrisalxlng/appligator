@@ -70,11 +70,14 @@ export {
   type JobExtractionInput,
 } from "./jobExtraction.ts";
 export {
-  applicationStatusCountsSchema,
+  applicationCountsSchema,
   applicationStatuses,
-  jobStatusCountsSchema,
+  favoriteInputSchema,
+  jobCountsSchema,
   jobStatuses,
   type ApplicationStatus,
+  type Counts,
+  type FavoriteInput,
   type JobStatus,
   type StatusCount,
 } from "./status.ts";
