@@ -17,7 +17,7 @@ Review the full branch diff (`git diff master...HEAD`) as if it were someone els
 - **Consistency:** Is the implementation coherent in itself and with the existing codebase (naming, structure, patterns)? No duplicated logic.
 - **Correctness:** Edge cases, error and empty states, loading states.
 - **Tests:** Do the tests cover the new behavior, including edge cases? Do they fail without the change?
-- **UI:** Does it match the Figma design on desktop and mobile? No console errors.
+- **UI:** Is it consistent with the existing UI on desktop and mobile? No console errors.
 - **Code style:** Readable without comments; remaining comments explain only a non-obvious "why".
 - **Docs:** Are `CLAUDE.md`, READMEs and the PR description still accurate?
 
@@ -30,7 +30,6 @@ Summarize the self-review findings and what was fixed in the PR description.
 - **API docs:** while `vp run dev` runs, http://localhost:3000/docs shows all API endpoints in a Swagger UI; `Authorize` logs in via Keycloak to try them out.
 - **Playwright MCP:** drive the app in a browser to verify features and take screenshots (saved to `.playwright-mcp/`, gitignored).
 - **Chrome DevTools MCP:** inspect console errors, network requests and performance.
-- **Figma MCP:** designs live in the Figma file "Appligator" (file key `p87iDADBZ2aALpClaG2UPd`, https://www.figma.com/design/p87iDADBZ2aALpClaG2UPd/Appligator). Check the relevant frames before implementing UI.
 
 # Code Style
 
