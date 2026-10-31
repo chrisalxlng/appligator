@@ -2,7 +2,6 @@ import {
   activityTypeFields,
   type Activity,
   type ActivityInput,
-  type ActivityTerms,
   type ActivityType,
 } from "@appligator/shared";
 import { Button, DateInput, Field, submitKeyShortcuts } from "@appligator/ui";
@@ -17,6 +16,7 @@ import {
   toActivityFormValues,
   validateActivityForm,
   type ActivityFormErrors,
+  type ActivityPrefill,
   type ActivityFormValues,
 } from "./activityFormValues.ts";
 import { AttachmentList } from "./AttachmentList.tsx";
@@ -25,7 +25,7 @@ import { TermsField } from "./TermsField.tsx";
 interface ActivityFormProps<Result> {
   type: ActivityType;
   activity?: Activity;
-  initialTerms?: ActivityTerms | null;
+  prefill?: ActivityPrefill;
   save: UseMutationResult<Result, Error, ActivityInput>;
   onSaved: (result: Result) => void;
   submit: { label: string; icon: Icon };
@@ -36,7 +36,7 @@ interface ActivityFormProps<Result> {
 export function ActivityForm<Result>({
   type,
   activity,
-  initialTerms,
+  prefill,
   save,
   onSaved,
   submit: { label: submitLabel, icon: SubmitIcon },
@@ -44,7 +44,7 @@ export function ActivityForm<Result>({
   footer,
 }: ActivityFormProps<Result>) {
   const { t } = useTranslation();
-  const [values, setValues] = useState(() => toActivityFormValues(activity, initialTerms));
+  const [values, setValues] = useState(() => toActivityFormValues(activity, prefill));
   const [errors, setErrors] = useState<ActivityFormErrors>({});
   const shortcutHints = useShortcutHints();
   const fields = activityTypeFields[type];
@@ -64,7 +64,9 @@ export function ActivityForm<Result>({
     event.preventDefault();
     const result = validateActivityForm(type, values);
     setErrors(result.errors ?? {});
-    if (result.input) save.mutate(result.input, { onSuccess: onSaved });
+    // Unlike the callbacks of mutate, the promise also settles when saving unmounts the form,
+    // e.g. when applying turns the actions of the job into a link to the application.
+    if (result.input) save.mutateAsync(result.input).then(onSaved, () => {});
   }
 
   return (

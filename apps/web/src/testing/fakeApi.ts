@@ -255,7 +255,14 @@ export function createFakeApi(
     if (pathname === "/applications" && method === "POST") {
       const job = jobs.find((current) => current.id === body!.jobId);
       if (!job) return json({ error: "Not Found" }, 404);
-      const created = applicationFor(job, { createdAt: now, updatedAt: now });
+      const { terms, notes } = body!.activity;
+      const created = applicationFor(job, {
+        ...terms,
+        position: terms?.position ?? job.position,
+        notes,
+        createdAt: now,
+        updatedAt: now,
+      });
       applications = [created, ...applications];
       activities.set(created.id, [activityWith(body!.activity)]);
       return json(withAppliedAt(created), 201);

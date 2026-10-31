@@ -50,10 +50,15 @@ const changedInput: ApplicationInput = {
   notes: "",
 };
 
+const { company: _company, notes: _notes, ...submittedTerms } = inheritedInput;
+
 const submission: ActivityInput = {
   type: "applicationSubmitted",
   occurredAt: "2026-10-30T09:15:00.000Z",
-  terms: null,
+  terms: {
+    ...submittedTerms,
+    salary: { currency: "EUR", period: "year", min: 80_000, max: 80_000 },
+  },
   appointmentAt: null,
   dueDate: null,
   responseDeadline: null,
@@ -92,7 +97,7 @@ async function createApplication(userId?: string) {
   return (await apply(job.id, userId)).json();
 }
 
-test("POST /applications applies to a job with its details and the submission", async () => {
+test("POST /applications applies to a job with the terms and notes of the submission", async () => {
   const job = await createJob();
 
   const response = await apply(job.id);
@@ -101,6 +106,8 @@ test("POST /applications applies to a job with its details and the submission", 
   const application = response.json();
   expect(application).toEqual({
     ...inheritedInput,
+    salary: submission.terms!.salary,
+    notes: submission.notes,
     id: expect.any(String),
     status: "applied",
     appliedAt: "2026-10-30T09:15:00.000Z",
@@ -117,6 +124,24 @@ test("POST /applications applies to a job with its details and the submission", 
       updatedAt: expect.any(String),
     },
   ]);
+});
+
+test("POST /applications leaves the details empty without terms", async () => {
+  const job = await createJob();
+
+  const response = await request("POST", "/applications", {
+    body: { jobId: job.id, activity: { ...submission, terms: null, notes: "" } },
+  });
+
+  expect(response.json()).toMatchObject({
+    company: "Randstad Digital Germany AG",
+    position: "Lead Developer Frontend",
+    salary: null,
+    benefits: [],
+    locations: [],
+    workModel: null,
+    notes: "",
+  });
 });
 
 test("POST /applications refuses a second application to the same job", async () => {

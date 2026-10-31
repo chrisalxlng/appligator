@@ -1,5 +1,6 @@
 import {
   applicationCreateSchema,
+  type ActivityInput,
   applicationInputSchema,
   applicationListPageSchema,
   applicationSchema,
@@ -18,7 +19,6 @@ import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
 import { sortByStatus } from "./statusCounts.ts";
 
 type ApplicationRow = typeof applications.$inferSelect;
-type JobRow = typeof jobs.$inferSelect;
 
 const applicationParamsSchema = z.object({ id: z.uuid() });
 
@@ -51,19 +51,10 @@ function toApplication({ application, job, appliedAt }: ApplicationResult) {
   };
 }
 
-function jobDetailColumns({
-  id: _id,
-  userId: _userId,
-  link: _link,
-  description: _description,
-  summary: _summary,
-  applicationDeadline: _applicationDeadline,
-  viewedAt: _viewedAt,
-  createdAt: _createdAt,
-  updatedAt: _updatedAt,
-  ...columns
-}: JobRow) {
-  return columns;
+function submittedDetails({ terms, notes }: ActivityInput, job: { position: string }) {
+  if (!terms) return { position: job.position, locations: [], notes };
+  const { position, ...details } = terms;
+  return { ...toSalaryColumns(details), position: position ?? job.position, notes };
 }
 
 export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -169,7 +160,14 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
       const { id } = await app.db.transaction(async (tx) => {
         const [row] = await tx
           .insert(applications)
-          .values({ ...jobDetailColumns(job), userId: request.userId, jobId, status: "applied" })
+          .values({
+            ...submittedDetails(activity, job),
+            userId: request.userId,
+            jobId,
+            company: job.company,
+            pinned: job.pinned,
+            status: "applied",
+          })
           .returning({ id: applications.id });
         await tx
           .insert(activities)

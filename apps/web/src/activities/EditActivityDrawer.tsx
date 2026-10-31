@@ -31,13 +31,15 @@ export function EditActivityDrawer({
   const typeLabel = t(`activities.types.${activity.type}.label`);
 
   function confirmDelete() {
-    deleteActivity.mutate(undefined, {
-      onSuccess: () => {
+    // The promise also settles when the deleted activity, and with it this drawer, leaves the log.
+    deleteActivity.mutateAsync().then(
+      () => {
         setIsConfirmingDelete(false);
         onOpenChange(false);
         showSuccess(t("activities.toast.deleted"));
       },
-    });
+      () => {},
+    );
   }
 
   return (

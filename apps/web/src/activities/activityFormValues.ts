@@ -46,17 +46,19 @@ function toIsoDateTime(localDateTime: string) {
   return new Date(localDateTime).toISOString();
 }
 
+export type ActivityPrefill = Pick<ActivityInput, "terms" | "notes">;
+
 export function toActivityFormValues(
   activity?: Activity,
-  initialTerms: ActivityTerms | null = null,
+  prefill?: ActivityPrefill,
 ): ActivityFormValues {
   return {
     occurredAt: toLocalDateTime(activity?.occurredAt ?? new Date().toISOString()),
     appointmentAt: activity?.appointmentAt ? toLocalDateTime(activity.appointmentAt) : "",
     dueDate: activity?.dueDate ?? "",
     responseDeadline: activity?.responseDeadline ?? "",
-    terms: activity ? activity.terms : initialTerms,
-    notes: activity?.notes ?? "",
+    terms: (activity ?? prefill)?.terms ?? null,
+    notes: (activity ?? prefill)?.notes ?? "",
     attachments: activity?.attachments ?? [],
   };
 }

@@ -953,7 +953,7 @@ test("applies for a job from its detail view with the time and notes of the subm
       appointmentAt: null,
       dueDate: null,
       responseDeadline: null,
-      notes: "",
+      notes: jobFixture.notes,
       attachments: [],
     },
   });

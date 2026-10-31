@@ -69,7 +69,7 @@ function ApplyForm({ job, onApplied }: { job: Job; onApplied: ApplyContentProps[
   return (
     <ActivityForm
       type="applicationSubmitted"
-      initialTerms={activityTermsSchema.parse(job)}
+      prefill={{ terms: activityTermsSchema.parse(job), notes: job.notes }}
       save={apply}
       onSaved={(application) => {
         showSuccess(t("applications.toast.created"));
