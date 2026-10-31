@@ -240,6 +240,55 @@ async function extractJob(description = "<p>Frontend Developer at Initech in Mun
   return request("POST", "/ai/job-extraction", { body: { description } });
 }
 
+test("POST /ai/settings/verification verifies the stored access", async () => {
+  await saveSettings();
+
+  const response = await request("POST", "/ai/settings/verification");
+
+  expect(response.statusCode).toBe(204);
+  expect(createLanguageModel).toHaveBeenCalledWith({
+    provider: "openai",
+    model: "gpt-6-astra",
+    apiKey: "sk-secret",
+  });
+});
+
+test.each([
+  [401, 422, "accessRejected"],
+  [429, 422, "rateLimited"],
+  [500, 502, "providerUnavailable"],
+])(
+  "POST /ai/settings/verification reports a stored access the provider answers with %i",
+  async (providerStatus, status, error) => {
+    await saveSettings();
+    createLanguageModel.mockImplementation(() => failingModel(providerStatus));
+
+    const response = await request("POST", "/ai/settings/verification");
+
+    expect(response.statusCode).toBe(status);
+    expect(response.json()).toEqual({ error });
+    expect(await storedRow()).toBeDefined();
+  },
+);
+
+test("POST /ai/settings/verification requires a new API key when the stored one cannot be decrypted", async () => {
+  await saveSettings();
+  await storeUndecryptableApiKey();
+
+  const response = await request("POST", "/ai/settings/verification");
+
+  expect(response.statusCode).toBe(422);
+  expect(response.json()).toEqual({ error: "apiKeyRequired" });
+  expect(createLanguageModel).not.toHaveBeenCalled();
+});
+
+test("POST /ai/settings/verification responds with 409 without an AI access", async () => {
+  const response = await request("POST", "/ai/settings/verification");
+
+  expect(response.statusCode).toBe(409);
+  expect(response.json()).toEqual({ error: "notConfigured" });
+});
+
 test("POST /ai/job-extraction extracts the job with the stored access", async () => {
   await saveSettings();
   createLanguageModel.mockImplementation(() => respondingModel(JSON.stringify(extractionOutput)));

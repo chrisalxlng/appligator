@@ -73,6 +73,7 @@ export function createFakeAiApi(initialSettings: AiSettings | null = null) {
 
     if (path === "/ai/models") return json(aiModelsFixture);
     if (path === "/ai/job-extraction") return json(jobExtractionFixture);
+    if (path === "/ai/settings/verification") return new Response(null, { status: 204 });
     if (method === "GET") return json(settings);
     if (method === "PUT") {
       const { apiKey, ...input } = body as AiSettingsInput;

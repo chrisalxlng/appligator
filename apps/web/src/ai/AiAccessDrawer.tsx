@@ -1,10 +1,4 @@
-import {
-  aiProviders,
-  detectLanguage,
-  type AiErrorCode,
-  type AiProvider,
-  type AiSettings,
-} from "@appligator/shared";
+import { aiProviders, detectLanguage, type AiProvider, type AiSettings } from "@appligator/shared";
 import {
   Button,
   Drawer,
@@ -17,8 +11,8 @@ import {
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { ApiError } from "../api/apiClient.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { accessError } from "./accessError.ts";
 import styles from "./AiSettingsForm.module.css";
 import {
   toAiAccessFormValues,
@@ -56,18 +50,6 @@ export function AiAccessDrawer({ settings, open, onOpenChange }: AiAccessDrawerP
       <AiAccessForm settings={settings} onSaved={handleSaved} />
     </Drawer>
   );
-}
-
-const saveErrors = [
-  "apiKeyRequired",
-  "accessRejected",
-  "rateLimited",
-  "providerUnavailable",
-] as const satisfies readonly AiErrorCode[];
-
-function saveError(error: Error) {
-  const code = error instanceof ApiError ? error.code : undefined;
-  return saveErrors.find((saveError) => saveError === code) ?? "saveFailed";
 }
 
 interface AiAccessFormProps {
@@ -152,7 +134,7 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
       </Field>
       {save.isError && (
         <p role="alert" className={styles.saveError}>
-          {t(`ai.access.errors.${saveError(save.error)}`)}
+          {t(`ai.access.errors.${accessError(save.error, "saveFailed")}`)}
         </p>
       )}
       <Button

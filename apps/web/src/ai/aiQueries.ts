@@ -41,3 +41,8 @@ export function useDeleteAiSettings() {
     onSuccess: () => queryClient.setQueryData(aiKeys.settings, null),
   });
 }
+
+export function useVerifyAiSettings() {
+  const aiApi = useAiApi();
+  return useMutation({ mutationFn: aiApi.verifySettings });
+}

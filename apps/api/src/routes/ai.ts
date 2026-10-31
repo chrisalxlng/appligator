@@ -18,7 +18,11 @@ import { aiErrorStatus, toAiErrorCode } from "../ai/aiError.ts";
 import type { ApiKeyCipher } from "../ai/apiKeyCipher.ts";
 import { extractJob, extractJobFromPage } from "../ai/extractJob.ts";
 import { readJobPage } from "../ai/jobPage.ts";
-import { verifyLanguageModel, type CreateLanguageModel } from "../ai/languageModel.ts";
+import {
+  verifyLanguageModel,
+  type AiAccess,
+  type CreateLanguageModel,
+} from "../ai/languageModel.ts";
 import type { ModelCatalog } from "../ai/modelCatalog.ts";
 import { aiSettings, jobs } from "../db/schema.ts";
 import { toJob } from "./jobs.ts";
@@ -68,6 +72,17 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
     } catch (error) {
       log.error(error, "Decrypting the stored API key failed");
       return undefined;
+    }
+  }
+
+  async function verifyAccess(access: AiAccess, log: FastifyBaseLogger) {
+    try {
+      await verifyLanguageModel(createLanguageModel(access));
+      return undefined;
+    } catch (error) {
+      const code = toAiErrorCode(error);
+      log.info({ code }, "AI access verification failed");
+      return code;
     }
   }
 
@@ -136,14 +151,9 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
         input.apiKey ?? (keepsProvider ? readApiKey(existing, request.log) : undefined);
       if (!apiKey) return reply.code(422).send({ error: "apiKeyRequired" });
 
-      try {
-        const { provider, model } = input;
-        await verifyLanguageModel(createLanguageModel({ provider, model, apiKey }));
-      } catch (error) {
-        const code = toAiErrorCode(error);
-        request.log.info({ code }, "AI access verification failed");
-        return reply.code(aiErrorStatus(code)).send({ error: code });
-      }
+      const { provider, model } = input;
+      const error = await verifyAccess({ provider, model, apiKey }, request.log);
+      if (error) return reply.code(aiErrorStatus(error)).send({ error });
 
       const access = {
         provider: input.provider,
@@ -158,6 +168,26 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
         .onConflictDoUpdate({ target: aiSettings.userId, set: access })
         .returning();
       return toAiSettings(row!);
+    },
+  );
+
+  app.post(
+    "/ai/settings/verification",
+    { schema: { response: { 204: z.null(), ...aiErrorResponses } } },
+    async (request, reply) => {
+      const [settings] = await app.db
+        .select()
+        .from(aiSettings)
+        .where(eq(aiSettings.userId, request.userId));
+      if (!settings) return reply.code(409).send({ error: "notConfigured" });
+
+      const apiKey = readApiKey(settings, request.log);
+      if (!apiKey) return reply.code(422).send({ error: "apiKeyRequired" });
+
+      const { provider, model } = settings;
+      const error = await verifyAccess({ provider, model, apiKey }, request.log);
+      if (error) return reply.code(aiErrorStatus(error)).send({ error });
+      return reply.code(204).send(null);
     },
   );
 

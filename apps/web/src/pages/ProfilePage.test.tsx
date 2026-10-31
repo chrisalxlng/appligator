@@ -188,6 +188,52 @@ test("changes the AI language", async () => {
   expect(await screen.findByRole("button", { name: /^English/ })).toBeVisible();
 });
 
+test("checks the connection of the stored AI access", async () => {
+  const api = createFakeAiApi(aiSettingsFixture);
+  const release = api.holdResponses("POST /ai/settings/verification");
+  renderApp("/profile");
+
+  const check = await screen.findByRole("button", { name: "Check connection" });
+  await userEvent.click(check);
+
+  expect(check).toHaveAttribute("aria-busy", "true");
+  release();
+  expect(await screen.findByText("Connection works")).toBeInTheDocument();
+  expect(api.requestsWith("POST")).toEqual([
+    expect.objectContaining({ path: "/ai/settings/verification" }),
+  ]);
+  expect(screen.queryByRole("alert")).toBeNull();
+});
+
+test.each([
+  ["accessRejected", "The provider rejected the key or the model. Please update the AI access."],
+  ["apiKeyRequired", "The stored key can no longer be used. Please enter it again."],
+  [undefined, "The connection could not be checked. Please try again."],
+])("shows why checking the connection failed with %s", async (error, message) => {
+  const api = createFakeAiApi(aiSettingsFixture);
+  api.failWith("POST /ai/settings/verification", error ? 422 : 500, error);
+  renderApp("/profile");
+
+  await userEvent.click(await screen.findByRole("button", { name: "Check connection" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(message);
+});
+
+test("clears a failed connection check once the AI access is updated", async () => {
+  const api = createFakeAiApi(aiSettingsFixture);
+  api.failWith("POST /ai/settings/verification", 422, "accessRejected");
+  renderApp("/profile");
+  await userEvent.click(await screen.findByRole("button", { name: "Check connection" }));
+  await screen.findByRole("alert");
+
+  const drawer = await openEditDrawer();
+  await userEvent.type(within(drawer).getByLabelText("Key"), "sk-new");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Update" }));
+
+  expect(await screen.findByText("AI access updated")).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).toBeNull();
+});
+
 test("deletes the AI access after confirmation", async () => {
   createFakeAiApi(aiSettingsFixture);
   renderApp("/profile");
