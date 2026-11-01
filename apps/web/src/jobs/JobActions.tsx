@@ -1,57 +1,46 @@
 import type { Job } from "@appligator/shared";
 import { Button, ConfirmDialog, LinkButton, MenuItem, useSuccessToast } from "@appligator/ui";
-import { IconArrowUpRight, IconPencil, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
+import { IconArrowUpRight, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ApplyDrawer } from "../applications/ApplyDrawer.tsx";
 import { DetailActions } from "../collection/DetailActions.tsx";
-import { PinButton } from "../collection/PinButton.tsx";
-import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { JobFormDrawer } from "./JobFormDrawer.tsx";
 import { useDeleteJob, usePinJob } from "./jobQueries.ts";
 
 export function JobActions({ job }: { job: Job }) {
+  return job.application ? (
+    <ApplicationJobActions job={job} applicationId={job.application.id} />
+  ) : (
+    <OpenJobActions job={job} />
+  );
+}
+
+function ApplicationJobActions({ job, applicationId }: { job: Job; applicationId: string }) {
   const { t } = useTranslation();
   const pin = usePinJob(job.id);
-  const pinButton = <PinButton pinned={job.pinned} pin={pin} />;
-  const pinError = pin.isError && t("common.pinError");
-
-  return job.application ? (
-    <DetailActions
-      buttons={[
-        <ApplicationLink key="application" applicationId={job.application.id} />,
-        pinButton,
-      ]}
-      error={pinError}
-    />
-  ) : (
-    <OpenJobActions job={job} pinButton={pinButton} pinError={pinError} />
-  );
-}
-
-function ApplicationLink({ applicationId }: { applicationId: string }) {
-  const { t } = useTranslation();
 
   return (
-    <LinkButton render={<Link to="/applications/$applicationId" params={{ applicationId }} />}>
-      <IconArrowUpRight size={20} stroke={2.4} aria-hidden />
-      {t("jobs.openApplication")}
-    </LinkButton>
+    <DetailActions
+      primaryAction={
+        <LinkButton render={<Link to="/applications/$applicationId" params={{ applicationId }} />}>
+          <IconArrowUpRight size={20} stroke={2.4} aria-hidden />
+          {t("jobs.openApplication")}
+        </LinkButton>
+      }
+      pinned={job.pinned}
+      pin={pin}
+    />
   );
 }
 
-interface OpenJobActionsProps {
-  job: Job;
-  pinButton: ReactNode;
-  pinError: string | false;
-}
-
-function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
+function OpenJobActions({ job }: { job: Job }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const pin = usePinJob(job.id);
   const deleteJob = useDeleteJob(job.id);
   const [isApplying, setIsApplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -76,14 +65,6 @@ function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
       {t("jobs.apply")}
     </Button>
   );
-  const editButton = (
-    <ShortcutTooltip hint={shortcutHints?.alt("E")}>
-      <Button variant="surface" onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
-        <IconPencil size={20} stroke={2.4} aria-hidden />
-        {t("jobs.edit")}
-      </Button>
-    </ShortcutTooltip>
-  );
   const deleteItem = (
     <MenuItem
       variant="destructive"
@@ -100,9 +81,11 @@ function OpenJobActions({ job, pinButton, pinError }: OpenJobActionsProps) {
   return (
     <>
       <DetailActions
-        buttons={[applyButton, editButton, pinButton]}
-        menuItems={deleteItem}
-        error={pinError}
+        primaryAction={applyButton}
+        edit={{ label: t("jobs.edit"), onClick: () => setIsEditing(true) }}
+        deleteItem={deleteItem}
+        pinned={job.pinned}
+        pin={pin}
       />
       <ApplyDrawer jobId={job.id} open={isApplying} onOpenChange={setIsApplying} />
       <JobFormDrawer job={job} open={isEditing} onOpenChange={setIsEditing} />

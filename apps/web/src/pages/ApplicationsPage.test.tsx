@@ -230,9 +230,8 @@ test("pins an application to a section above the other applications", async () =
   const api = createFakeApi([jobFixture, olderJob], [application, other]);
   renderApp(`/applications/${other.id}`);
 
-  await userEvent.click(
-    within(await screen.findByRole("article")).getByRole("button", { name: "Pin" }),
-  );
+  await userEvent.click(await screen.findByRole("button", { name: "Show more actions" }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Pin" }));
 
   expect(api.requestsWith("PUT")).toEqual([
     expect.objectContaining({ path: `/applications/${other.id}/pin`, body: { pinned: true } }),

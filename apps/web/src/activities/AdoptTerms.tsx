@@ -184,7 +184,7 @@ function AdoptTermsForm({ application, differences, onDone }: AdoptTermsFormProp
           aria-keyshortcuts={submitKeyShortcuts}
         >
           <IconCheck size={20} stroke={2.4} aria-hidden />
-          {t("activities.adopt.submit", { count: selected.size })}
+          {t("activities.adopt.submit")}
         </Button>
       </div>
     </form>

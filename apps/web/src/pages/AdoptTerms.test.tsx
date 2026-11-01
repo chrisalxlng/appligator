@@ -67,7 +67,7 @@ test("collects the differences of several activities and reviews all of them", a
       .getByRole("checkbox", { name: /^Salary/ })
       .closest("label"),
   ).toHaveTextContent("Offer received •");
-  await userEvent.click(within(drawer).getByRole("button", { name: "Take over 3 values" }));
+  await userEvent.click(within(drawer).getByRole("button", { name: "Take over" }));
 
   expect(await screen.findByText("Values taken over")).toBeInTheDocument();
   expect(api.requestsWith("PUT").map(({ path }) => path)).toEqual([
@@ -110,7 +110,7 @@ test("takes over the chosen values into the details", async () => {
   const drawer = await openAdoption();
 
   await userEvent.click(within(drawer).getByRole("checkbox", { name: /^Probation/ }));
-  await userEvent.click(within(drawer).getByRole("button", { name: "Take over 1 value" }));
+  await userEvent.click(within(drawer).getByRole("button", { name: "Take over" }));
 
   expect(await screen.findByText("Values taken over")).toBeInTheDocument();
   expect(api.requestsWith("PUT")).toEqual([
@@ -238,7 +238,7 @@ test("keeps the hint when the drawer is closed without ignoring", async () => {
 test("takes over the values with Ctrl+Enter", async () => {
   const api = renderAdoption();
   const drawer = await openAdoption();
-  expect(within(drawer).getByRole("button", { name: /Take over 2 values/ })).toHaveAttribute(
+  expect(within(drawer).getByRole("button", { name: /^Take over/ })).toHaveAttribute(
     "aria-keyshortcuts",
   );
 

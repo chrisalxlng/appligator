@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef, type ReactNode } from "react";
 import { expect, test, vi } from "vite-plus/test";
@@ -75,6 +75,14 @@ test("focuses the given element when it opens", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Add" }));
 
   await waitFor(() => expect(screen.getByRole("textbox", { name: "Location" })).toHaveFocus());
+});
+
+test("focuses the given element during the opening tap, so iOS opens the keyboard", () => {
+  render(<DrawerWithInitialFocus />);
+
+  fireEvent.click(screen.getByRole("button", { name: "Add" }));
+
+  expect(screen.getByRole("textbox", { name: "Location" })).toHaveFocus();
 });
 
 function FormDrawer({

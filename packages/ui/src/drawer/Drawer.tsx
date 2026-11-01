@@ -3,6 +3,7 @@ import { IconX } from "@tabler/icons-react";
 import {
   createContext,
   useContext,
+  useLayoutEffect,
   useRef,
   type KeyboardEvent,
   type ReactElement,
@@ -32,6 +33,15 @@ function submitOnShortcut(event: KeyboardEvent<HTMLDivElement>) {
   event.stopPropagation();
   event.preventDefault();
   event.currentTarget.querySelector<HTMLButtonElement>('form button[type="submit"]')?.click();
+}
+
+// iOS only opens the keyboard for a focus call during the tap, but Base UI focuses a frame later.
+function FocusDuringTap({ target }: { target: RefObject<HTMLElement | null> }) {
+  useLayoutEffect(() => {
+    target.current?.focus({ preventScroll: true });
+  }, [target]);
+
+  return null;
 }
 
 export function Drawer({
@@ -73,6 +83,7 @@ export function Drawer({
               <BaseDrawer.Content className={styles.content}>
                 <IsNestedContext value>{children}</IsNestedContext>
               </BaseDrawer.Content>
+              {initialFocus && <FocusDuringTap target={initialFocus} />}
             </BaseDrawer.Popup>
           </BaseDrawer.Viewport>
         </BaseDrawer.Portal>

@@ -18,9 +18,17 @@ export class FakeIntersectionObserver {
   }
 }
 
-export function scrollObservedElementsIntoView() {
+function reportIntersection(isIntersecting: boolean) {
   observed.forEach((callback, target) => {
-    const entry = { target, isIntersecting: true } as IntersectionObserverEntry;
+    const entry = { target, isIntersecting } as IntersectionObserverEntry;
     callback([entry], {} as IntersectionObserver);
   });
+}
+
+export function scrollObservedElementsIntoView() {
+  reportIntersection(true);
+}
+
+export function scrollObservedElementsOutOfView() {
+  reportIntersection(false);
 }
