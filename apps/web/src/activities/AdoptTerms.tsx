@@ -155,10 +155,7 @@ function AdoptTermsForm({ application, differences, onDone }: AdoptTermsFormProp
                   <span>{adoptedValue(key)}</span>
                 </span>
                 <span className={styles.source}>
-                  {t("activities.adopt.source", {
-                    type: t(`activities.types.${activity.type}.label`),
-                    date: dateLabel(activity.occurredAt),
-                  })}
+                  {t(`activities.types.${activity.type}.label`)} • {dateLabel(activity.occurredAt)}
                 </span>
               </span>
             </Checkbox>

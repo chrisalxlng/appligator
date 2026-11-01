@@ -296,7 +296,6 @@ export const en = {
     adopt: {
       hint_one: "{{count}} value from activities differs from the details",
       hint_other: "{{count}} values from activities differ from the details",
-      source: "From {{type}} • {{date}}",
       action: "Take over values",
       title: "Take over values",
       description:

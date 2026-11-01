@@ -41,7 +41,7 @@
 .difference {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: var(--spacing-1-5);
 }
 
 .label {
@@ -54,7 +54,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 0 var(--spacing-2);
   overflow-wrap: anywhere;
 
   & svg {
