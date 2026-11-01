@@ -1,12 +1,6 @@
+import { hostname } from "@appligator/shared";
 import { expect, test } from "vite-plus/test";
-import {
-  daysAgo,
-  formatIsoDate,
-  formatNumber,
-  formatSalaryRange,
-  formatUnit,
-  hostname,
-} from "./format.ts";
+import { daysAgo, formatIsoDate, formatNumber, formatSalaryRange, formatUnit } from "./format.ts";
 
 const now = new Date(2026, 9, 28, 9, 0);
 

@@ -46,9 +46,8 @@ function toAiSettings({ provider, model, language, accessUpdatedAt }: AiSettings
   return { provider, model, language, accessUpdatedAt: accessUpdatedAt.toISOString() };
 }
 
-function changesAccess(existing: AiSettingsRow | undefined, input: AiSettingsInput) {
+function changesAccess(existing: AiSettingsRow, input: AiSettingsInput) {
   return (
-    !existing ||
     input.apiKey !== undefined ||
     input.provider !== existing.provider ||
     input.model !== existing.model
@@ -159,8 +158,8 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
       if (error) return reply.code(aiErrorStatus(error)).send({ error });
 
       const access = {
-        provider: input.provider,
-        model: input.model,
+        provider,
+        model,
         encryptedApiKey: apiKeyCipher.encrypt(apiKey, userId),
         language: input.language,
         accessUpdatedAt: new Date(),

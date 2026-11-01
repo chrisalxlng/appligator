@@ -1,10 +1,10 @@
 import { aiLanguages, type AiLanguage, type AiSettings } from "@appligator/shared";
-import { Button, Drawer, Field, Select, submitKeyShortcuts, useSuccessToast } from "@appligator/ui";
+import { Drawer, Field, Select, useSuccessToast } from "@appligator/ui";
 import { IconPencil } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
-import styles from "./AiSettingsForm.module.css";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
+import styles from "../details/form.module.css";
 import { useSaveAiSettings } from "./aiQueries.ts";
 
 interface AiLanguageDrawerProps {
@@ -25,7 +25,7 @@ export function AiLanguageDrawer({ settings, open, onOpenChange }: AiLanguageDra
   return (
     <Drawer
       title={t("ai.language.title")}
-      closeLabel={t("ai.close")}
+      closeLabel={t("common.close")}
       open={open}
       onOpenChange={onOpenChange}
     >
@@ -38,7 +38,6 @@ function AiLanguageForm({ settings, onSaved }: { settings: AiSettings; onSaved: 
   const { t } = useTranslation();
   const save = useSaveAiSettings();
   const [language, setLanguage] = useState<AiLanguage>(settings.language);
-  const shortcutHints = useShortcutHints();
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -53,7 +52,7 @@ function AiLanguageForm({ settings, onSaved }: { settings: AiSettings; onSaved: 
           items={aiLanguages.map((value) => ({ value, label: t(`ai.languageName.${value}`) }))}
           value={language}
           onValueChange={(value) => value && setLanguage(value)}
-          placeholder={t("ai.selectPlaceholder")}
+          placeholder={t("fields.selectPlaceholder")}
         />
       </Field>
       {save.isError && (
@@ -61,15 +60,9 @@ function AiLanguageForm({ settings, onSaved }: { settings: AiSettings; onSaved: 
           {t("ai.language.saveError")}
         </p>
       )}
-      <Button
-        type="submit"
-        pending={save.isPending}
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        <IconPencil size={20} stroke={2.4} aria-hidden />
+      <SubmitButton icon={IconPencil} pending={save.isPending}>
         {t("ai.language.submit")}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

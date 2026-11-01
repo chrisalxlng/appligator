@@ -1,10 +1,9 @@
-import { activityLimits, type Attachment } from "@appligator/shared";
+import { activityLimits } from "@appligator/shared";
 import {
   Button,
   DateInput,
   Field,
   RichTextEditor,
-  submitKeyShortcuts,
   TextInput,
   useFocusFirstError,
 } from "@appligator/ui";
@@ -12,16 +11,15 @@ import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useId, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { richTextError, type FieldError } from "../details/detailsForm.ts";
+import formStyles from "../details/form.module.css";
 import listStyles from "../details/list.module.css";
 import { toIsoDateTime, toLocalDateTime } from "../details/localDateTime.ts";
 import { useFormatLabels } from "../details/useFormatLabels.ts";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
+import type { EmailAttachment, LinkAttachment } from "./attachments.ts";
 import { DropZone } from "./DropZone.tsx";
 import styles from "./EmailForm.module.css";
 import { importEmail, isEmailFile } from "./emailImport.ts";
-
-type EmailAttachment = Extract<Attachment, { kind: "email" }>;
-type LinkAttachment = Extract<Attachment, { kind: "link" }>;
 
 interface EmailFormValues {
   subject: string;
@@ -61,7 +59,6 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
   const [links, setLinks] = useState<LinkAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importHintId = useId();
-  const shortcutHints = useShortcutHints();
 
   function setValue(key: keyof EmailFormValues) {
     return (value: string) => setValues((current) => ({ ...current, [key]: value }));
@@ -82,8 +79,6 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    // The drawer is portaled, but React still bubbles the submit to the surrounding activity form.
-    event.stopPropagation();
     const subject = values.subject.trim();
     const from = values.from.trim();
     const to = values.to.trim();
@@ -119,7 +114,7 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
       label={t("attachments.email.dropHere")}
       onFiles={(files) => void importFile(files[0])}
     >
-      <form ref={formRef} className={listStyles.form} onSubmit={submit} noValidate>
+      <form ref={formRef} className={formStyles.form} onSubmit={submit} noValidate>
         <div className={styles.import}>
           <Button
             type="button"
@@ -178,18 +173,9 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
             formatLabels={formatLabels}
           />
         </Field>
-        <Button
-          type="submit"
-          shortcutHint={shortcutHints?.submit}
-          aria-keyshortcuts={submitKeyShortcuts}
-        >
-          {attachment ? (
-            <IconPencil size={20} stroke={2.4} aria-hidden />
-          ) : (
-            <IconPlus size={20} stroke={2.4} aria-hidden />
-          )}
+        <SubmitButton icon={attachment ? IconPencil : IconPlus}>
           {t(attachment ? "attachments.update" : "attachments.add")}
-        </Button>
+        </SubmitButton>
       </form>
     </DropZone>
   );

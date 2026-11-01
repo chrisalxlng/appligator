@@ -1,10 +1,11 @@
 import { jobLimits } from "@appligator/shared";
-import { Button, Field, Fieldset, submitKeyShortcuts, TextInput } from "@appligator/ui";
+import { Button, Field, Fieldset, TextInput } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
+import formStyles from "../details/form.module.css";
 import listStyles from "../details/list.module.css";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
 import type { FileAttachment } from "./attachments.ts";
 import { DropZone } from "./DropZone.tsx";
 import { titleOf, uploadError, useUploadFile, type AttachmentError } from "./useAddFiles.ts";
@@ -32,7 +33,6 @@ export function FileForm({ titleRef, attachment, onSave }: FileFormProps) {
   const uploadedFileIds = useRef<string[]>([]);
   const savedFileId = useRef<string | null>(null);
   const deleteFilesRef = useRef(deleteFiles);
-  const shortcutHints = useShortcutHints();
 
   useEffect(() => {
     deleteFilesRef.current = deleteFiles;
@@ -62,8 +62,6 @@ export function FileForm({ titleRef, attachment, onSave }: FileFormProps) {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    // The drawer is portaled, but React still bubbles the submit to the surrounding activity form.
-    event.stopPropagation();
     if (isUploading) return;
     const trimmedTitle = title.trim();
     if (!file) return setError("fileRequired");
@@ -76,7 +74,7 @@ export function FileForm({ titleRef, attachment, onSave }: FileFormProps) {
 
   return (
     <DropZone label={t("attachments.file.dropHere")} onFiles={(files) => void choose(files[0])}>
-      <form className={listStyles.form} onSubmit={submit} noValidate>
+      <form className={formStyles.form} onSubmit={submit} noValidate>
         <Fieldset legend={t("attachments.file.kind")}>
           {chosenFile && (
             <div className={listStyles.item} data-static>
@@ -116,19 +114,9 @@ export function FileForm({ titleRef, attachment, onSave }: FileFormProps) {
             {t(`attachments.errors.${error}`)}
           </p>
         )}
-        <Button
-          type="submit"
-          pending={isUploading}
-          shortcutHint={shortcutHints?.submit}
-          aria-keyshortcuts={submitKeyShortcuts}
-        >
-          {attachment ? (
-            <IconPencil size={20} stroke={2.4} aria-hidden />
-          ) : (
-            <IconPlus size={20} stroke={2.4} aria-hidden />
-          )}
+        <SubmitButton icon={attachment ? IconPencil : IconPlus} pending={isUploading}>
           {t(attachment ? "attachments.update" : "attachments.add")}
-        </Button>
+        </SubmitButton>
       </form>
     </DropZone>
   );

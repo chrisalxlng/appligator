@@ -25,7 +25,6 @@ interface PageColumns {
   createdAt: PgColumn;
 }
 
-// Pinned entries come first, then the newest.
 export function pageOrder({ id, pinned, createdAt }: PageColumns) {
   return [desc(pinned), desc(createdAt), desc(id)];
 }

@@ -3,7 +3,7 @@ import { Drawer, Fieldset, IconButton, Menu, MenuItem, SpinnerCircle } from "@ap
 import { IconFile, IconMail, IconPlus, IconTrash, IconWorld } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import a11y from "../collection/visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
 import listStyles from "../details/list.module.css";
 import { EmailForm } from "./EmailForm.tsx";
 import { FileForm } from "./FileForm.tsx";

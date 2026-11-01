@@ -1,13 +1,7 @@
-import { activityLimits, jobLimits, type Attachment } from "@appligator/shared";
+import { activityLimits, escapeHtml, jobLimits } from "@appligator/shared";
 import { toRichText } from "@appligator/ui";
 import PostalMime, { type Address } from "postal-mime";
-
-type LinkAttachment = Extract<Attachment, { kind: "link" }>;
-type EmailAttachment = Extract<Attachment, { kind: "email" }>;
-
-function escapeHtml(text: string) {
-  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
+import type { EmailAttachment, LinkAttachment } from "./attachments.ts";
 
 function textToHtml(text: string) {
   return text
@@ -47,7 +41,7 @@ function findLinks(html: string | undefined, text: string | undefined): LinkAtta
   const links = html ? linksInHtml(html) : linksInText(text ?? "");
   const unique = new Map<string, LinkAttachment>();
   for (const { url, title } of links) {
-    if (!isWebLink(url) || url.length > activityLimits.linkLength || unique.has(url)) continue;
+    if (!isWebLink(url) || url.length > jobLimits.linkLength || unique.has(url)) continue;
     const useTitle = title !== url && title.length <= jobLimits.textLength;
     unique.set(url, { kind: "link", url, title: useTitle ? title : "" });
   }

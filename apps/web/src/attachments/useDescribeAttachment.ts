@@ -1,7 +1,6 @@
-import type { Attachment } from "@appligator/shared";
+import { hostname, type Attachment } from "@appligator/shared";
 import { IconFile, IconMail, IconWorld } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { hostname } from "../details/format.ts";
 
 const icons = { link: IconWorld, email: IconMail, file: IconFile };
 

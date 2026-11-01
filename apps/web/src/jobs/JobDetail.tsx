@@ -1,13 +1,13 @@
-import type { Job } from "@appligator/shared";
+import { hostname, type Job } from "@appligator/shared";
 import { Badge, LinkChip, RichText } from "@appligator/ui";
 import { IconCalendar, IconInbox, IconLink, IconTag } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useApplicationStatus } from "../applications/useApplicationStatus.ts";
 import { DetailView, NotSpecified, Property, Section } from "../collection/DetailView.tsx";
-import a11y from "../collection/visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
 import { DetailsSection } from "../details/DetailsSection.tsx";
-import { formatIsoDate, hostname } from "../details/format.ts";
+import { formatIsoDate } from "../details/format.ts";
 import { JobActions } from "./JobActions.tsx";
 import styles from "./JobDetail.module.css";
 import { useMarkJobViewed } from "./jobQueries.ts";

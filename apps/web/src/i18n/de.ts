@@ -600,8 +600,6 @@ export const de: Translations = {
       title: "KI-Einstellungen konnten nicht geladen werden",
       description: "Prüfe deine Verbindung und versuche es erneut.",
     },
-    close: "Schließen",
-    selectPlaceholder: "Bitte wählen",
     access: {
       keepApiKey: "Gespeichert – leer lassen, um ihn zu behalten",
       add: "Hinzufügen",

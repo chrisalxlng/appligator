@@ -59,7 +59,10 @@ function jobDetailColumns() {
     workModel: workModelEnum(),
     homeOfficePercentage: integer(),
     workingHours: jsonb().$type<WorkingHours>(),
-    locations: text().array().notNull(),
+    locations: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
     commuteDistance: integer(),
     commuteDuration: integer(),
     vacationDays: numeric({ precision: 4, scale: 1, mode: "number" }),
@@ -88,7 +91,9 @@ export const jobs = pgTable(
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index().on(table.userId, table.createdAt)],
+  (table) => [
+    index().on(table.userId, table.pinned.desc(), table.createdAt.desc(), table.id.desc()),
+  ],
 );
 
 export const applications = pgTable(
@@ -108,7 +113,9 @@ export const applications = pgTable(
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index().on(table.userId, table.createdAt)],
+  (table) => [
+    index().on(table.userId, table.pinned.desc(), table.createdAt.desc(), table.id.desc()),
+  ],
 );
 
 export const activities = pgTable(

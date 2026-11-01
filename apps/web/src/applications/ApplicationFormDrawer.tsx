@@ -1,20 +1,12 @@
 import type { Application } from "@appligator/shared";
-import {
-  Button,
-  Drawer,
-  Field,
-  submitKeyShortcuts,
-  TextInput,
-  useSuccessToast,
-  useFocusFirstError,
-} from "@appligator/ui";
+import { Drawer, Field, TextInput, useSuccessToast, useFocusFirstError } from "@appligator/ui";
 import { IconPencil } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { DetailsFields } from "../details/DetailsFields.tsx";
 import { NotesField } from "../details/NotesField.tsx";
 import styles from "../details/form.module.css";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
 import {
   toApplicationFormValues,
   validateApplicationForm,
@@ -65,7 +57,6 @@ function ApplicationForm({ application, onSaved }: ApplicationFormProps) {
   const [values, setValues] = useState(() => toApplicationFormValues(application));
   const [errors, setErrors] = useState<ApplicationFormErrors>({});
   const formRef = useFocusFirstError(errors);
-  const shortcutHints = useShortcutHints();
 
   function update(changes: Partial<ApplicationFormValues>) {
     setValues((current) => ({ ...current, ...changes }));
@@ -102,15 +93,9 @@ function ApplicationForm({ application, onSaved }: ApplicationFormProps) {
           {t("applications.form.saveError")}
         </p>
       )}
-      <Button
-        type="submit"
-        pending={save.isPending}
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        <IconPencil size={20} stroke={2.4} aria-hidden />
+      <SubmitButton icon={IconPencil} pending={save.isPending}>
         {t("applications.form.update")}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

@@ -4,13 +4,12 @@ import { IconCalendarEvent, IconUser, IconUsers } from "@tabler/icons-react";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Property, PropertyList } from "../collection/DetailView.tsx";
-import a11y from "../collection/visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
 import { formatDateTime } from "../details/format.ts";
+import type { EmailAttachment } from "./attachments.ts";
 import styles from "./AttachmentCards.module.css";
 import { useDescribeAttachment } from "./useDescribeAttachment.ts";
 import { useOpenFile } from "./useOpenFile.ts";
-
-type EmailAttachment = Extract<Attachment, { kind: "email" }>;
 
 export function AttachmentCards({ attachments }: { attachments: Attachment[] }) {
   const { t } = useTranslation();

@@ -12,14 +12,10 @@ import { Page } from "../pages/Page.tsx";
 import { DocumentTitle } from "../shell/DocumentTitle.tsx";
 import { ScrollToTop } from "../shell/ScrollToTop.tsx";
 import { useIsWide } from "../shell/useMediaQuery.ts";
+import type { Message } from "./CollectionPage.tsx";
 import { DetailTitleRefContext } from "./DetailView.tsx";
 import styles from "./DetailPage.module.css";
 import { useIsScrolledAway } from "./useIsScrolledAway.ts";
-
-interface Message {
-  title: string;
-  description: string;
-}
 
 interface DetailTexts {
   loading: string;

@@ -1,10 +1,8 @@
 import { aiProviders, detectLanguage, type AiProvider, type AiSettings } from "@appligator/shared";
 import {
-  Button,
   Drawer,
   Field,
   Select,
-  submitKeyShortcuts,
   TextInput,
   useSuccessToast,
   useFocusFirstError,
@@ -12,9 +10,9 @@ import {
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
 import { accessError } from "./accessError.ts";
-import styles from "./AiSettingsForm.module.css";
+import styles from "../details/form.module.css";
 import {
   toAiAccessFormValues,
   validateAiAccessForm,
@@ -42,7 +40,7 @@ export function AiAccessDrawer({ settings, open, onOpenChange }: AiAccessDrawerP
   return (
     <Drawer
       title={t(settings ? "ai.access.editTitle" : "ai.access.addTitle")}
-      closeLabel={t("ai.close")}
+      closeLabel={t("common.close")}
       open={open}
       onOpenChange={onOpenChange}
     >
@@ -63,7 +61,6 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
   const [values, setValues] = useState(() => toAiAccessFormValues(settings));
   const [errors, setErrors] = useState<AiAccessFormErrors>({});
   const formRef = useFocusFirstError(errors);
-  const shortcutHints = useShortcutHints();
 
   function setValue<Key extends keyof AiAccessFormValues>(key: Key) {
     return (value: AiAccessFormValues[Key]) =>
@@ -108,7 +105,7 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
           }))}
           value={values.provider}
           onValueChange={selectProvider}
-          placeholder={t("ai.selectPlaceholder")}
+          placeholder={t("fields.selectPlaceholder")}
         />
       </Field>
       <Field
@@ -119,7 +116,7 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
           items={modelItems}
           value={values.model}
           onValueChange={setValue("model")}
-          placeholder={t(models.isPending ? "ai.access.modelsLoading" : "ai.selectPlaceholder")}
+          placeholder={t(models.isPending ? "ai.access.modelsLoading" : "fields.selectPlaceholder")}
         />
       </Field>
       <Field label={t("ai.access.apiKey")} error={errorFor("apiKey")}>
@@ -137,19 +134,9 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
           {t(`ai.access.errors.${accessError(save.error, "saveFailed")}`)}
         </p>
       )}
-      <Button
-        type="submit"
-        pending={save.isPending}
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        {settings ? (
-          <IconPencil size={20} stroke={2.4} aria-hidden />
-        ) : (
-          <IconPlus size={20} stroke={2.4} aria-hidden />
-        )}
+      <SubmitButton icon={settings ? IconPencil : IconPlus} pending={save.isPending}>
         {t(settings ? "ai.access.submitUpdate" : "ai.access.submitAdd")}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

@@ -55,9 +55,6 @@ const semanticTokens = [
   "destructive-surface-text-secondary",
   "backdrop",
   "selection",
-  "svg-fill",
-  "svg-fill-light",
-  "svg-separator",
 ];
 
 function toVariableName(palette: string, shade: string) {

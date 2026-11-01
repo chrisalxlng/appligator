@@ -1,3 +1,4 @@
+import { hostname } from "@appligator/shared";
 import { Button, LinkButton } from "@appligator/ui";
 import { IconCircleCheck, IconSend } from "@tabler/icons-react";
 import { useState } from "react";
@@ -11,10 +12,6 @@ import styles from "./Popup.module.css";
 
 function isWebPage(link: string) {
   return /^https?:\/\//.test(link);
-}
-
-function hostname(link: string) {
-  return new URL(link).hostname.replace(/^www\./, "");
 }
 
 function ImportedJob({ jobId }: { jobId: string }) {

@@ -3,7 +3,6 @@ import { useState } from "react";
 
 export const minFilterStatuses = 2;
 
-// The filter falls back to all entries once it is hidden or its status has no entries left.
 export function useStatusFilter<Status extends string>(counts: StatusCount<Status>[] | undefined) {
   const [selected, setSelected] = useState<Status | null>(null);
   const isAvailable =

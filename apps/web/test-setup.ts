@@ -20,6 +20,8 @@ vi.stubGlobal(
 
 vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
 
+window.scrollTo = () => {};
+
 vi.stubGlobal("matchMedia", (query: string) => {
   const minWidth = Number(query.match(/width >= (\d+)px/)?.[1] ?? 0);
   return {
