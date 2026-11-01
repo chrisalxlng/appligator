@@ -12,6 +12,7 @@ import { and, count, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { applications, jobs } from "../db/schema.ts";
+import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
 import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
@@ -19,8 +20,6 @@ import { sortByStatus } from "./statusCounts.ts";
 
 type JobRow = typeof jobs.$inferSelect;
 type JobApplication = NonNullable<Job["application"]>;
-
-const jobParamsSchema = z.object({ id: z.uuid() });
 
 const jobListQuerySchema = pageQuerySchema.extend({
   status: z.enum(jobStatuses).optional(),
@@ -123,7 +122,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
 
   app.get(
     "/jobs/:id",
-    { schema: { params: jobParamsSchema, response: { 200: jobSchema, 404: notFoundSchema } } },
+    { schema: { params: idParamsSchema, response: { 200: jobSchema, 404: notFoundSchema } } },
     async (request, reply) => {
       const result = await findJob(request.params.id, request.userId);
 
@@ -147,7 +146,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
 
   app.post(
     "/jobs/:id/view",
-    { schema: { params: jobParamsSchema, response: { 204: z.null(), 404: notFoundSchema } } },
+    { schema: { params: idParamsSchema, response: { 204: z.null(), 404: notFoundSchema } } },
     async (request, reply) => {
       const [row] = await app.db
         .update(jobs)
@@ -164,7 +163,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     "/jobs/:id/pin",
     {
       schema: {
-        params: jobParamsSchema,
+        params: idParamsSchema,
         body: pinInputSchema,
         response: { 204: z.null(), 404: notFoundSchema },
       },
@@ -185,7 +184,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     "/jobs/:id",
     {
       schema: {
-        params: jobParamsSchema,
+        params: idParamsSchema,
         body: jobInputSchema,
         response: { 200: jobSchema, 404: notFoundSchema, 409: appliedSchema },
       },
@@ -209,7 +208,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
     "/jobs/:id",
     {
       schema: {
-        params: jobParamsSchema,
+        params: idParamsSchema,
         response: { 204: z.null(), 404: notFoundSchema, 409: appliedSchema },
       },
     },

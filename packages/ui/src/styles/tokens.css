@@ -52,9 +52,6 @@
   --destructive-surface-text-secondary: var(--color-burgundy-red-600);
   --backdrop: rgb(19 20 20 / 30%);
   --selection: var(--color-deep-teal-200);
-  --svg-fill: var(--color-deep-teal-500);
-  --svg-fill-light: var(--color-deep-teal-200);
-  --svg-separator: var(--color-teal-gray-900);
 
   --spacing-0-5: 2px;
   --spacing-1: 4px;
@@ -70,7 +67,6 @@
   --spacing-10: 40px;
   --spacing-12: 48px;
   --spacing-16: 64px;
-  --spacing-40: 160px;
   --spacing-72: 288px;
   --spacing-96: 384px;
 

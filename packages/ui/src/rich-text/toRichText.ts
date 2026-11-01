@@ -6,7 +6,6 @@ function hasText(node: JSONContent): boolean {
   return node.content?.some(hasText) ?? false;
 }
 
-/** Reduces any HTML, e.g. of an email, to the rich text the editor supports, without empty paragraphs. */
 export function toRichText(html: string) {
   const document = generateJSON(normalizeHeadings(html), richTextExtensions);
   return generateHTML(

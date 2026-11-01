@@ -13,7 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 import styles from "./CardList.module.css";
 import { useCreatedLabel } from "./useCreatedLabel.ts";
-import a11y from "./visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
 
 const focusTargets: Record<string, (current: number, last: number) => number> = {
   ArrowDown: (current, last) => Math.min(current + 1, last),

@@ -6,19 +6,20 @@ import { activities, applications } from "../db/schema.ts";
 import { maxActivityBodyBytes, toActivity, toActivityColumns } from "./activityRows.ts";
 import { updateApplicationStatus } from "./applicationStatus.ts";
 import { fillEmptyDetails } from "./detailFills.ts";
+import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
 
-const applicationParamsSchema = z.object({ id: z.uuid() });
-const activityParamsSchema = applicationParamsSchema.extend({ activityId: z.uuid() });
+const activityParamsSchema = idParamsSchema.extend({ activityId: z.uuid() });
 
 export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
-  async function ownsApplication(id: string, userId: string) {
+  app.addHook("preHandler", async (request, reply) => {
+    const { id } = request.params as { id: string };
     const [application] = await app.db
       .select({ id: applications.id })
       .from(applications)
-      .where(and(eq(applications.id, id), eq(applications.userId, userId)));
-    return Boolean(application);
-  }
+      .where(and(eq(applications.id, id), eq(applications.userId, request.userId)));
+    if (!application) return reply.code(404).send({ error: "Not Found" });
+  });
 
   const activityOf = (applicationId: string, activityId: string) =>
     and(eq(activities.id, activityId), eq(activities.applicationId, applicationId));
@@ -27,20 +28,15 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id/activities",
     {
       schema: {
-        params: applicationParamsSchema,
+        params: idParamsSchema,
         response: { 200: activityListSchema, 404: notFoundSchema },
       },
     },
-    async (request, reply) => {
-      const { id } = request.params;
-      if (!(await ownsApplication(id, request.userId))) {
-        return reply.code(404).send({ error: "Not Found" });
-      }
-
+    async (request) => {
       const rows = await app.db
         .select()
         .from(activities)
-        .where(eq(activities.applicationId, id))
+        .where(eq(activities.applicationId, request.params.id))
         .orderBy(desc(activities.occurredAt), desc(activities.createdAt));
       return rows.map(toActivity);
     },
@@ -51,17 +47,13 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
     {
       bodyLimit: maxActivityBodyBytes,
       schema: {
-        params: applicationParamsSchema,
+        params: idParamsSchema,
         body: activityInputSchema,
         response: { 201: activitySchema, 404: notFoundSchema },
       },
     },
     async (request, reply) => {
       const { id } = request.params;
-      if (!(await ownsApplication(id, request.userId))) {
-        return reply.code(404).send({ error: "Not Found" });
-      }
-
       const row = await app.db.transaction(async (tx) => {
         const [inserted] = await tx
           .insert(activities)
@@ -87,10 +79,6 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       const { id, activityId } = request.params;
-      if (!(await ownsApplication(id, request.userId))) {
-        return reply.code(404).send({ error: "Not Found" });
-      }
-
       const { terms } = request.body;
       const row = await app.db.transaction(async (tx) => {
         const [previous] = await tx
@@ -127,10 +115,6 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       const { id, activityId } = request.params;
-      if (!(await ownsApplication(id, request.userId))) {
-        return reply.code(404).send({ error: "Not Found" });
-      }
-
       const [row] = await app.db
         .update(activities)
         .set({ detailsReviewed: true })
@@ -151,10 +135,6 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       const { id, activityId } = request.params;
-      if (!(await ownsApplication(id, request.userId))) {
-        return reply.code(404).send({ error: "Not Found" });
-      }
-
       const row = await app.db.transaction(async (tx) => {
         const [deleted] = await tx
           .delete(activities)

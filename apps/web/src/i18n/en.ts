@@ -592,8 +592,6 @@ export const en = {
       title: "The AI settings could not be loaded",
       description: "Check your connection and try again.",
     },
-    close: "Close",
-    selectPlaceholder: "Please select",
     access: {
       keepApiKey: "Saved – leave empty to keep it",
       add: "Add",

@@ -2,7 +2,7 @@ import type { Icon } from "@tabler/icons-react";
 import { createContext, useContext, useId, type ReactNode, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import styles from "./DetailView.module.css";
-import a11y from "./visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
 
 export const DetailTitleRefContext = createContext<Ref<HTMLElement> | undefined>(undefined);
 

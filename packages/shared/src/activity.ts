@@ -71,7 +71,6 @@ export function applicationStatusOf(typesLatestFirst: ActivityType[]): Applicati
 
 export const activityLimits = {
   attachments: 20,
-  linkLength: 2_000,
   emailHeaderLength: 1_000,
   emailBodyLength: 100_000,
   fileNameLength: 255,
@@ -83,7 +82,7 @@ export const activityTermsSchema = jobDetailsSchema.omit({ notes: true }).extend
 
 const linkAttachmentSchema = z.object({
   kind: z.literal("link"),
-  url: z.url({ protocol: /^https?$/ }).max(activityLimits.linkLength),
+  url: z.url({ protocol: /^https?$/ }).max(jobLimits.linkLength),
   title: z.string().trim().max(jobLimits.textLength),
 });
 

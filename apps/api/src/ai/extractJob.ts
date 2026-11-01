@@ -1,5 +1,6 @@
 import {
   companyTypes,
+  escapeHtml,
   contractTermKinds,
   currencies,
   employmentTypes,
@@ -18,7 +19,7 @@ import {
 } from "@appligator/shared";
 import { generateText, Output, type LanguageModel } from "ai";
 import { z } from "zod";
-import { escapeHtml, htmlToText } from "./htmlToText.ts";
+import { htmlToText } from "./htmlToText.ts";
 import { blocksToHtml, type Block, type JobPage } from "./jobPage.ts";
 
 const maxPromptLength = 50_000;

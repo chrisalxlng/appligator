@@ -2,9 +2,10 @@ import type { JobListItem } from "@appligator/shared";
 import { Button, Drawer, Popover, SearchList, Spinner } from "@appligator/ui";
 import { IconPlayerPlay } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useDeferredValue, useRef, useState, type RefObject } from "react";
+import { useRef, useState, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useCreatedLabel } from "../collection/useCreatedLabel.ts";
+import { useDebouncedValue } from "../collection/useDebouncedValue.ts";
 import { useOpenJobSearch } from "../jobs/jobQueries.ts";
 import { LoadError } from "../loading/LoadError.tsx";
 import { useIsDesktop } from "../shell/useMediaQuery.ts";
@@ -13,6 +14,8 @@ import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { ApplyDrawer } from "./ApplyDrawer.tsx";
 import styles from "./JobPicker.module.css";
+
+const searchDelayMs = 200;
 
 export function JobPicker() {
   const { t } = useTranslation();
@@ -75,7 +78,7 @@ function JobSearch({ inputRef, onSelect }: JobSearchProps) {
   const { t } = useTranslation();
   const createdLabel = useCreatedLabel();
   const [search, setSearch] = useState("");
-  const trimmedSearch = useDeferredValue(search.trim());
+  const trimmedSearch = useDebouncedValue(search.trim(), searchDelayMs);
   const jobs = useOpenJobSearch(trimmedSearch);
 
   return (

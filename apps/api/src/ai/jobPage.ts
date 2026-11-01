@@ -1,5 +1,5 @@
+import { escapeHtml } from "@appligator/shared";
 import { HTMLElement, NodeType, parse, type Node } from "node-html-parser";
-import { escapeHtml } from "./htmlToText.ts";
 
 export type BlockKind = "heading" | "listItem" | "paragraph";
 

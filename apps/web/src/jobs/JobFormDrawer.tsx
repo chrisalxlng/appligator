@@ -1,11 +1,9 @@
 import type { Job, JobExtraction } from "@appligator/shared";
 import {
-  Button,
   DateInput,
   Drawer,
   Field,
   RichTextEditor,
-  submitKeyShortcuts,
   TextInput,
   useSuccessToast,
   useFocusFirstError,
@@ -17,7 +15,7 @@ import { DetailsFields } from "../details/DetailsFields.tsx";
 import { NotesField } from "../details/NotesField.tsx";
 import styles from "../details/form.module.css";
 import { useFormatLabels } from "../details/useFormatLabels.ts";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
 import { JobAnalysisStatus } from "./JobAnalysisStatus.tsx";
 import { useSaveJob } from "./jobQueries.ts";
 import {
@@ -73,7 +71,6 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
   const [values, setValues] = useState(() => toFormValues(job));
   const [errors, setErrors] = useState<JobFormErrors>({});
   const formRef = useFocusFirstError(errors);
-  const shortcutHints = useShortcutHints();
   const valuesRef = useRef(values);
   const { analysis, analyzePaste, retry, dismiss } = useJobAnalysis(applyExtraction);
 
@@ -164,19 +161,9 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
           {t("jobs.form.saveError")}
         </p>
       )}
-      <Button
-        type="submit"
-        pending={save.isPending}
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        {job ? (
-          <IconPencil size={20} stroke={2.4} aria-hidden />
-        ) : (
-          <IconPlus size={20} stroke={2.4} aria-hidden />
-        )}
+      <SubmitButton icon={job ? IconPencil : IconPlus} pending={save.isPending}>
         {t(job ? "jobs.form.update" : "jobs.form.add")}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

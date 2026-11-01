@@ -19,6 +19,7 @@ export const noticePeriodEnds = ["month", "quarter"] as const;
 
 export const jobLimits = {
   textLength: 200,
+  linkLength: 2_000,
   descriptionLength: 100_000,
   summaryLength: 10_000,
   notesLength: 10_000,
@@ -100,7 +101,7 @@ export const jobDetailsSchema = z.object({
 export const jobInputSchema = z.object({
   link: z
     .url({ protocol: /^https?$/ })
-    .max(2_000)
+    .max(jobLimits.linkLength)
     .nullable(),
   description: z.string().max(jobLimits.descriptionLength),
   summary: z.string().max(jobLimits.summaryLength),

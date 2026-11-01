@@ -1,3 +1,4 @@
+import axe from "axe-core";
 import { activityTermsSchema, jobLimits } from "@appligator/shared";
 import { act, cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -1106,4 +1107,34 @@ test("keeps the skip link as the first tab stop after loading a page", async () 
   await userEvent.tab();
 
   expect(screen.getByRole("link", { name: "Skip to content" })).toHaveFocus();
+});
+
+test.each([
+  ["the job list and details", `/jobs/${jobFixture.id}`, "article"],
+  ["the profile", "/profile", "main"],
+])("has no automatically detectable accessibility issues on %s", async (_, path, role) => {
+  createFakeApi([jobFixture]);
+  renderApp(path);
+  await screen.findByRole(role);
+
+  // jsdom applies no styles, so it sees contrast as unknown and both navigations as visible.
+  const { violations } = await axe.run(document.body, {
+    rules: { "color-contrast": { enabled: false }, "landmark-unique": { enabled: false } },
+  });
+
+  expect(violations.map(({ id, nodes }) => `${id}: ${nodes[0]?.html}`)).toEqual([]);
+});
+
+test("has no automatically detectable accessibility issues in the job form", async () => {
+  createFakeApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  await userEvent.click(await screen.findByRole("button", { name: "Add" }));
+  const drawer = await screen.findByRole("dialog", { name: "Add job" });
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+
+  const { violations } = await axe.run(drawer, {
+    rules: { "color-contrast": { enabled: false } },
+  });
+
+  expect(violations.map(({ id, nodes }) => `${id}: ${nodes[0]?.html}`)).toEqual([]);
 });

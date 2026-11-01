@@ -1,5 +1,6 @@
 import {
   activityTypeFields,
+  isSpecifiedDetail,
   jobLimits,
   type Activity,
   type ActivityInput,
@@ -96,9 +97,7 @@ export function toTermsFormValues(terms: ActivityTerms | null): TermsFormValues 
 }
 
 function isEmpty(terms: ActivityTerms) {
-  return Object.values(terms).every(
-    (value) => value === null || (Array.isArray(value) && value.length === 0),
-  );
+  return !Object.values(terms).some(isSpecifiedDetail);
 }
 
 export function validateTermsForm(values: TermsFormValues): TermsResult {

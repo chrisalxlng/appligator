@@ -19,12 +19,6 @@
   min-width: 160px;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-}
-
 .description {
   color: var(--text-secondary);
 }
@@ -71,8 +65,4 @@
 
 .current {
   color: var(--text-secondary);
-}
-
-.error {
-  color: var(--destructive-text);
 }

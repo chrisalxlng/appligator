@@ -15,14 +15,13 @@ import { z } from "zod";
 import { activities, applications, jobs } from "../db/schema.ts";
 import { maxActivityBodyBytes, toActivityColumns } from "./activityRows.ts";
 import { reviewTermsOfChangedDetails } from "./detailFills.ts";
+import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
 import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
 import { sortByStatus } from "./statusCounts.ts";
 
 type ApplicationRow = typeof applications.$inferSelect;
-
-const applicationParamsSchema = z.object({ id: z.uuid() });
 
 const applicationListQuerySchema = pageQuerySchema.extend({
   status: z.enum(applicationStatuses).optional(),
@@ -54,7 +53,7 @@ function toApplication({ application, job, appliedAt }: ApplicationResult) {
 }
 
 function submittedDetails({ terms, notes }: ActivityInput, job: { position: string }) {
-  if (!terms) return { position: job.position, locations: [], notes };
+  if (!terms) return { position: job.position, notes };
   const { position, ...details } = terms;
   return { ...toSalaryColumns(details), position: position ?? job.position, notes };
 }
@@ -125,7 +124,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id",
     {
       schema: {
-        params: applicationParamsSchema,
+        params: idParamsSchema,
         response: { 200: applicationSchema, 404: notFoundSchema },
       },
     },
@@ -186,7 +185,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id/pin",
     {
       schema: {
-        params: applicationParamsSchema,
+        params: idParamsSchema,
         body: pinInputSchema,
         response: { 204: z.null(), 404: notFoundSchema },
       },
@@ -207,7 +206,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id",
     {
       schema: {
-        params: applicationParamsSchema,
+        params: idParamsSchema,
         body: applicationInputSchema,
         response: { 200: applicationSchema, 404: notFoundSchema },
       },
@@ -238,7 +237,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id",
     {
       schema: {
-        params: applicationParamsSchema,
+        params: idParamsSchema,
         response: { 204: z.null(), 404: notFoundSchema },
       },
     },

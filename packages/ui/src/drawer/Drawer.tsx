@@ -5,6 +5,7 @@ import {
   useContext,
   useLayoutEffect,
   useRef,
+  type FormEvent,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
@@ -33,6 +34,11 @@ function submitOnShortcut(event: KeyboardEvent<HTMLDivElement>) {
   event.stopPropagation();
   event.preventDefault();
   event.currentTarget.querySelector<HTMLButtonElement>('form button[type="submit"]')?.click();
+}
+
+// React bubbles events through portals, so a form around the drawer would submit as well.
+function stopSubmitAtDrawer(event: FormEvent) {
+  event.stopPropagation();
 }
 
 // iOS only opens the keyboard for a focus call during the tap, but Base UI focuses a frame later.
@@ -78,6 +84,7 @@ export function Drawer({
               }
               className={styles.popup}
               onKeyDown={submitOnShortcut}
+              onSubmit={stopSubmitAtDrawer}
             >
               <div className={styles.header}>
                 <BaseDrawer.Title className={styles.title}>{title}</BaseDrawer.Title>

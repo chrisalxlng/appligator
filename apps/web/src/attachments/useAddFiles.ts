@@ -48,7 +48,6 @@ export function titleOf(fileName: string) {
   return dot > 0 ? fileName.slice(0, dot) : fileName;
 }
 
-/** Adds dropped or chosen files: emails are imported along with their links, others uploaded. */
 export function useAddFiles(remaining: number, add: (attachments: Attachment[]) => void) {
   const uploadFile = useUploadFile();
   const [uploads, setUploads] = useState<{ id: string; name: string }[]>([]);

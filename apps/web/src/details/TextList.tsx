@@ -1,19 +1,11 @@
 import { jobLimits } from "@appligator/shared";
-import {
-  Button,
-  Drawer,
-  Field,
-  Fieldset,
-  IconButton,
-  submitKeyShortcuts,
-  TextInput,
-  useFocusFirstError,
-} from "@appligator/ui";
+import { Drawer, Field, Fieldset, IconButton, TextInput, useFocusFirstError } from "@appligator/ui";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
-import a11y from "../collection/visuallyHidden.module.css";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
+import a11y from "../styles/visuallyHidden.module.css";
+import formStyles from "./form.module.css";
 import styles from "./list.module.css";
 
 type TextListKind = "location" | "bonus" | "benefit";
@@ -121,12 +113,9 @@ function TextForm({ kind, inputRef, initialValue, isEditing, onSave }: TextFormP
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<TextError>();
   const formRef = useFocusFirstError({ error });
-  const shortcutHints = useShortcutHints();
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    // The drawer is portaled, but React still bubbles the submit to the surrounding job form.
-    event.stopPropagation();
     const text = value.trim();
     const invalid = textError(text);
     if (invalid) setError(invalid);
@@ -134,22 +123,13 @@ function TextForm({ kind, inputRef, initialValue, isEditing, onSave }: TextFormP
   }
 
   return (
-    <form ref={formRef} className={styles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={formStyles.form} onSubmit={submit} noValidate>
       <Field label={t(`textList.${kind}.label`)} error={error && t(`textList.${kind}.${error}`)}>
         <TextInput ref={inputRef} value={value} onValueChange={setValue} />
       </Field>
-      <Button
-        type="submit"
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        {isEditing ? (
-          <IconPencil size={20} stroke={2.4} aria-hidden />
-        ) : (
-          <IconPlus size={20} stroke={2.4} aria-hidden />
-        )}
+      <SubmitButton icon={isEditing ? IconPencil : IconPlus}>
         {t(isEditing ? "textList.update" : "textList.add")}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

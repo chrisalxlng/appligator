@@ -1,22 +1,14 @@
 import type { ActivityTerms } from "@appligator/shared";
-import {
-  Button,
-  Drawer,
-  Field,
-  Fieldset,
-  IconButton,
-  submitKeyShortcuts,
-  TextInput,
-  useFocusFirstError,
-} from "@appligator/ui";
+import { Drawer, Field, Fieldset, IconButton, TextInput, useFocusFirstError } from "@appligator/ui";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import a11y from "../collection/visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
 import { DetailsFields } from "../details/DetailsFields.tsx";
 import { useDetails } from "../details/DetailsSection.tsx";
+import formStyles from "../details/form.module.css";
 import listStyles from "../details/list.module.css";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
 import {
   toTermsFormValues,
   validateTermsForm,
@@ -100,7 +92,6 @@ function TermsForm({ terms, onSave }: TermsFormProps) {
   const [values, setValues] = useState(() => toTermsFormValues(terms));
   const [errors, setErrors] = useState<TermsFormErrors>({});
   const formRef = useFocusFirstError(errors);
-  const shortcutHints = useShortcutHints();
 
   function update(changes: Partial<TermsFormValues>) {
     setValues((current) => ({ ...current, ...changes }));
@@ -113,31 +104,20 @@ function TermsForm({ terms, onSave }: TermsFormProps) {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    // The drawer is portaled, but React still bubbles the submit to the surrounding activity form.
-    event.stopPropagation();
     const result = validateTermsForm(values);
     setErrors(result.errors ?? {});
     if (!result.errors) onSave(result.terms);
   }
 
   return (
-    <form ref={formRef} className={listStyles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={formStyles.form} onSubmit={submit} noValidate>
       <Field label={t("fields.position")} error={errorFor("position")}>
         <TextInput value={values.position} onValueChange={(position) => update({ position })} />
       </Field>
       <DetailsFields values={values} onChange={update} errorFor={errorFor} />
-      <Button
-        type="submit"
-        shortcutHint={shortcutHints?.submit}
-        aria-keyshortcuts={submitKeyShortcuts}
-      >
-        {terms ? (
-          <IconPencil size={20} stroke={2.4} aria-hidden />
-        ) : (
-          <IconPlus size={20} stroke={2.4} aria-hidden />
-        )}
+      <SubmitButton icon={terms ? IconPencil : IconPlus}>
         {t(terms ? "activities.form.update" : "activities.form.add")}
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

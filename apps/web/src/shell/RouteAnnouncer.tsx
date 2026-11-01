@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import a11y from "../collection/visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
 
 /** Tells screen readers about a new page, which a client-side navigation does not do on its own. */
 export function RouteAnnouncer() {

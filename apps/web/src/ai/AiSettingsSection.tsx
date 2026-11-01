@@ -3,7 +3,8 @@ import { ConfirmDialog, IconButton, Spinner, useSuccessToast } from "@appligator
 import { IconChevronRight, IconPlugConnected, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import a11y from "../collection/visuallyHidden.module.css";
+import a11y from "../styles/visuallyHidden.module.css";
+import listStyles from "../details/list.module.css";
 import { capitalize, formatRelativeTime } from "../i18n/formatRelativeTime.ts";
 import { LoadError } from "../loading/LoadError.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
@@ -64,7 +65,7 @@ export function AiSettingsSection() {
         ) : (
           <button
             type="button"
-            className={styles.addButton}
+            className={listStyles.addButton}
             aria-label={t("ai.access.addTitle")}
             onClick={() => setOpenDrawer("access")}
           >

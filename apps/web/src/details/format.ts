@@ -51,7 +51,3 @@ export function formatSalaryRange({ currency, min, max }: Salary, locale: string
     .map(({ value }) => (value === rangeSeparator ? ` ${rangeSeparator} ` : value))
     .join("");
 }
-
-export function hostname(link: string) {
-  return new URL(link).hostname.replace(/^www\./, "");
-}

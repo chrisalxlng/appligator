@@ -6,14 +6,14 @@ import {
   type ActivityInput,
   type ActivityType,
 } from "@appligator/shared";
-import { Button, DateInput, Field, submitKeyShortcuts, useFocusFirstError } from "@appligator/ui";
+import { DateInput, Field, useFocusFirstError } from "@appligator/ui";
 import type { Icon } from "@tabler/icons-react";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NotesField } from "../details/NotesField.tsx";
 import formStyles from "../details/form.module.css";
-import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import { SubmitButton } from "../shortcuts/SubmitButton.tsx";
 import {
   toActivityFormValues,
   validateActivityForm,
@@ -58,7 +58,6 @@ export function ActivityForm<Result>({
     (attachments) => updateAttachments((current) => [...current, ...attachments]),
   );
   const isUploading = addedFiles.uploads.length > 0;
-  const shortcutHints = useShortcutHints();
   const fields = activityTypeFields[type];
   const clearLabel = t("fields.clear");
 
@@ -91,15 +90,9 @@ export function ActivityForm<Result>({
   }
 
   const submitButton = (
-    <Button
-      type="submit"
-      pending={save.isPending || isUploading}
-      shortcutHint={shortcutHints?.submit}
-      aria-keyshortcuts={submitKeyShortcuts}
-    >
-      <SubmitIcon size={20} stroke={2.4} aria-hidden />
+    <SubmitButton icon={SubmitIcon} pending={save.isPending || isUploading}>
       {submitLabel}
-    </Button>
+    </SubmitButton>
   );
 
   return (

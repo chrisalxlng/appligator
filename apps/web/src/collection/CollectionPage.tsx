@@ -12,7 +12,7 @@ import { FloatingActions } from "../shell/FloatingActions.tsx";
 import { useIsDesktop } from "../shell/useMediaQuery.ts";
 import styles from "./CollectionPage.module.css";
 
-interface Message {
+export interface Message {
   title: string;
   description: string;
 }

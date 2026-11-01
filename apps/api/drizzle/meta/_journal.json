@@ -64,6 +64,13 @@
       "when": 1793525517312,
       "tag": "0008_add_application_statuses",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793562912862,
+      "tag": "0009_hard_proemial_gods",
+      "breakpoints": true
     }
   ]
 }

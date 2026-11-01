@@ -37,6 +37,7 @@ catalog:
   "@types/react-dom": ^19.3.0
   "@vitejs/plugin-react": ^6.1.2
   ai: ^7.0.154
+  axe-core: ^4.14.0
   drizzle-kit: ^0.31.11
   drizzle-orm: ^0.45.4
   fastify: ^5.12.7
