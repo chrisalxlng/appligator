@@ -20,8 +20,20 @@ export function AppShell() {
   const isDesktop = useIsDesktop();
   useHideBarsOnScroll(shellRef, !isDesktop);
 
+  // Only for keyboard use, because the skip link must stay the first tab stop after loading a page.
+  const usesKeyboard = useRef(false);
   useEffect(() => {
-    if (document.activeElement === document.body) mainRef.current?.focus({ preventScroll: true });
+    const markKeyboardUse = () => {
+      usesKeyboard.current = true;
+    };
+    window.addEventListener("keydown", markKeyboardUse);
+    return () => window.removeEventListener("keydown", markKeyboardUse);
+  }, []);
+
+  useEffect(() => {
+    if (usesKeyboard.current && document.activeElement === document.body) {
+      mainRef.current?.focus({ preventScroll: true });
+    }
   }, [pathname]);
 
   return (

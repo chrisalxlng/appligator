@@ -1088,9 +1088,22 @@ test("offers to skip to the content and announces new pages", async () => {
   await userEvent.click(screen.getByRole("link", { name: "Skip to content" }));
   expect(screen.getByRole("main")).toHaveFocus();
 
+  await userEvent.keyboard("{Tab}");
+  (document.activeElement as HTMLElement).blur();
   await router.navigate({ to: "/profile" });
 
   await waitFor(() =>
     expect(document.querySelector('[aria-live="polite"]')).toHaveTextContent("Profile"),
   );
+  expect(screen.getByRole("main")).toHaveFocus();
+});
+
+test("keeps the skip link as the first tab stop after loading a page", async () => {
+  createFakeApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`);
+  await screen.findByRole("article");
+
+  await userEvent.tab();
+
+  expect(screen.getByRole("link", { name: "Skip to content" })).toHaveFocus();
 });

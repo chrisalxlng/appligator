@@ -46,21 +46,18 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const field = useFieldContext();
   const labelId = field?.labelId;
-  const errorAttributes: Record<string, string> = field?.invalid
-    ? { "aria-invalid": "true", "aria-describedby": field.errorId, "data-invalid": "" }
-    : {};
-  const labelAttributes: Record<string, string> = ariaLabel
-    ? { "aria-label": ariaLabel }
-    : labelId
-      ? { "aria-labelledby": labelId }
-      : {};
-  const attributes = {
-    role: "textbox",
-    "aria-multiline": "true",
-    ...labelAttributes,
-    ...errorAttributes,
-    class: `${controlStyles.control} ${proseStyles.prose} ${styles.editor}`,
-  };
+  const errorId = field?.invalid ? field.errorId : undefined;
+  const attributes = useMemo(
+    () => ({
+      role: "textbox",
+      "aria-multiline": "true",
+      ...(ariaLabel && { "aria-label": ariaLabel }),
+      ...(!ariaLabel && labelId && { "aria-labelledby": labelId }),
+      ...(errorId && { "aria-invalid": "true", "aria-describedby": errorId, "data-invalid": "" }),
+      class: `${controlStyles.control} ${proseStyles.prose} ${styles.editor}`,
+    }),
+    [ariaLabel, labelId, errorId],
+  );
   const editor = useEditor({
     extensions: richTextExtensions,
     content: value,
@@ -79,12 +76,9 @@ export function RichTextEditor({
     if (toValue(editor) !== value) editor.commands.setContent(value, { emitUpdate: false });
   }, [editor, value]);
 
-  const invalid = field?.invalid ?? false;
   useEffect(() => {
     editor.setOptions({ editorProps: { attributes, transformPastedHTML: normalizeHeadings } });
-    // The attributes only differ by the validity once the editor exists.
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor, invalid]);
+  }, [editor, attributes]);
 
   useEffect(() => {
     const label = labelId ? document.getElementById(labelId) : null;
