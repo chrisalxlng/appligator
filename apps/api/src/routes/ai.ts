@@ -39,6 +39,8 @@ type AiSettingsRow = typeof aiSettings.$inferSelect;
 
 const aiErrorResponses = { 409: aiErrorSchema, 422: aiErrorSchema, 502: aiErrorSchema };
 const maxJobPageBytes = maxJobPageLength * 2;
+// These requests cost the user money at the AI provider. The hook runs after the authentication.
+const providerCallRateLimit = { max: 60, timeWindow: "1 minute", hook: "preHandler" } as const;
 
 function toAiSettings({ provider, model, language, accessUpdatedAt }: AiSettingsRow) {
   return { provider, model, language, accessUpdatedAt: accessUpdatedAt.toISOString() };
@@ -125,6 +127,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
   app.put(
     "/ai/settings",
     {
+      config: { rateLimit: providerCallRateLimit },
       schema: {
         body: aiSettingsInputSchema,
         response: { 200: aiSettingsSchema, ...aiErrorResponses },
@@ -173,7 +176,10 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
 
   app.post(
     "/ai/settings/verification",
-    { schema: { response: { 204: z.null(), ...aiErrorResponses } } },
+    {
+      config: { rateLimit: providerCallRateLimit },
+      schema: { response: { 204: z.null(), ...aiErrorResponses } },
+    },
     async (request, reply) => {
       const [settings] = await app.db
         .select()
@@ -194,6 +200,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
   app.post(
     "/ai/job-extraction",
     {
+      config: { rateLimit: providerCallRateLimit },
       schema: {
         body: jobExtractionInputSchema,
         response: { 200: jobExtractionSchema, ...aiErrorResponses },
@@ -222,6 +229,7 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
     "/ai/job-import",
     {
       bodyLimit: maxJobPageBytes,
+      config: { rateLimit: providerCallRateLimit },
       schema: {
         body: jobImportInputSchema,
         response: { 201: jobSchema, ...aiErrorResponses },

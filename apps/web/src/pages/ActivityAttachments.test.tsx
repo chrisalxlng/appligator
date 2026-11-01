@@ -420,3 +420,83 @@ test("deletes the files of a deleted activity", async () => {
 
   await waitFor(() => expect(api.stashRequests).toEqual([{ method: "DELETE", fileId: cvFileId }]));
 });
+
+test("downloads an SVG file instead of opening it with the origin of the app", async () => {
+  const api = createFakeApi([jobFixture], [application], {
+    [application.id]: [
+      activityWith({ attachments: [{ ...cv, name: "logo.svg", mimeType: "image/svg+xml" }] }),
+    ],
+  });
+  api.files.set(cvFileId, new Blob(["<svg/>"], { type: "image/svg+xml" }));
+  const open = vi.spyOn(window, "open");
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  URL.createObjectURL = vi.fn(() => "blob:logo");
+  renderApp(`/applications/${application.id}`);
+  const log = await findLog();
+
+  await userEvent.click(await within(log).findByRole("button", { name: /^logo/ }));
+
+  await waitFor(() => expect(click).toHaveBeenCalled());
+  expect(open).not.toHaveBeenCalled();
+  open.mockRestore();
+  click.mockRestore();
+});
+
+test("waits for running uploads before saving an activity", async () => {
+  const api = renderAttachments();
+  const release = api.holdResponses("STASH");
+  const form = await editSubmission();
+  dropFiles(within(form).getByLabelText("Time"), [
+    new File(["cv"], "CV_2026.pdf", { type: "application/pdf" }),
+  ]);
+  await within(form).findByText("CV_2026.pdf");
+
+  fireEvent.submit(form.querySelector("form")!);
+  expect(api.requestsWith("PUT")).toEqual([]);
+
+  release();
+  await waitFor(() =>
+    expect(within(form).getByRole("button", { name: /Update/ })).not.toHaveAttribute("aria-busy"),
+  );
+  await userEvent.click(within(form).getByRole("button", { name: /Update/ }));
+  await waitFor(() =>
+    expect(api.requestsWith("PUT")[0]?.body?.attachments).toContainEqual(
+      expect.objectContaining({ name: "CV_2026.pdf" }),
+    ),
+  );
+});
+
+test("deletes a file whose upload finishes after the activity was closed", async () => {
+  const api = renderAttachments();
+  const release = api.holdResponses("STASH");
+  const form = await editSubmission();
+  dropFiles(within(form).getByLabelText("Time"), [
+    new File(["cv"], "CV_2026.pdf", { type: "application/pdf" }),
+  ]);
+  await within(form).findByText("CV_2026.pdf");
+  const upload = api.stashRequests.find(({ method }) => method === "POST")!;
+
+  await userEvent.click(within(form).getByRole("button", { name: "Close" }));
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog", { name: "Application submitted" })).not.toBeInTheDocument(),
+  );
+  release();
+
+  await waitFor(() => expect(api.files.has(upload.fileId)).toBe(false));
+  expect(api.stashRequests).toContainEqual({ method: "DELETE", fileId: upload.fileId });
+});
+
+test("rejects a dropped email that is too long", async () => {
+  const api = renderAttachments();
+  const form = await editSubmission();
+  const longEml = eml.replace("wir laden dich ein.", "x".repeat(100_100));
+
+  dropFiles(within(form).getByLabelText("Time"), [emlFile(longEml)]);
+
+  expect(await within(form).findByRole("alert")).toHaveTextContent(
+    "This email is too long to be imported.",
+  );
+  await userEvent.click(within(form).getByRole("button", { name: "Update" }));
+  await waitFor(() => expect(api.requestsWith("PUT")).toHaveLength(1));
+  expect(api.requestsWith("PUT")[0]?.body?.attachments).toHaveLength(2);
+});

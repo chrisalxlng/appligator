@@ -381,3 +381,71 @@ test("PUT /applications/:id/activities/:activityId does not change activities of
 
   expect(response.statusCode).toBe(404);
 });
+
+test("PUT /applications/:id/activities/:activityId does not restore details cleared by hand", async () => {
+  const applicationId = await createApplication();
+  const created = await request("POST", `/applications/${applicationId}/activities`, {
+    body: offer,
+  });
+  const details = (await request("GET", `/applications/${applicationId}`)).json();
+  await request("PUT", `/applications/${applicationId}`, {
+    body: {
+      company: details.company,
+      ...jobTerms,
+      notes: "",
+      salary: null,
+    },
+  });
+
+  await request("PUT", `/applications/${applicationId}/activities/${created.json().id}`, {
+    body: { ...offer, notes: "<p>Corrected</p>" },
+  });
+
+  expect((await request("GET", `/applications/${applicationId}`)).json().salary).toBeNull();
+});
+
+test("PUT /applications/:id reviews only the terms of details changed by hand", async () => {
+  const applicationId = await createApplication();
+  const application = (await request("GET", `/applications/${applicationId}`)).json();
+  const details = {
+    company: application.company,
+    ...jobTerms,
+    notes: "",
+    homeOfficePercentage: 80,
+    salary: offer.terms!.salary,
+  };
+  const created = (
+    await request("POST", `/applications/${applicationId}/activities`, { body: offer })
+  ).json();
+  const reviewedOf = async () =>
+    (await listActivities(applicationId)).find(({ id }: { id: string }) => id === created.id)
+      .detailsReviewed;
+
+  await request("PUT", `/applications/${applicationId}`, {
+    body: { ...details, notes: "<p>Unrelated</p>" },
+  });
+  expect(await reviewedOf()).toBe(false);
+
+  await request("PUT", `/applications/${applicationId}`, {
+    body: { ...details, homeOfficePercentage: 50 },
+  });
+  expect(await reviewedOf()).toBe(true);
+});
+
+test("POST /applications/:id/activities accepts more than the default body limit", async () => {
+  const applicationId = await createApplication();
+  const email = {
+    kind: "email" as const,
+    subject: "Offer",
+    from: "hr@example.com",
+    to: "",
+    sentAt: null,
+    body: "x".repeat(100_000),
+  };
+
+  const response = await request("POST", `/applications/${applicationId}/activities`, {
+    body: { ...activityInput, attachments: Array.from({ length: 20 }, () => email) },
+  });
+
+  expect(response.statusCode).toBe(201);
+});

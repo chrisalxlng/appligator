@@ -13,13 +13,31 @@ function storageKey(collection: Collection) {
   return `appligator.pinnedCollapsed.${collection}`;
 }
 
+const blockedStorageValues = new Map<string, string>();
+
+function readValue(key: string) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return blockedStorageValues.get(key) ?? null;
+  }
+}
+
+function writeValue(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    blockedStorageValues.set(key, value);
+  }
+}
+
 // Kept in the browser, so the list and the index route agree and the choice survives a reload.
 export function usePinnedCollapsed(collection: Collection) {
   const key = storageKey(collection);
-  const collapsed = useSyncExternalStore(subscribe, () => localStorage.getItem(key) === "true");
+  const collapsed = useSyncExternalStore(subscribe, () => readValue(key) === "true");
 
   function setCollapsed(value: boolean) {
-    localStorage.setItem(key, String(value));
+    writeValue(key, String(value));
     listeners.forEach((listener) => listener());
   }
 

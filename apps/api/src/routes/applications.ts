@@ -13,7 +13,8 @@ import { and, count, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { activities, applications, jobs } from "../db/schema.ts";
-import { toActivityColumns } from "./activityRows.ts";
+import { maxActivityBodyBytes, toActivityColumns } from "./activityRows.ts";
+import { reviewTermsOfChangedDetails } from "./detailFills.ts";
 import { notFoundSchema } from "./notFound.ts";
 import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
@@ -139,6 +140,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
     "/applications",
     {
+      bodyLimit: maxActivityBodyBytes,
       schema: {
         body: applicationCreateSchema,
         response: { 201: applicationSchema, 404: notFoundSchema, 409: alreadyAppliedSchema },
@@ -152,13 +154,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
         .where(and(eq(jobs.id, jobId), eq(jobs.userId, request.userId)));
       if (!job) return reply.code(404).send({ error: "Not Found" });
 
-      const [existing] = await app.db
-        .select({ id: applications.id })
-        .from(applications)
-        .where(eq(applications.jobId, jobId));
-      if (existing) return reply.code(409).send({ error: "alreadyApplied" });
-
-      const { id } = await app.db.transaction(async (tx) => {
+      const created = await app.db.transaction(async (tx) => {
         const [row] = await tx
           .insert(applications)
           .values({
@@ -169,14 +165,20 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
             pinned: job.pinned,
             status: applicationStatusOf([activity.type]),
           })
+          .onConflictDoNothing({ target: applications.jobId })
           .returning({ id: applications.id });
+        if (!row) return undefined;
+
         await tx
           .insert(activities)
-          .values({ ...toActivityColumns(activity), applicationId: row!.id });
-        return row!;
+          .values({ ...toActivityColumns(activity), applicationId: row.id });
+        return row;
       });
+      if (!created) return reply.code(409).send({ error: "alreadyApplied" });
 
-      return reply.code(201).send(toApplication((await findApplication(id, request.userId))!));
+      return reply
+        .code(201)
+        .send(toApplication((await findApplication(created.id, request.userId))!));
     },
   );
 
@@ -211,14 +213,24 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request, reply) => {
-      const [row] = await app.db
-        .update(applications)
-        .set({ ...toSalaryColumns(request.body), updatedAt: new Date() })
-        .where(ownApplication(request.params.id, request.userId))
-        .returning({ id: applications.id });
-      if (!row) return reply.code(404).send({ error: "Not Found" });
+      const { id } = request.params;
+      const previous = await app.db.transaction(async (tx) => {
+        const [row] = await tx
+          .select()
+          .from(applications)
+          .where(ownApplication(id, request.userId));
+        if (!row) return undefined;
 
-      return toApplication((await findApplication(row.id, request.userId))!);
+        await tx
+          .update(applications)
+          .set({ ...toSalaryColumns(request.body), updatedAt: new Date() })
+          .where(eq(applications.id, id));
+        await reviewTermsOfChangedDetails(tx, id, fromSalaryColumns(row), request.body);
+        return row;
+      });
+      if (!previous) return reply.code(404).send({ error: "Not Found" });
+
+      return toApplication((await findApplication(id, request.userId))!);
     },
   );
 

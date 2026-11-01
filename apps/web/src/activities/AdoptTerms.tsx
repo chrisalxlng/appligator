@@ -42,24 +42,19 @@ export function AdoptTermsHint(props: AdoptTermsProps) {
 }
 
 interface AdoptTermsDrawerProps extends AdoptTermsProps {
-  /** Opens only if this activity contributes a difference, e.g. right after it was saved. */
-  openFor?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-/** Opens only while values of the details would change; values for empty details are taken over anyway. */
-export function AdoptTermsDrawer({ openFor, open, onOpenChange, ...props }: AdoptTermsDrawerProps) {
+export function AdoptTermsDrawer({ open, onOpenChange, ...props }: AdoptTermsDrawerProps) {
   const { t } = useTranslation();
   const differences = differencesOf(props);
-  const isRelevant =
-    openFor === undefined || differences.some(({ activity }) => activity.id === openFor);
 
   return (
     <Drawer
       title={t("activities.adopt.title")}
       closeLabel={t("common.close")}
-      open={open && isRelevant && differences.length > 0}
+      open={open && differences.length > 0}
       onOpenChange={onOpenChange}
     >
       {differences.length > 0 && (

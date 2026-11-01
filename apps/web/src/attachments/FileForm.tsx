@@ -64,6 +64,7 @@ export function FileForm({ titleRef, attachment, onSave }: FileFormProps) {
     event.preventDefault();
     // The drawer is portaled, but React still bubbles the submit to the surrounding activity form.
     event.stopPropagation();
+    if (isUploading) return;
     const trimmedTitle = title.trim();
     if (!file) return setError("fileRequired");
     if (trimmedTitle.length > jobLimits.textLength) return setError("titleTooLong");
@@ -117,6 +118,7 @@ export function FileForm({ titleRef, attachment, onSave }: FileFormProps) {
         )}
         <Button
           type="submit"
+          pending={isUploading}
           shortcutHint={shortcutHints?.submit}
           aria-keyshortcuts={submitKeyShortcuts}
         >

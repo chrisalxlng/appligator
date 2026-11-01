@@ -243,11 +243,13 @@ function toBulletList(items: string[]) {
 }
 
 function toParagraphs(text: string) {
+  let length = 0;
   return text
     .split(/\n\s*\n/)
     .map((paragraph) => paragraph.trim().replace(/\s*\n\s*/g, " "))
     .filter(Boolean)
     .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+    .filter((paragraph) => (length += paragraph.length) <= jobLimits.summaryLength)
     .join("");
 }
 

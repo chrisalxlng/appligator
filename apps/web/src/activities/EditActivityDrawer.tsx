@@ -9,7 +9,7 @@ import { formatDate } from "../details/format.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { ActivityForm } from "./ActivityForm.tsx";
 import { AdoptTermsDrawer } from "./AdoptTerms.tsx";
-import { useDeleteActivity, useSaveActivity } from "./activityQueries.ts";
+import { useDeleteActivity, useDiffersFromDetails, useSaveActivity } from "./activityQueries.ts";
 
 interface EditActivityDrawerProps {
   application: Application;
@@ -29,6 +29,7 @@ export function EditActivityDrawer({
   const { t, i18n } = useTranslation();
   const save = useSaveActivity(application.id, activity.id);
   const deleteActivity = useDeleteActivity(application.id, activity.id);
+  const differsFromDetails = useDiffersFromDetails(application.id);
   const [isAdopting, setIsAdopting] = useState(false);
   const deleteFiles = useDeleteFiles();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -64,7 +65,7 @@ export function EditActivityDrawer({
           onSaved={() => {
             onOpenChange(false);
             showSuccess(t("activities.toast.updated"));
-            setIsAdopting(true);
+            setIsAdopting(differsFromDetails(activity.id));
           }}
           submit={{ label: t("activities.form.update"), icon: IconPencil }}
           secondaryAction={
@@ -85,7 +86,6 @@ export function EditActivityDrawer({
       <AdoptTermsDrawer
         application={application}
         activities={activities}
-        openFor={activity.id}
         open={isAdopting}
         onOpenChange={setIsAdopting}
       />

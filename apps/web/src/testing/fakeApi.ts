@@ -286,6 +286,7 @@ export function createFakeApi(
     if (method === "PUT") {
       const updated = { ...application, ...body!, updatedAt: now };
       applications = applications.map((current) => (current.id === id ? updated : current));
+      reviewTermsOfChangedDetails(application, updated);
       return json(withDerivedFields(updated));
     }
     applications = applications.filter((current) => current.id !== id);
@@ -308,7 +309,27 @@ export function createFakeApi(
     };
   }
 
-  function fillEmptyDetails(applicationId: string, terms: Activity["terms"]) {
+  function reviewTermsOfChangedDetails(previous: Application, next: Application) {
+    const isChanged = (field: string) =>
+      JSON.stringify(previous[field as keyof Application]) !==
+      JSON.stringify(next[field as keyof Application]);
+    activities.set(
+      previous.id,
+      activitiesOf(previous.id).map((activity) =>
+        Object.entries(activity.terms ?? {}).some(
+          ([field, value]) => isSpecifiedDetail(value) && isChanged(field),
+        )
+          ? { ...activity, detailsReviewed: true }
+          : activity,
+      ),
+    );
+  }
+
+  function fillEmptyDetails(
+    applicationId: string,
+    terms: Activity["terms"],
+    previousTerms: Activity["terms"] = null,
+  ) {
     if (!terms) return;
     const { position: _position, ...detailTerms } = terms;
     applications = applications.map((application) =>
@@ -319,7 +340,9 @@ export function createFakeApi(
               Object.entries(detailTerms).filter(
                 ([field, value]) =>
                   isSpecifiedDetail(value) &&
-                  !isSpecifiedDetail(application[field as keyof Application]),
+                  !isSpecifiedDetail(application[field as keyof Application]) &&
+                  JSON.stringify(value) !==
+                    JSON.stringify(previousTerms?.[field as keyof typeof previousTerms]),
               ),
             ),
           }
@@ -362,7 +385,7 @@ export function createFakeApi(
         detailsReviewed: activity.detailsReviewed && !termsChanged,
         updatedAt: now,
       };
-      fillEmptyDetails(applicationId, updated.terms);
+      fillEmptyDetails(applicationId, updated.terms, activity.terms);
       activities.set(
         applicationId,
         current.map((other) => (other.id === activityId ? updated : other)),
@@ -380,10 +403,11 @@ export function createFakeApi(
   const stashRequests: { method: string; fileId: string }[] = [];
   let stashFailure: number | null = null;
 
-  function handleStash(url: string, init?: RequestInit) {
+  async function handleStash(url: string, init?: RequestInit) {
     const method = init?.method ?? "GET";
     const fileId = url.split("/").at(-1)!;
     stashRequests.push({ method, fileId });
+    if (method === "POST") await holds.get("STASH");
     if (stashFailure) return new Response(null, { status: stashFailure });
     if (method === "POST") {
       files.set(fileId, (init!.body as FormData).get("file") as File);

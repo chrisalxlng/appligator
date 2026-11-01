@@ -248,3 +248,42 @@ test("takes over the values with Ctrl+Enter", async () => {
   expect(await screen.findByText("Values taken over")).toBeInTheDocument();
   expect(api.requestsWith("PUT")).toHaveLength(2);
 });
+
+test("never asks after the details were updated, not even after saving an activity before", async () => {
+  renderAdoption([activityWith({ occurredAt: "2026-10-17T08:00:00.000Z", terms: jobTerms })]);
+  const log = await findLog();
+  await userEvent.click(
+    await within(log).findByRole("button", { name: /Edit Application submitted$/ }),
+  );
+  const activityForm = await screen.findByRole("dialog", { name: "Application submitted" });
+  await userEvent.click(within(activityForm).getByRole("button", { name: "Update" }));
+  expect(await screen.findByText("Activity updated")).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+  const detailsForm = await screen.findByRole("dialog", { name: "Edit application" });
+  const vacationDays = within(detailsForm).getByRole("textbox", { name: "Vacation days" });
+  await userEvent.clear(vacationDays);
+  await userEvent.type(vacationDays, "20");
+  await userEvent.click(within(detailsForm).getByRole("button", { name: "Update" }));
+
+  expect(await screen.findByText("Application updated")).toBeInTheDocument();
+  const detail = await screen.findByRole("article");
+  await waitFor(() => expect(detail).toHaveTextContent("Vacation days20"));
+  expect(screen.queryByRole("dialog", { name: "Take over values" })).not.toBeInTheDocument();
+  expect(within(log).queryByText(/differ? from the details/)).not.toBeInTheDocument();
+});
+
+test("keeps the hint when the details change in another value", async () => {
+  renderAdoption();
+  const log = await findLog();
+  await within(log).findByText("2 values from activities differ from the details");
+
+  await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+  const detailsForm = await screen.findByRole("dialog", { name: "Edit application" });
+  await userEvent.type(within(detailsForm).getByRole("textbox", { name: "Company" }), " II");
+  await userEvent.click(within(detailsForm).getByRole("button", { name: "Update" }));
+
+  expect(await screen.findByText("Application updated")).toBeInTheDocument();
+  expect(within(log).getByText(/differ from the details/)).toBeVisible();
+  expect(screen.queryByRole("dialog", { name: "Take over values" })).not.toBeInTheDocument();
+});

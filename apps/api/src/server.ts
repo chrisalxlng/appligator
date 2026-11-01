@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { createRemoteJWKSet } from "jose";
@@ -42,7 +43,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 }
 
 try {
-  await migrate(db, { migrationsFolder: new URL("../drizzle", import.meta.url).pathname });
+  await migrate(db, { migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url)) });
   await app.listen({ port, host });
 } catch (error) {
   app.log.error(error);

@@ -56,6 +56,7 @@ export function ActivityForm<Result>({
     activityLimits.attachments - values.attachments.length,
     (attachments) => updateAttachments((current) => [...current, ...attachments]),
   );
+  const isUploading = addedFiles.uploads.length > 0;
   const shortcutHints = useShortcutHints();
   const fields = activityTypeFields[type];
   const clearLabel = t("fields.clear");
@@ -66,11 +67,10 @@ export function ActivityForm<Result>({
   }
 
   function updateAttachments(update: (attachments: Attachment[]) => Attachment[]) {
-    setValues((current) => {
-      const attachments = update(current.attachments).slice(0, activityLimits.attachments);
-      files.track(attachments);
-      return { ...current, attachments };
-    });
+    setValues((current) => ({
+      ...current,
+      attachments: update(current.attachments).slice(0, activityLimits.attachments),
+    }));
   }
 
   function errorFor(field: keyof ActivityFormErrors) {
@@ -80,6 +80,7 @@ export function ActivityForm<Result>({
 
   function submitForm(event: FormEvent) {
     event.preventDefault();
+    if (isUploading) return;
     const result = validateActivityForm(type, values);
     setErrors(result.errors ?? {});
     if (!result.input) return;
@@ -91,7 +92,7 @@ export function ActivityForm<Result>({
   const submitButton = (
     <Button
       type="submit"
-      pending={save.isPending}
+      pending={save.isPending || isUploading}
       shortcutHint={shortcutHints?.submit}
       aria-keyshortcuts={submitKeyShortcuts}
     >

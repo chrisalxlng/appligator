@@ -3,6 +3,7 @@ import { toRichText } from "@appligator/ui";
 import PostalMime, { type Address } from "postal-mime";
 
 type LinkAttachment = Extract<Attachment, { kind: "link" }>;
+type EmailAttachment = Extract<Attachment, { kind: "email" }>;
 
 function escapeHtml(text: string) {
   return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -59,6 +60,18 @@ function addressesOf(addresses: Address[]) {
     .map(({ address, name }) => address || name)
     .join(", ")
     .toLowerCase();
+}
+
+export function exceedsEmailLimits({
+  subject,
+  from,
+  to,
+  body,
+}: Pick<EmailAttachment, "subject" | "from" | "to" | "body">) {
+  return (
+    [subject, from, to].some((header) => header.length > activityLimits.emailHeaderLength) ||
+    body.length > activityLimits.emailBodyLength
+  );
 }
 
 export function isEmailFile(file: File) {

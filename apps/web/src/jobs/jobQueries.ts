@@ -83,7 +83,11 @@ export function useDeleteJob(id: string) {
 
   return useMutation({
     mutationFn: () => jobsApi.remove(id),
-    onSuccess: () => invalidateJobCollections(queryClient),
+    onSuccess: () =>
+      Promise.all([
+        invalidateJobCollections(queryClient),
+        queryClient.invalidateQueries({ queryKey: jobKeys.detail(id), refetchType: "none" }),
+      ]),
   });
 }
 
