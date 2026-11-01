@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vite-plus/test";
 import { Button } from "../button/Button.tsx";
@@ -181,7 +181,7 @@ test("connects the error of its field and focuses when its label is clicked", as
   expect(editor).not.toHaveAttribute("aria-invalid");
 
   await userEvent.click(screen.getByText("Description"));
-  expect(editor).toHaveFocus();
+  await waitFor(() => expect(editor).toHaveFocus());
 
   rerender(
     <Field label="Description" error="Too long">
