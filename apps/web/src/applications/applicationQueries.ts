@@ -28,6 +28,13 @@ function invalidateCollections(queryClient: QueryClient) {
   ]);
 }
 
+export function invalidateApplicationStatus(queryClient: QueryClient) {
+  return Promise.all([
+    invalidateCollections(queryClient),
+    queryClient.invalidateQueries({ queryKey: ["jobs", "detail"] }),
+  ]);
+}
+
 function invalidateJob(queryClient: QueryClient, jobId: string) {
   return Promise.all([
     invalidateJobCollections(queryClient),

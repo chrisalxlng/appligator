@@ -140,6 +140,13 @@ export const en = {
     },
     status: {
       applied: "Applied",
+      interviewing: "Interviewing",
+      offer: "Offer",
+      accepted: "Accepted",
+      declined: "Declined",
+      rejected: "Rejected",
+      withdrawn: "Withdrawn",
+      paused: "Paused",
     },
     properties: {
       status: "Status",

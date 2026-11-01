@@ -290,3 +290,22 @@ test("edits and removes the terms of an activity", async () => {
 
   await waitFor(() => expect(api.requestsWith("PUT")[1]?.body?.terms).toBeNull());
 });
+
+test("shows the status that the latest activity results in", async () => {
+  renderActivities();
+  const detail = await screen.findByRole("article");
+  const status = () =>
+    within(detail).getByText("Status", { selector: "dt > span" }).parentElement!.nextElementSibling;
+  await waitFor(() => expect(status()).toHaveTextContent("Interviewing"));
+
+  const picker = await openPicker();
+  await userEvent.click(within(picker).getByRole("button", { name: "Show more" }));
+  await userEvent.click(within(picker).getByRole("button", { name: /^Rejection received/ }));
+  const form = await screen.findByRole("dialog", { name: "Rejection received" });
+  await userEvent.click(within(form).getByRole("button", { name: "Add" }));
+
+  await waitFor(() => expect(status()).toHaveTextContent("Rejected"));
+  expect(
+    await screen.findByRole("link", { name: /Lead Developer Frontend.*Rejected$/ }),
+  ).toBeVisible();
+});

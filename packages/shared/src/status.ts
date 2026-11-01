@@ -1,7 +1,16 @@
 import { z } from "zod";
 
 export const jobStatuses = ["open", "applied"] as const;
-export const applicationStatuses = ["applied"] as const;
+export const applicationStatuses = [
+  "applied",
+  "interviewing",
+  "offer",
+  "accepted",
+  "declined",
+  "rejected",
+  "withdrawn",
+  "paused",
+] as const;
 
 function statusCountsSchema<const Statuses extends readonly [string, ...string[]]>(
   statuses: Statuses,
