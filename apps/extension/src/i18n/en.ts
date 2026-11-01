@@ -8,6 +8,7 @@ export const en = {
   jobImport: {
     title: "Submit job",
     submit: "Submit",
+    opensInNewTab: "(opens in a new tab)",
     importing: "The job is imported in the background. You can close this window.",
     done: "Job imported",
     open: "Open in Appligator",

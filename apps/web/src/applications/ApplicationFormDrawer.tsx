@@ -6,6 +6,7 @@ import {
   submitKeyShortcuts,
   TextInput,
   useSuccessToast,
+  useFocusFirstError,
 } from "@appligator/ui";
 import { IconPencil } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
@@ -63,6 +64,7 @@ function ApplicationForm({ application, onSaved }: ApplicationFormProps) {
   const save = useSaveApplication(application.id);
   const [values, setValues] = useState(() => toApplicationFormValues(application));
   const [errors, setErrors] = useState<ApplicationFormErrors>({});
+  const formRef = useFocusFirstError(errors);
   const shortcutHints = useShortcutHints();
 
   function update(changes: Partial<ApplicationFormValues>) {
@@ -82,7 +84,7 @@ function ApplicationForm({ application, onSaved }: ApplicationFormProps) {
   }
 
   return (
-    <form className={styles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={styles.form} onSubmit={submit} noValidate>
       <Field label={t("fields.company")} error={errorFor("company")}>
         <TextInput value={values.company} onValueChange={(company) => update({ company })} />
       </Field>

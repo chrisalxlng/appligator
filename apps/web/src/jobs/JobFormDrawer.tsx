@@ -8,6 +8,7 @@ import {
   submitKeyShortcuts,
   TextInput,
   useSuccessToast,
+  useFocusFirstError,
 } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
@@ -71,6 +72,7 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
   const save = useSaveJob(job?.id);
   const [values, setValues] = useState(() => toFormValues(job));
   const [errors, setErrors] = useState<JobFormErrors>({});
+  const formRef = useFocusFirstError(errors);
   const shortcutHints = useShortcutHints();
   const valuesRef = useRef(values);
   const { analysis, analyzePaste, retry, dismiss } = useJobAnalysis(applyExtraction);
@@ -108,7 +110,7 @@ function JobForm({ job, firstFieldRef, onSaved }: JobFormProps) {
   const clearLabel = t("fields.clear");
 
   return (
-    <form className={styles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={styles.form} onSubmit={submit} noValidate>
       <Field label={t("fields.link")} error={errorFor("link")}>
         <TextInput
           ref={firstFieldRef}

@@ -4,12 +4,16 @@ export const en = {
   },
   navigation: {
     label: "Main navigation",
+    skipToContent: "Skip to content",
     home: "Home",
     jobs: "Jobs",
     applications: "Applications",
     profile: "Profile",
   },
   common: {
+    editHint: "– edit",
+    openHint: "– open",
+    opensInNewTab: "(opens in a new tab)",
     close: "Close",
     moreActions: "Show more actions",
     today: "Today",
@@ -591,6 +595,7 @@ export const en = {
     close: "Close",
     selectPlaceholder: "Please select",
     access: {
+      keepApiKey: "Saved – leave empty to keep it",
       add: "Add",
       addTitle: "Add AI access",
       editTitle: "Edit AI access",

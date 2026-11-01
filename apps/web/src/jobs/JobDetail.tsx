@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useApplicationStatus } from "../applications/useApplicationStatus.ts";
 import { DetailView, NotSpecified, Property, Section } from "../collection/DetailView.tsx";
+import a11y from "../collection/visuallyHidden.module.css";
 import { DetailsSection } from "../details/DetailsSection.tsx";
 import { formatIsoDate, hostname } from "../details/format.ts";
 import { JobActions } from "./JobActions.tsx";
@@ -66,6 +67,7 @@ export function JobDetail({ job }: { job: Job }) {
             <a className={styles.link} href={job.link} target="_blank" rel="noreferrer">
               <IconLink size={16} stroke={2} aria-hidden />
               {hostname(job.link)}
+              <span className={a11y.visuallyHidden}>{t("common.opensInNewTab")}</span>
             </a>
           )}
         </div>

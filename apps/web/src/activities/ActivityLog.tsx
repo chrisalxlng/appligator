@@ -34,6 +34,7 @@ export function ActivityLog({ application }: { application: Application }) {
           title={t("activities.loadError.title")}
           description={t("activities.loadError.description")}
           onRetry={() => void activities.refetch()}
+          headingLevel={4}
         />
       ) : activities.data.length === 0 ? (
         <p className={styles.empty}>{t("activities.empty")}</p>

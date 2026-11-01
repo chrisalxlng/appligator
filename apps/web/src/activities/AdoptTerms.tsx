@@ -5,6 +5,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useSaveApplication } from "../applications/applicationQueries.ts";
 import { NotSpecified } from "../collection/DetailView.tsx";
+import a11y from "../collection/visuallyHidden.module.css";
 import { useDetails } from "../details/DetailsSection.tsx";
 import formStyles from "../details/form.module.css";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
@@ -146,7 +147,8 @@ function AdoptTermsForm({ application, differences, onDone }: AdoptTermsFormProp
                 <span className={styles.label}>{label(key)}</span>
                 <span className={styles.change}>
                   <span className={styles.current}>{currentValue(key)}</span>
-                  <IconArrowRight size={16} stroke={2} aria-label={t("activities.adopt.becomes")} />
+                  <IconArrowRight size={16} stroke={2} aria-hidden />
+                  <span className={a11y.visuallyHidden}>{t("activities.adopt.becomes")}</span>
                   <span>{adoptedValue(key)}</span>
                 </span>
                 <span className={styles.source}>

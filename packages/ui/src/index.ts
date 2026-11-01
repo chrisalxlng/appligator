@@ -12,6 +12,7 @@ export { Field, type FieldProps } from "./field/Field.tsx";
 export { Fieldset, type FieldsetProps } from "./field/Fieldset.tsx";
 export { NumberInput, type NumberInputProps } from "./field/NumberInput.tsx";
 export { TextInput, type TextInputProps } from "./field/TextInput.tsx";
+export { useFocusFirstError } from "./field/useFocusFirstError.ts";
 export { LinkChip, type LinkChipProps } from "./link-chip/LinkChip.tsx";
 export { LogoMark } from "./logo-mark/LogoMark.tsx";
 export { Menu, MenuItem, type MenuItemProps, type MenuProps } from "./menu/Menu.tsx";

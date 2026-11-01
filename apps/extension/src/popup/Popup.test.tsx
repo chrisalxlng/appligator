@@ -74,7 +74,7 @@ test("links the imported job", async () => {
   render(<Popup />);
 
   expect(await screen.findByText("Job imported")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Open in Appligator" })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: /^Open in Appligator/ })).toHaveAttribute(
     "href",
     "http://localhost:5173/jobs/job-id",
   );

@@ -500,3 +500,10 @@ test("rejects a dropped email that is too long", async () => {
   await waitFor(() => expect(api.requestsWith("PUT")).toHaveLength(1));
   expect(api.requestsWith("PUT")[0]?.body?.attachments).toHaveLength(2);
 });
+
+test("names the action of attachment buttons", async () => {
+  renderAttachments();
+  const log = await findLog();
+
+  expect(await within(log).findByRole("button", { name: /^Lebenslauf.*open$/ })).toBeVisible();
+});

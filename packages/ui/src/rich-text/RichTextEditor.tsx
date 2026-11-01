@@ -10,7 +10,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useFieldLabelId } from "../field/Field.tsx";
+import { useFieldContext } from "../field/Field.tsx";
 import { Tooltip } from "../tooltip/Tooltip.tsx";
 import { normalizeHeadings, richTextExtensions } from "./extensions.ts";
 import controlStyles from "../field/control.module.css";
@@ -44,17 +44,25 @@ export function RichTextEditor({
   formatLabels,
   "aria-label": ariaLabel,
 }: RichTextEditorProps) {
-  const labelId = useFieldLabelId();
+  const field = useFieldContext();
+  const labelId = field?.labelId;
+  const errorId = field?.invalid ? field.errorId : undefined;
+  const attributes = useMemo(
+    () => ({
+      role: "textbox",
+      "aria-multiline": "true",
+      ...(ariaLabel && { "aria-label": ariaLabel }),
+      ...(!ariaLabel && labelId && { "aria-labelledby": labelId }),
+      ...(errorId && { "aria-invalid": "true", "aria-describedby": errorId, "data-invalid": "" }),
+      class: `${controlStyles.control} ${proseStyles.prose} ${styles.editor}`,
+    }),
+    [ariaLabel, labelId, errorId],
+  );
   const editor = useEditor({
     extensions: richTextExtensions,
     content: value,
     editorProps: {
-      attributes: {
-        role: "textbox",
-        "aria-multiline": "true",
-        ...(ariaLabel ? { "aria-label": ariaLabel } : labelId && { "aria-labelledby": labelId }),
-        class: `${controlStyles.control} ${proseStyles.prose} ${styles.editor}`,
-      },
+      attributes,
       transformPastedHTML: normalizeHeadings,
     },
     onUpdate: ({ editor, transaction }) => {
@@ -67,6 +75,17 @@ export function RichTextEditor({
   useEffect(() => {
     if (toValue(editor) !== value) editor.commands.setContent(value, { emitUpdate: false });
   }, [editor, value]);
+
+  useEffect(() => {
+    editor.setOptions({ editorProps: { attributes, transformPastedHTML: normalizeHeadings } });
+  }, [editor, attributes]);
+
+  useEffect(() => {
+    const label = labelId ? document.getElementById(labelId) : null;
+    const focusEditor = () => editor.commands.focus();
+    label?.addEventListener("click", focusEditor);
+    return () => label?.removeEventListener("click", focusEditor);
+  }, [editor, labelId]);
 
   return (
     <>

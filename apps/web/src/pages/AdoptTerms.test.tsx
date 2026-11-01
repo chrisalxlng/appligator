@@ -61,7 +61,9 @@ test("collects the differences of several activities and reviews all of them", a
   const startDate = within(drawer)
     .getByRole("checkbox", { name: /^Start date/ })
     .closest("label");
-  expect(startDate).toHaveTextContent("Start dateFebruary 1, 2027March 1, 2027Interview held •");
+  expect(startDate).toHaveTextContent(
+    "Start dateFebruary 1, 2027becomesMarch 1, 2027Interview held •",
+  );
   expect(
     within(drawer)
       .getByRole("checkbox", { name: /^Salary/ })
@@ -97,12 +99,14 @@ test("lists the differing values with their current and new value", async () => 
 
   const salary = within(drawer).getByRole("checkbox", { name: /^Salary/ });
   expect(salary).toBeChecked();
-  expect(salary.closest("label")).toHaveTextContent("Salary€65,000 – €75,000 / year€80,000 / year");
+  expect(salary.closest("label")).toHaveTextContent(
+    "Salary€65,000 – €75,000 / yearbecomes€80,000 / year",
+  );
   expect(
     within(drawer)
       .getByRole("checkbox", { name: /^Probation/ })
       .closest("label"),
-  ).toHaveTextContent("Probation3 months6 months");
+  ).toHaveTextContent("Probation3 monthsbecomes6 months");
 });
 
 test("takes over the chosen values into the details", async () => {
@@ -193,7 +197,7 @@ test("asks right after adding an activity whose terms would change the details",
     within(drawer)
       .getByRole("checkbox", { name: /^Vacation days/ })
       .closest("label"),
-  ).toHaveTextContent("Vacation days3028");
+  ).toHaveTextContent("Vacation days30becomes28");
 });
 
 test("asks after editing the terms of an activity, but not after other changes", async () => {
@@ -210,7 +214,7 @@ test("asks after editing the terms of an activity, but not after other changes",
   expect(screen.queryByRole("dialog", { name: "Take over values" })).not.toBeInTheDocument();
 
   const termsForm = await edit();
-  await userEvent.click(within(termsForm).getByRole("button", { name: "Edit terms" }));
+  await userEvent.click(within(termsForm).getByRole("button", { name: /Edit terms$/ }));
   const terms = await screen.findByRole("dialog", { name: "Edit terms" });
   await userEvent.clear(within(terms).getByRole("textbox", { name: "Vacation days" }));
   await userEvent.type(within(terms).getByRole("textbox", { name: "Vacation days" }), "28");

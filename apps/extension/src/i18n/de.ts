@@ -10,6 +10,7 @@ export const de: Translations = {
   jobImport: {
     title: "Stelle übermitteln",
     submit: "Übermitteln",
+    opensInNewTab: "(öffnet in neuem Tab)",
     importing: "Die Stelle wird im Hintergrund importiert. Du kannst dieses Fenster schließen.",
     done: "Stelle importiert",
     open: "In Appligator öffnen",

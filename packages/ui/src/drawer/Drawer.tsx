@@ -55,6 +55,11 @@ export function Drawer({
 }: DrawerProps) {
   const isNested = useContext(IsNestedContext);
   const popupRef = useRef<HTMLDivElement>(null);
+  const returnTargetRef = useRef<Element | null>(null);
+
+  useLayoutEffect(() => {
+    if (open) returnTargetRef.current = document.activeElement;
+  }, [open]);
 
   return (
     <BaseDrawer.Root open={open} onOpenChange={onOpenChange}>
@@ -66,6 +71,11 @@ export function Drawer({
             <BaseDrawer.Popup
               ref={popupRef}
               initialFocus={initialFocus ?? popupRef}
+              finalFocus={() =>
+                returnTargetRef.current?.isConnected === false
+                  ? document.querySelector<HTMLElement>("main")
+                  : true
+              }
               className={styles.popup}
               onKeyDown={submitOnShortcut}
             >

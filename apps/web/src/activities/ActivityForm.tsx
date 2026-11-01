@@ -6,7 +6,7 @@ import {
   type ActivityInput,
   type ActivityType,
 } from "@appligator/shared";
-import { Button, DateInput, Field, submitKeyShortcuts } from "@appligator/ui";
+import { Button, DateInput, Field, submitKeyShortcuts, useFocusFirstError } from "@appligator/ui";
 import type { Icon } from "@tabler/icons-react";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactNode } from "react";
@@ -51,6 +51,7 @@ export function ActivityForm<Result>({
   const { t } = useTranslation();
   const [values, setValues] = useState(() => toActivityFormValues(activity, prefill));
   const [errors, setErrors] = useState<ActivityFormErrors>({});
+  const formRef = useFocusFirstError(errors);
   const files = useFileCleanup(values.attachments);
   const addedFiles = useAddFiles(
     activityLimits.attachments - values.attachments.length,
@@ -103,7 +104,7 @@ export function ActivityForm<Result>({
 
   return (
     <DropZone label={t("attachments.dropHere")} onFiles={addedFiles.addFiles}>
-      <form className={formStyles.form} onSubmit={submitForm} noValidate>
+      <form ref={formRef} className={formStyles.form} onSubmit={submitForm} noValidate>
         {header}
         <Field label={t("activities.form.occurredAt")} error={errorFor("occurredAt")}>
           <DateInput value={values.occurredAt} onValueChange={setValue("occurredAt")} withTime />

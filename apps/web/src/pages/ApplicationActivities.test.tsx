@@ -175,7 +175,7 @@ test("adds the terms of an offer", async () => {
   await userEvent.type(within(terms).getByRole("textbox", { name: "Position" }), "Lead Developer");
   await userEvent.type(within(terms).getByRole("textbox", { name: "Vacation days" }), "30");
   await userEvent.click(within(terms).getByRole("button", { name: "Add" }));
-  expect(await within(form).findByRole("button", { name: "Edit terms" })).toHaveTextContent(
+  expect(await within(form).findByRole("button", { name: /Edit terms$/ })).toHaveTextContent(
     "Lead DeveloperVacation days",
   );
   await userEvent.click(within(form).getByRole("button", { name: "Add" }));
@@ -264,7 +264,7 @@ test("edits and removes the terms of an activity", async () => {
   await userEvent.click(within(log).getByRole("button", { name: /Edit Offer received$/ }));
   const form = await screen.findByRole("dialog", { name: "Offer received" });
 
-  await userEvent.click(within(form).getByRole("button", { name: "Edit terms" }));
+  await userEvent.click(within(form).getByRole("button", { name: /Edit terms$/ }));
   const terms = await screen.findByRole("dialog", { name: "Edit terms" });
   const position = within(terms).getByRole("textbox", { name: "Position" });
   expect(position).toHaveValue("Lead Developer");
