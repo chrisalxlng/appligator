@@ -105,9 +105,14 @@ export const activityInputSchema = z
 
 export const activitySchema = activityInputSchema.safeExtend({
   id: z.uuid(),
+  detailsReviewed: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
+
+export function isSpecifiedDetail(value: unknown) {
+  return value !== null && value !== undefined && !(Array.isArray(value) && value.length === 0);
+}
 
 export const activityListSchema = z.array(activitySchema);
 

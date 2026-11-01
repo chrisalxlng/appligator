@@ -1,4 +1,4 @@
-import type { Activity, ActivityType } from "@appligator/shared";
+import type { Activity, ActivityType, Application } from "@appligator/shared";
 import { Button, Drawer, useSuccessToast } from "@appligator/ui";
 import { IconChevronRight, IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
@@ -6,19 +6,20 @@ import { useTranslation } from "react-i18next";
 import { ActivityForm } from "./ActivityForm.tsx";
 import { useAddActivity } from "./activityQueries.ts";
 import { rankActivityTypes } from "./activityRelevance.ts";
+import { AdoptTermsDrawer } from "./AdoptTerms.tsx";
 import styles from "./AddActivityDrawer.module.css";
 
 const mostRelevantCount = 5;
 
 interface AddActivityDrawerProps {
-  applicationId: string;
+  application: Application;
   activities: Activity[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function AddActivityDrawer({
-  applicationId,
+  application,
   activities,
   open,
   onOpenChange,
@@ -27,6 +28,10 @@ export function AddActivityDrawer({
   const [showsAll, setShowsAll] = useState(false);
   const [selected, setSelected] = useState<{ type: ActivityType | null; open: boolean }>({
     type: null,
+    open: false,
+  });
+  const [added, setAdded] = useState<{ activity: Activity | null; open: boolean }>({
+    activity: null,
     open: false,
   });
   const rankedTypes = rankActivityTypes(activities.map(({ type }) => type));
@@ -38,62 +43,74 @@ export function AddActivityDrawer({
   }
 
   return (
-    <Drawer
-      title={t("activities.form.addTitle")}
-      closeLabel={t("common.close")}
-      open={open}
-      onOpenChange={changeOpen}
-    >
-      <div className={styles.picker}>
-        <ul className={styles.types}>
-          {shownTypes.map((type) => (
-            <li key={type}>
-              <button
-                type="button"
-                className={styles.type}
-                onClick={() => setSelected({ type, open: true })}
-              >
-                <span className={styles.typeText}>
-                  <span className={styles.typeLabel}>{t(`activities.types.${type}.label`)}</span>
-                  <span className={styles.typeDescription}>
-                    {t(`activities.types.${type}.description`)}
-                  </span>
-                </span>
-                <IconChevronRight size={20} stroke={2} aria-hidden />
-              </button>
-            </li>
-          ))}
-        </ul>
-        <Button variant="secondary" onClick={() => setShowsAll((current) => !current)}>
-          {t(showsAll ? "activities.picker.showLess" : "activities.picker.showMore")}
-        </Button>
-      </div>
+    <>
       <Drawer
-        title={selected.type ? t(`activities.types.${selected.type}.label`) : ""}
+        title={t("activities.form.addTitle")}
         closeLabel={t("common.close")}
-        open={selected.open}
-        onOpenChange={(nextOpen) => setSelected((current) => ({ ...current, open: nextOpen }))}
+        open={open}
+        onOpenChange={changeOpen}
       >
-        {selected.type && (
-          <NewActivityForm
-            key={selected.type}
-            applicationId={applicationId}
-            type={selected.type}
-            onSaved={() => {
-              setSelected((current) => ({ ...current, open: false }));
-              changeOpen(false);
-            }}
-          />
-        )}
+        <div className={styles.picker}>
+          <ul className={styles.types}>
+            {shownTypes.map((type) => (
+              <li key={type}>
+                <button
+                  type="button"
+                  className={styles.type}
+                  onClick={() => setSelected({ type, open: true })}
+                >
+                  <span className={styles.typeText}>
+                    <span className={styles.typeLabel}>{t(`activities.types.${type}.label`)}</span>
+                    <span className={styles.typeDescription}>
+                      {t(`activities.types.${type}.description`)}
+                    </span>
+                  </span>
+                  <IconChevronRight size={20} stroke={2} aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <Button variant="secondary" onClick={() => setShowsAll((current) => !current)}>
+            {t(showsAll ? "activities.picker.showLess" : "activities.picker.showMore")}
+          </Button>
+        </div>
+        <Drawer
+          title={selected.type ? t(`activities.types.${selected.type}.label`) : ""}
+          closeLabel={t("common.close")}
+          open={selected.open}
+          onOpenChange={(nextOpen) => setSelected((current) => ({ ...current, open: nextOpen }))}
+        >
+          {selected.type && (
+            <NewActivityForm
+              key={selected.type}
+              applicationId={application.id}
+              type={selected.type}
+              onSaved={(activity) => {
+                setSelected((current) => ({ ...current, open: false }));
+                changeOpen(false);
+                setAdded({ activity, open: true });
+              }}
+            />
+          )}
+        </Drawer>
       </Drawer>
-    </Drawer>
+      {added.activity && (
+        <AdoptTermsDrawer
+          application={application}
+          activities={activities}
+          openFor={added.activity.id}
+          open={added.open}
+          onOpenChange={(nextOpen) => setAdded((current) => ({ ...current, open: nextOpen }))}
+        />
+      )}
+    </>
   );
 }
 
 interface NewActivityFormProps {
   applicationId: string;
   type: ActivityType;
-  onSaved: () => void;
+  onSaved: (activity: Activity) => void;
 }
 
 function NewActivityForm({ applicationId, type, onSaved }: NewActivityFormProps) {
@@ -105,8 +122,8 @@ function NewActivityForm({ applicationId, type, onSaved }: NewActivityFormProps)
     <ActivityForm
       type={type}
       save={add}
-      onSaved={() => {
-        onSaved();
+      onSaved={(activity) => {
+        onSaved(activity);
         showSuccess(t("activities.toast.added"));
       }}
       submit={{ label: t("activities.form.add"), icon: IconPlus }}

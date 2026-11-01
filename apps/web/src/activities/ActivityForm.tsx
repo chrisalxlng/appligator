@@ -35,7 +35,7 @@ interface ActivityFormProps<Result> {
   onSaved: (result: Result) => void;
   submit: { label: string; icon: Icon };
   header?: ReactNode;
-  footer?: ReactNode;
+  secondaryAction?: ReactNode;
 }
 
 export function ActivityForm<Result>({
@@ -46,7 +46,7 @@ export function ActivityForm<Result>({
   onSaved,
   submit: { label: submitLabel, icon: SubmitIcon },
   header,
-  footer,
+  secondaryAction,
 }: ActivityFormProps<Result>) {
   const { t } = useTranslation();
   const [values, setValues] = useState(() => toActivityFormValues(activity, prefill));
@@ -87,6 +87,18 @@ export function ActivityForm<Result>({
     // e.g. when applying turns the actions of the job into a link to the application.
     files.save(result.input.attachments, save.mutateAsync(result.input)).then(onSaved, () => {});
   }
+
+  const submitButton = (
+    <Button
+      type="submit"
+      pending={save.isPending}
+      shortcutHint={shortcutHints?.submit}
+      aria-keyshortcuts={submitKeyShortcuts}
+    >
+      <SubmitIcon size={20} stroke={2.4} aria-hidden />
+      {submitLabel}
+    </Button>
+  );
 
   return (
     <DropZone label={t("attachments.dropHere")} onFiles={addedFiles.addFiles}>
@@ -145,16 +157,14 @@ export function ActivityForm<Result>({
             {t("activities.form.saveError")}
           </p>
         )}
-        <Button
-          type="submit"
-          pending={save.isPending}
-          shortcutHint={shortcutHints?.submit}
-          aria-keyshortcuts={submitKeyShortcuts}
-        >
-          <SubmitIcon size={20} stroke={2.4} aria-hidden />
-          {submitLabel}
-        </Button>
-        {footer}
+        {secondaryAction ? (
+          <div className={formStyles.actions}>
+            {secondaryAction}
+            {submitButton}
+          </div>
+        ) : (
+          submitButton
+        )}
       </form>
     </DropZone>
   );

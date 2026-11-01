@@ -1,4 +1,4 @@
-import type { Activity } from "@appligator/shared";
+import type { Activity, Application } from "@appligator/shared";
 import { RichText, Spinner } from "@appligator/ui";
 import {
   IconArrowBackUp,
@@ -16,13 +16,14 @@ import { formatDateTime, formatIsoDate } from "../details/format.ts";
 import { AttachmentCards } from "../attachments/AttachmentCards.tsx";
 import { LoadError } from "../loading/LoadError.tsx";
 import { useActivities } from "./activityQueries.ts";
+import { AdoptTermsHint } from "./AdoptTerms.tsx";
 import styles from "./ActivityLog.module.css";
 import { EditActivityDrawer } from "./EditActivityDrawer.tsx";
 import { useActivityDateLabel } from "./useActivityDateLabel.ts";
 
-export function ActivityLog({ applicationId }: { applicationId: string }) {
+export function ActivityLog({ application }: { application: Application }) {
   const { t } = useTranslation();
-  const activities = useActivities(applicationId);
+  const activities = useActivities(application.id);
 
   return (
     <Section title={t("activities.title")}>
@@ -37,16 +38,20 @@ export function ActivityLog({ applicationId }: { applicationId: string }) {
       ) : activities.data.length === 0 ? (
         <p className={styles.empty}>{t("activities.empty")}</p>
       ) : (
-        <ol className={styles.log}>
-          {activities.data.map((activity, index) => (
-            <ActivityEntry
-              key={activity.id}
-              applicationId={applicationId}
-              activity={activity}
-              isLatest={index === 0}
-            />
-          ))}
-        </ol>
+        <>
+          <AdoptTermsHint application={application} activities={activities.data} />
+          <ol className={styles.log}>
+            {activities.data.map((activity, index) => (
+              <ActivityEntry
+                key={activity.id}
+                application={application}
+                activity={activity}
+                activities={activities.data}
+                isLatest={index === 0}
+              />
+            ))}
+          </ol>
+        </>
       )}
     </Section>
   );
@@ -59,27 +64,32 @@ function useActivityProperties(activity: Activity): Detail[] {
 
   const entries: (Detail | false)[] = [
     Boolean(activity.terms?.position) && {
+      key: "position",
       icon: IconId,
       label: t("activities.properties.position"),
       value: activity.terms!.position,
     },
     ...terms,
     activity.appointmentAt !== null && {
+      key: "appointmentAt",
       icon: IconCalendarEvent,
       label: t("activities.properties.appointmentAt"),
       value: formatDateTime(activity.appointmentAt, locale),
     },
     activity.dueDate !== null && {
+      key: "dueDate",
       icon: IconSend,
       label: t("activities.properties.dueDate"),
       value: formatIsoDate(activity.dueDate, locale),
     },
     activity.responseDeadline !== null && {
+      key: "responseDeadline",
       icon: IconArrowBackUp,
       label: t("activities.properties.responseDeadline"),
       value: formatIsoDate(activity.responseDeadline, locale),
     },
     Boolean(activity.notes) && {
+      key: "activityNotes",
       icon: IconNote,
       label: t("details.properties.notes"),
       value: <RichText html={activity.notes} />,
@@ -90,12 +100,13 @@ function useActivityProperties(activity: Activity): Detail[] {
 }
 
 interface ActivityEntryProps {
-  applicationId: string;
+  application: Application;
   activity: Activity;
+  activities: Activity[];
   isLatest: boolean;
 }
 
-function ActivityEntry({ applicationId, activity, isLatest }: ActivityEntryProps) {
+function ActivityEntry({ application, activity, activities, isLatest }: ActivityEntryProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const dateLabel = useActivityDateLabel()(activity.occurredAt);
@@ -119,8 +130,8 @@ function ActivityEntry({ applicationId, activity, isLatest }: ActivityEntryProps
       {properties.length > 0 && (
         <div className={styles.properties}>
           <PropertyList>
-            {properties.map(({ icon, label, value }) => (
-              <Property key={label} icon={icon} label={label}>
+            {properties.map(({ key, icon, label, value }) => (
+              <Property key={key} icon={icon} label={label}>
                 {value}
               </Property>
             ))}
@@ -129,8 +140,9 @@ function ActivityEntry({ applicationId, activity, isLatest }: ActivityEntryProps
       )}
       {activity.attachments.length > 0 && <AttachmentCards attachments={activity.attachments} />}
       <EditActivityDrawer
-        applicationId={applicationId}
+        application={application}
         activity={activity}
+        activities={activities}
         open={isEditing}
         onOpenChange={setIsEditing}
       />

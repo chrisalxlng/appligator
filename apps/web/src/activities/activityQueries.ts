@@ -21,9 +21,9 @@ export function useActivities(applicationId: string) {
   });
 }
 
-function useActivityMutation<Variables>(
+function useActivityMutation<Variables, Result>(
   applicationId: string,
-  mutationFn: (variables: Variables) => Promise<unknown>,
+  mutationFn: (variables: Variables) => Promise<Result>,
 ) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -44,6 +44,13 @@ export function useSaveActivity(applicationId: string, id: string) {
   const activitiesApi = useActivitiesApi();
   return useActivityMutation(applicationId, (input: ActivityInput) =>
     activitiesApi.update(applicationId, id, input),
+  );
+}
+
+export function useReviewDetails(applicationId: string) {
+  const activitiesApi = useActivitiesApi();
+  return useActivityMutation(applicationId, (ids: string[]) =>
+    Promise.all(ids.map((id) => activitiesApi.reviewDetails(applicationId, id))),
   );
 }
 

@@ -50,6 +50,13 @@
       "when": 1793453943299,
       "tag": "0006_create_activities",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793483770428,
+      "tag": "0007_add_activity_details_reviewed",
+      "breakpoints": true
     }
   ]
 }

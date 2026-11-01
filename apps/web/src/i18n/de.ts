@@ -301,6 +301,20 @@ export const de: Translations = {
       editTitle: "Konditionen bearbeiten",
       remove: "Konditionen entfernen",
     },
+    adopt: {
+      hint_one: "{{count}} Wert aus Aktivitäten weicht von den Details ab",
+      hint_other: "{{count}} Werte aus Aktivitäten weichen von den Details ab",
+      action: "Werte übernehmen",
+      title: "Werte übernehmen",
+      description:
+        "Wähle aus, welche Werte aus den Aktivitäten in die Details der Bewerbung übernommen werden.",
+      becomes: "wird zu",
+      submit_one: "{{count}} Wert übernehmen",
+      submit_other: "{{count}} Werte übernehmen",
+      ignore: "Ignorieren",
+      error: "Die Werte konnten nicht übernommen werden. Bitte versuche es erneut.",
+      toast: "Werte übernommen",
+    },
     toast: {
       added: "Aktivität hinzugefügt",
       updated: "Aktivität aktualisiert",

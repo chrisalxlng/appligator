@@ -77,7 +77,7 @@ export function ApplicationActions({ application }: { application: Application }
         error={pin.isError && t("common.pinError")}
       />
       <AddActivityDrawer
-        applicationId={application.id}
+        application={application}
         activities={activities.data ?? []}
         open={isAddingActivity}
         onOpenChange={setIsAddingActivity}
