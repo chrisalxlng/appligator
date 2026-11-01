@@ -1,6 +1,7 @@
 import { activityTermsSchema, type Application, type Job } from "@appligator/shared";
 import { Drawer, Fieldset, Spinner, useSuccessToast } from "@appligator/ui";
 import { IconSend } from "@tabler/icons-react";
+import type { RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityForm } from "../activities/ActivityForm.tsx";
 import { useJob } from "../jobs/jobQueries.ts";
@@ -13,9 +14,16 @@ interface ApplyDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onApplied?: (application: Application) => void;
+  finalFocus?: RefObject<HTMLElement | null>;
 }
 
-export function ApplyDrawer({ jobId, open, onOpenChange, onApplied }: ApplyDrawerProps) {
+export function ApplyDrawer({
+  jobId,
+  open,
+  onOpenChange,
+  onApplied,
+  finalFocus,
+}: ApplyDrawerProps) {
   const { t } = useTranslation();
 
   return (
@@ -24,6 +32,7 @@ export function ApplyDrawer({ jobId, open, onOpenChange, onApplied }: ApplyDrawe
       closeLabel={t("common.close")}
       open={open}
       onOpenChange={onOpenChange}
+      finalFocus={finalFocus}
     >
       {jobId && (
         <ApplyContent
