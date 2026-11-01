@@ -11,7 +11,7 @@ import { removeSession } from "../session.ts";
 import { getAccessToken, LoggedOutError } from "./auth.ts";
 
 const badges: Record<JobImport["status"], { text: string; color: string }> = {
-  importing: { text: "…", color: "#64696b" },
+  importing: { text: "…", color: "#535759" },
   done: { text: "✓", color: "#206b6b" },
   failed: { text: "!", color: "#802f2f" },
 };

@@ -36,10 +36,6 @@
 .accessCard {
   cursor: pointer;
 
-  &:is(:hover, :active) :is(.cardText, .cardCaption) {
-    color: var(--text-primary);
-  }
-
   @media (hover: hover) {
     &:hover:not(:has(.cardAction:hover)) {
       background: var(--fill-hover);

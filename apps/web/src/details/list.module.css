@@ -87,10 +87,6 @@
 .itemMeta {
   color: var(--text-secondary);
   font: var(--font-body-s);
-
-  .item:not([data-static]):is(:hover, :active) & {
-    color: var(--text-primary);
-  }
 }
 
 .addButton {
