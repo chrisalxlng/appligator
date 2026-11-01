@@ -4,10 +4,10 @@ import { useTranslation } from "react-i18next";
 
 const tones: Record<ApplicationStatus, BadgeTone> = {
   applied: "neutral",
-  interviewing: "active",
+  interviewing: "info",
   offer: "highlight",
   accepted: "success",
-  declined: "neutral",
+  declined: "negative",
   rejected: "negative",
   withdrawn: "neutral",
   paused: "neutral",

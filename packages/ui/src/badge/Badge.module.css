@@ -22,6 +22,11 @@
     color: var(--active-text-primary);
   }
 
+  &[data-tone="info"] {
+    background: var(--info-fill);
+    color: var(--info-text-primary);
+  }
+
   &[data-tone="highlight"] {
     background: var(--highlight-fill);
     color: var(--highlight-text-primary);
