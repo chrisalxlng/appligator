@@ -1,7 +1,10 @@
 .page {
   @media (width >= 1200px) {
+    --page-padding: var(--spacing-16);
+    /* The page scrolls on its own, and sticky elements stick inside the padding of their scroll container. */
+    --header-sticky-top: calc(-1 * var(--page-padding));
+
     flex: 1;
-    padding: var(--spacing-16);
     background: linear-gradient(to bottom, var(--background-accent), var(--background) 240px) local;
     overflow-y: auto;
   }

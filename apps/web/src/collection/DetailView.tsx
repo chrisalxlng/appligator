@@ -1,8 +1,10 @@
 import type { Icon } from "@tabler/icons-react";
-import { useId, type ReactNode } from "react";
+import { createContext, useContext, useId, type ReactNode, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import styles from "./DetailView.module.css";
 import a11y from "./visuallyHidden.module.css";
+
+export const DetailTitleRefContext = createContext<Ref<HTMLElement> | undefined>(undefined);
 
 interface DetailViewProps {
   company: string;
@@ -13,9 +15,11 @@ interface DetailViewProps {
 }
 
 export function DetailView({ company, position, actions, properties, children }: DetailViewProps) {
+  const titleRef = useContext(DetailTitleRefContext);
+
   return (
     <article className={styles.detail}>
-      <header className={styles.header}>
+      <header ref={titleRef} className={styles.header}>
         <p className={styles.company}>{company}</p>
         <h2 className={styles.position}>{position}</h2>
       </header>

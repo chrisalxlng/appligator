@@ -23,6 +23,10 @@ export const en = {
     pin: "Pin",
     unpin: "Unpin",
     pinError: "The pin could not be saved. Please try again.",
+    toast: {
+      pinned: "Pinned",
+      unpinned: "Unpinned",
+    },
     show: "Show",
     hide: "Hide",
     showPinned: "Show pinned",
@@ -308,8 +312,7 @@ export const en = {
       description:
         "Choose which values from the activities to take over into the details of the application.",
       becomes: "becomes",
-      submit_one: "Take over {{count}} value",
-      submit_other: "Take over {{count}} values",
+      submit: "Take over",
       ignore: "Ignore",
       error: "The values could not be taken over. Please try again.",
       toast: "Values taken over",

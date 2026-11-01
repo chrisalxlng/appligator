@@ -1,6 +1,6 @@
 import { jobLimits } from "@appligator/shared";
 import { Button, Field, Fieldset, submitKeyShortcuts, TextInput } from "@appligator/ui";
-import { IconPencil, IconPlus, IconUpload } from "@tabler/icons-react";
+import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import listStyles from "../details/list.module.css";
@@ -94,7 +94,6 @@ export function FileForm({ titleRef, attachment, onSave }: FileFormProps) {
             pending={isUploading}
             onClick={() => fileInputRef.current?.click()}
           >
-            <IconUpload size={20} stroke={2.4} aria-hidden />
             {t(file ? "attachments.file.replace" : "attachments.file.choose")}
           </Button>
           <input

@@ -46,3 +46,15 @@
   height: 40px;
   padding-block: 0;
 }
+
+/* iOS Safari gives native date inputs an intrinsic width beyond their container and centers the value. */
+.date {
+  composes: singleLine;
+  display: block;
+  max-width: 100%;
+  appearance: none;
+
+  &::-webkit-date-and-time-value {
+    text-align: start;
+  }
+}

@@ -7,7 +7,7 @@ import {
   submitKeyShortcuts,
   TextInput,
 } from "@appligator/ui";
-import { IconPencil, IconPlus, IconUpload } from "@tabler/icons-react";
+import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useId, useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { richTextError, type FieldError } from "../details/detailsForm.ts";
@@ -125,7 +125,6 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
             aria-describedby={importHintId}
             onClick={() => fileInputRef.current?.click()}
           >
-            <IconUpload size={20} stroke={2.4} aria-hidden />
             {t("attachments.email.import")}
           </Button>
           <p id={importHintId} className={styles.importHint}>

@@ -1,7 +1,7 @@
 import { EmptyState, IconButton, LinkButton } from "@appligator/ui";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { IconArrowLeft, IconX } from "@tabler/icons-react";
-import type { ReactElement, ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../api/apiClient.ts";
 import notFoundIllustration from "../assets/not-found.svg";
@@ -12,7 +12,9 @@ import { Page } from "../pages/Page.tsx";
 import { DocumentTitle } from "../shell/DocumentTitle.tsx";
 import { ScrollToTop } from "../shell/ScrollToTop.tsx";
 import { useIsWide } from "../shell/useMediaQuery.ts";
+import { DetailTitleRefContext } from "./DetailView.tsx";
 import styles from "./DetailPage.module.css";
+import { useIsScrolledAway } from "./useIsScrolledAway.ts";
 
 interface Message {
   title: string;
@@ -25,7 +27,12 @@ interface DetailTexts {
   loadError: Message;
 }
 
-interface DetailPageProps<Data extends { position: string }> {
+interface DetailData {
+  position: string;
+  company: string;
+}
+
+interface DetailPageProps<Data extends DetailData> {
   title: string;
   texts: DetailTexts;
   query: UseQueryResult<Data>;
@@ -34,7 +41,7 @@ interface DetailPageProps<Data extends { position: string }> {
   children: (data: Data) => ReactNode;
 }
 
-export function DetailPage<Data extends { position: string }>({
+export function DetailPage<Data extends DetailData>({
   title,
   texts,
   query,
@@ -44,6 +51,8 @@ export function DetailPage<Data extends { position: string }>({
 }: DetailPageProps<Data>) {
   const { t } = useTranslation();
   const isWide = useIsWide();
+  const [detailTitle, setDetailTitle] = useState<HTMLElement | null>(null);
+  const isTitleScrolledAway = useIsScrolledAway(detailTitle);
   const documentTitle =
     query.data?.position ?? (isNotFound(query.error) ? texts.notFound.title : title);
 
@@ -54,22 +63,34 @@ export function DetailPage<Data extends { position: string }>({
   );
 
   return (
-    <Page title={title} actions={closeButton} hideHeader={isWide} className={styles.page}>
+    <Page
+      title={title}
+      actions={!isWide && closeButton}
+      hideHeader={isWide && !isTitleScrolledAway}
+      compactTitle={
+        isTitleScrolledAway && query.data
+          ? { title: query.data.position, subtitle: query.data.company }
+          : undefined
+      }
+      className={styles.page}
+    >
       <DocumentTitle title={documentTitle} />
-      <DetailContent texts={texts} query={query} backLink={backLink}>
-        {children}
-      </DetailContent>
+      <DetailTitleRefContext value={setDetailTitle}>
+        <DetailContent texts={texts} query={query} backLink={backLink}>
+          {children}
+        </DetailContent>
+      </DetailTitleRefContext>
       <ScrollToTop scrollsWith="parent" />
     </Page>
   );
 }
 
-type DetailContentProps<Data extends { position: string }> = Pick<
+type DetailContentProps<Data extends DetailData> = Pick<
   DetailPageProps<Data>,
   "texts" | "query" | "backLink" | "children"
 >;
 
-function DetailContent<Data extends { position: string }>({
+function DetailContent<Data extends DetailData>({
   texts,
   query,
   backLink,

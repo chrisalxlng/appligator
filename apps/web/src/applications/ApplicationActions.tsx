@@ -1,6 +1,6 @@
 import type { Application } from "@appligator/shared";
 import { Button, ConfirmDialog, MenuItem, useSuccessToast } from "@appligator/ui";
-import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,8 +9,6 @@ import { useDeleteFiles } from "../attachments/useFileCleanup.ts";
 import { AddActivityDrawer } from "../activities/AddActivityDrawer.tsx";
 import { useActivities } from "../activities/activityQueries.ts";
 import { DetailActions } from "../collection/DetailActions.tsx";
-import { PinButton } from "../collection/PinButton.tsx";
-import { ShortcutTooltip } from "../shortcuts/ShortcutTooltip.tsx";
 import { useAltShortcut } from "../shortcuts/useAltShortcut.ts";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { ApplicationFormDrawer } from "./ApplicationFormDrawer.tsx";
@@ -59,22 +57,15 @@ export function ApplicationActions({ application }: { application: Application }
       {t("activities.add")}
     </Button>
   );
-  const editButton = (
-    <ShortcutTooltip hint={shortcutHints?.alt("E")}>
-      <Button variant="surface" onClick={() => setIsEditing(true)} aria-keyshortcuts="Alt+E">
-        <IconPencil size={20} stroke={2.4} aria-hidden />
-        {t("applications.edit")}
-      </Button>
-    </ShortcutTooltip>
-  );
-  const pinButton = <PinButton pinned={application.pinned} pin={pin} />;
 
   return (
     <>
       <DetailActions
-        buttons={[addActivityButton, editButton, pinButton]}
-        menuItems={deleteItem}
-        error={pin.isError && t("common.pinError")}
+        primaryAction={addActivityButton}
+        edit={{ label: t("applications.edit"), onClick: () => setIsEditing(true) }}
+        deleteItem={deleteItem}
+        pinned={application.pinned}
+        pin={pin}
       />
       <AddActivityDrawer
         application={application}

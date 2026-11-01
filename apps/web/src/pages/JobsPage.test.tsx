@@ -2,7 +2,10 @@ import { activityTermsSchema, jobLimits } from "@appligator/shared";
 import { act, cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, onTestFinished, test, vi } from "vite-plus/test";
-import { scrollObservedElementsIntoView } from "../testing/fakeIntersectionObserver.ts";
+import {
+  scrollObservedElementsIntoView,
+  scrollObservedElementsOutOfView,
+} from "../testing/fakeIntersectionObserver.ts";
 import {
   applicationFor,
   createFakeApi,
@@ -41,6 +44,11 @@ const olderJob = jobWith({
   description: "",
   createdAt: yesterday,
 });
+
+async function chooseFromActionsMenu(item: string) {
+  await userEvent.click(await screen.findByRole("button", { name: "Show more actions" }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: item }));
+}
 
 async function openAddDrawer() {
   await userEvent.click(await screen.findByRole("button", { name: "Add" }));
@@ -231,10 +239,46 @@ test("shows the list and an opened job one at a time on medium screens", async (
   await userEvent.click(await screen.findByRole("link", { name: /Lead Developer Frontend/ }));
 
   expect(await screen.findByRole("article")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Edit" }).querySelector("svg")).toBeNull();
   await userEvent.click(screen.getByRole("button", { name: "Close" }));
   await waitFor(() => expect(router.state.location.pathname).toBe("/jobs"));
 });
+
+test("moves editing into the actions menu on small screens", async () => {
+  createFakeApi([jobFixture]);
+  renderApp(`/jobs/${jobFixture.id}`, { viewport: "mobile" });
+  await screen.findByRole("article");
+
+  expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+
+  await chooseFromActionsMenu("Edit");
+
+  expect(await screen.findByRole("dialog", { name: "Edit job" })).toBeInTheDocument();
+});
+
+test.each(["mobile", "tablet", "desktop"] as const)(
+  "shows the position and company in a compact header once the title scrolled away on %s",
+  async (viewport) => {
+    createFakeApi([jobFixture]);
+    renderApp(`/jobs/${jobFixture.id}`, { viewport });
+    const detail = await screen.findByRole("article");
+    expect(
+      screen.queryByRole("heading", { level: 1, name: jobFixture.position }),
+    ).not.toBeInTheDocument();
+
+    act(scrollObservedElementsOutOfView);
+
+    const compactTitle = screen.getByRole("heading", { level: 1, name: jobFixture.position });
+    expect(compactTitle.parentElement).toHaveTextContent(jobFixture.company);
+    expect(detail).not.toContainElement(compactTitle);
+
+    act(scrollObservedElementsIntoView);
+
+    expect(
+      screen.queryByRole("heading", { level: 1, name: jobFixture.position }),
+    ).not.toBeInTheDocument();
+  },
+);
 
 test("shows a spinner while the jobs take long to load", async () => {
   vi.stubGlobal("fetch", () => new Promise(() => {}));
@@ -813,20 +857,22 @@ test("hides the status filter while all jobs have the same status", async () => 
 test("pins a job to a section above the other jobs and unpins it again", async () => {
   const api = createFakeApi([jobFixture, olderJob]);
   renderApp(`/jobs/${olderJob.id}`);
-  const detail = await screen.findByRole("article");
 
-  await userEvent.click(within(detail).getByRole("button", { name: "Pin" }));
+  await chooseFromActionsMenu("Pin");
 
   expect(api.requestsWith("PUT")).toEqual([
     expect.objectContaining({ path: `/jobs/${olderJob.id}/pin`, body: { pinned: true } }),
   ]);
   const pinned = await screen.findByRole("region", { name: "Pinned" });
   expect(within(pinned).getByRole("link")).toHaveTextContent("Frontend Developer");
+  expect(screen.getAllByText("Pinned")).toHaveLength(2);
   expect(within(screen.getByRole("region", { name: "More" })).getByRole("link")).toHaveTextContent(
     "Lead Developer Frontend",
   );
 
-  await userEvent.click(within(detail).getByRole("button", { name: "Unpin" }));
+  await chooseFromActionsMenu("Unpin");
+
+  expect(await screen.findByText("Unpinned")).toBeInTheDocument();
 
   await waitFor(() => expect(screen.queryByRole("region", { name: "Pinned" })).toBeNull());
   expect(
@@ -903,9 +949,7 @@ test("pins a job with an application", async () => {
   const api = createFakeApi([jobFixture], [applicationFor(jobFixture)]);
   renderApp(`/jobs/${jobFixture.id}`);
 
-  await userEvent.click(
-    within(await screen.findByRole("article")).getByRole("button", { name: "Pin" }),
-  );
+  await chooseFromActionsMenu("Pin");
 
   await waitFor(() => expect(api.requestsWith("PUT")).toHaveLength(1));
 });
@@ -913,15 +957,16 @@ test("pins a job with an application", async () => {
 test("shows an error when pinning a job fails", async () => {
   const api = createFakeApi([jobFixture]);
   renderApp(`/jobs/${jobFixture.id}`);
-  const detail = await screen.findByRole("article");
+  await screen.findByRole("article");
 
   api.failWith("PUT", 500);
-  await userEvent.click(within(detail).getByRole("button", { name: "Pin" }));
+  await chooseFromActionsMenu("Pin");
 
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "The pin could not be saved. Please try again.",
   );
-  expect(within(detail).getByRole("button", { name: "Pin" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Show more actions" }));
+  expect(await screen.findByRole("menuitem", { name: "Pin" })).toBeInTheDocument();
 });
 
 test("applies for a job from its detail view with the time and notes of the submission", async () => {
@@ -991,9 +1036,11 @@ test("links an applied job to its application instead of offering to change it",
   expect(
     within(detail).getByRole("link", { name: /Lead Developer Frontend.*Applied/ }),
   ).toHaveAttribute("href", `/applications/${application.id}`);
-  for (const name of ["Apply", "Edit", "Show more actions"]) {
+  for (const name of ["Apply", "Edit"]) {
     expect(within(detail).queryByRole("button", { name })).not.toBeInTheDocument();
   }
+  await userEvent.click(within(detail).getByRole("button", { name: "Show more actions" }));
+  expect((await screen.findAllByRole("menuitem")).map((item) => item.textContent)).toEqual(["Pin"]);
 });
 
 test("does not open the edit drawer of an applied job with Alt+E", async () => {

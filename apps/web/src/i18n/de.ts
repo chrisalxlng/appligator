@@ -25,6 +25,10 @@ export const de: Translations = {
     pin: "Anpinnen",
     unpin: "Lösen",
     pinError: "Das Anpinnen konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    toast: {
+      pinned: "Angepinnt",
+      unpinned: "Gelöst",
+    },
     show: "Einblenden",
     hide: "Ausblenden",
     showPinned: "Angepinnte einblenden",
@@ -316,8 +320,7 @@ export const de: Translations = {
       description:
         "Wähle aus, welche Werte aus den Aktivitäten in die Details der Bewerbung übernommen werden.",
       becomes: "wird zu",
-      submit_one: "{{count}} Wert übernehmen",
-      submit_other: "{{count}} Werte übernehmen",
+      submit: "Übernehmen",
       ignore: "Ignorieren",
       error: "Die Werte konnten nicht übernommen werden. Bitte versuche es erneut.",
       toast: "Werte übernommen",

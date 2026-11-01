@@ -18,7 +18,7 @@ export function DateInput(props: DateInputProps) {
     <Input
       ref={inputRef}
       type={withTime ? "datetime-local" : "date"}
-      className={styles.singleLine}
+      className={styles.date}
       value={value}
       onValueChange={onValueChange}
       aria-label={ariaLabel}
