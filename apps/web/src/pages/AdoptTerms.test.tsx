@@ -188,3 +188,16 @@ test("keeps the hint when the drawer is closed without ignoring", async () => {
   expect(within(await findLog()).getByText("2 values differ from the details")).toBeVisible();
   expect(api.requestsWith("PUT")).toEqual([]);
 });
+
+test("takes over the values with Ctrl+Enter", async () => {
+  const api = renderAdoption();
+  const drawer = await openAdoption();
+  expect(within(drawer).getByRole("button", { name: /Take over 2 values/ })).toHaveAttribute(
+    "aria-keyshortcuts",
+  );
+
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  expect(await screen.findByText("Values taken over")).toBeInTheDocument();
+  expect(api.requestsWith("PUT")).toHaveLength(2);
+});

@@ -1,12 +1,13 @@
 import { applicationInputSchema, type Activity, type Application } from "@appligator/shared";
-import { Button, Checkbox, Drawer, useSuccessToast } from "@appligator/ui";
+import { Button, Checkbox, Drawer, submitKeyShortcuts, useSuccessToast } from "@appligator/ui";
 import { IconArrowRight, IconArrowsDiff, IconCheck } from "@tabler/icons-react";
-import { useState, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useSaveApplication } from "../applications/applicationQueries.ts";
 import { NotSpecified } from "../collection/DetailView.tsx";
 import { useDetails } from "../details/DetailsSection.tsx";
 import formStyles from "../details/form.module.css";
+import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { useReviewDetails } from "./activityQueries.ts";
 import styles from "./AdoptTerms.module.css";
 import { termsDifferences, type TermsDifference } from "./termsDifferences.ts";
@@ -81,6 +82,7 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
   const save = useSaveApplication(application.id);
   const review = useReviewDetails(application.id, activity.id);
   const showSuccess = useSuccessToast();
+  const shortcutHints = useShortcutHints();
   const [selected, setSelected] = useState(() => new Set(differences.map(({ key }) => key)));
   const adopted: Application = Object.assign(
     {},
@@ -106,6 +108,11 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
     });
   }
 
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    if (selected.size > 0 && !isPending) void adopt().catch(() => {});
+  }
+
   async function adopt() {
     const changes = differences
       .filter(({ key }) => selected.has(key))
@@ -119,7 +126,7 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
   }
 
   return (
-    <div className={styles.form}>
+    <form className={styles.form} onSubmit={submit} noValidate>
       <p className={styles.description}>{t("activities.adopt.description")}</p>
       <ul className={styles.differences}>
         {differences.map(({ key }) => (
@@ -145,6 +152,7 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
       )}
       <div className={formStyles.actions}>
         <Button
+          type="button"
           variant="secondary"
           disabled={isPending}
           onClick={() => void review.mutateAsync(undefined).then(onDone, () => {})}
@@ -152,14 +160,16 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
           {t("activities.adopt.ignore")}
         </Button>
         <Button
+          type="submit"
           pending={isPending}
           disabled={selected.size === 0}
-          onClick={() => void adopt().catch(() => {})}
+          shortcutHint={shortcutHints?.submit}
+          aria-keyshortcuts={submitKeyShortcuts}
         >
           <IconCheck size={20} stroke={2.4} aria-hidden />
           {t("activities.adopt.submit", { count: selected.size })}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
