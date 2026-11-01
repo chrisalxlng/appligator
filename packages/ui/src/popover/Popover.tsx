@@ -11,6 +11,7 @@ export interface PopoverProps {
   onOpenChange: (open: boolean) => void;
   anchor: RefObject<HTMLElement | null>;
   initialFocus?: RefObject<HTMLElement | null>;
+  finalFocus?: RefObject<HTMLElement | null> | false;
   children: ReactNode;
 }
 
@@ -21,6 +22,7 @@ export function Popover({
   onOpenChange,
   anchor,
   initialFocus,
+  finalFocus = anchor,
   children,
 }: PopoverProps) {
   return (
@@ -34,7 +36,7 @@ export function Popover({
         >
           <BasePopover.Popup
             initialFocus={initialFocus}
-            finalFocus={anchor}
+            finalFocus={finalFocus}
             className={styles.popup}
           >
             <div className={styles.header}>

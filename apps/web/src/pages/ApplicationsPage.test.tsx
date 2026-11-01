@@ -255,3 +255,39 @@ test("takes over the pin of the job when applying", async () => {
     "Lead Developer Frontend",
   );
 });
+
+test("moves the focus into the application drawer after choosing a job with Enter", async () => {
+  const api = createFakeApi([jobFixture]);
+  renderApp("/applications");
+  const picker = await openPicker();
+  await within(picker).findAllByRole("option");
+
+  await userEvent.keyboard("{Enter}");
+
+  const drawer = await screen.findByRole("dialog", { name: "Apply" });
+  await within(drawer).findByRole("button", { name: /Apply/ });
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog", { name: "Select job" })).not.toBeInTheDocument(),
+  );
+  await waitFor(() => expect(drawer).toContainElement(document.activeElement as HTMLElement));
+
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+  await waitFor(() => expect(api.requestsWith("POST")).toHaveLength(1));
+});
+
+test("returns the focus to the apply button when the application drawer is closed", async () => {
+  createFakeApi([jobFixture]);
+  renderApp("/applications");
+  const picker = await openPicker();
+  await within(picker).findAllByRole("option");
+  await userEvent.keyboard("{Enter}");
+  const drawer = await screen.findByRole("dialog", { name: "Apply" });
+
+  await userEvent.click(within(drawer).getByRole("button", { name: "Close" }));
+
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog", { name: "Apply" })).not.toBeInTheDocument(),
+  );
+  await waitFor(() => expect(screen.getByRole("button", { name: "Apply" })).toHaveFocus());
+});

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef, useState } from "react";
 import { expect, test } from "vite-plus/test";
@@ -41,4 +41,33 @@ test("closes with the close button and returns the focus to its anchor", async (
 
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Apply" })).toHaveFocus();
+});
+
+test("leaves the focus alone when closing without a final focus", async () => {
+  function WithoutFinalFocus() {
+    const anchor = useRef<HTMLButtonElement>(null);
+    const [open, setOpen] = useState(true);
+    return (
+      <>
+        <button ref={anchor}>Anchor</button>
+        <Popover
+          title="Title"
+          closeLabel="Close"
+          open={open}
+          onOpenChange={setOpen}
+          anchor={anchor}
+          finalFocus={false}
+        >
+          Content
+        </Popover>
+      </>
+    );
+  }
+  render(<WithoutFinalFocus />);
+  await screen.findByRole("dialog", { name: "Title" });
+
+  await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(screen.getByRole("button", { name: "Anchor" })).not.toHaveFocus();
 });

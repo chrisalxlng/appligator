@@ -42,6 +42,8 @@ export function JobPicker() {
     open,
     onOpenChange: setOpen,
     initialFocus: inputRef,
+    // Closing must not take the focus back from the drawer that opens for the selected job.
+    finalFocus: apply.open ? (false as const) : buttonRef,
     children: <JobSearch inputRef={inputRef} onSelect={select} />,
   };
 
@@ -56,6 +58,7 @@ export function JobPicker() {
       {isDesktop ? <Popover anchor={buttonRef} {...popupProps} /> : <Drawer {...popupProps} />}
       <ApplyDrawer
         jobId={apply.jobId}
+        finalFocus={buttonRef}
         open={apply.open}
         onOpenChange={(nextOpen) => setApply((current) => ({ ...current, open: nextOpen }))}
         onApplied={(application) =>

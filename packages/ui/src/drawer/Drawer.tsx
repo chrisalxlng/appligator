@@ -24,6 +24,7 @@ export interface DrawerProps {
   onOpenChange?: (open: boolean) => void;
   trigger?: ReactElement;
   initialFocus?: RefObject<HTMLElement | null>;
+  finalFocus?: RefObject<HTMLElement | null> | false;
   children: ReactNode;
 }
 
@@ -57,6 +58,7 @@ export function Drawer({
   onOpenChange,
   trigger,
   initialFocus,
+  finalFocus,
   children,
 }: DrawerProps) {
   const isNested = useContext(IsNestedContext);
@@ -77,10 +79,12 @@ export function Drawer({
             <BaseDrawer.Popup
               ref={popupRef}
               initialFocus={initialFocus ?? popupRef}
-              finalFocus={() =>
-                returnTargetRef.current?.isConnected === false
-                  ? document.querySelector<HTMLElement>("main")
-                  : true
+              finalFocus={
+                finalFocus ??
+                (() =>
+                  returnTargetRef.current?.isConnected === false
+                    ? document.querySelector<HTMLElement>("main")
+                    : true)
               }
               className={styles.popup}
               onKeyDown={submitOnShortcut}
