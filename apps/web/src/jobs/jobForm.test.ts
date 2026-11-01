@@ -335,3 +335,9 @@ test("leaves fields empty when nothing was extracted for them", () => {
     filledFields: [],
   });
 });
+
+test("requires working hours to be more than 0", () => {
+  const result = validateJobForm({ ...toFormValues(job), workingHours: 0 });
+
+  expect(result.errors?.workingHours).toBe("workingHoursNotPositive");
+});

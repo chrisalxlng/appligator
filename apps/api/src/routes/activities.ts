@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { activities, applications } from "../db/schema.ts";
-import { toActivity, toActivityColumns } from "./activityRows.ts";
+import { maxActivityBodyBytes, toActivity, toActivityColumns } from "./activityRows.ts";
 import { updateApplicationStatus } from "./applicationStatus.ts";
 import { fillEmptyDetails } from "./detailFills.ts";
 import { notFoundSchema } from "./notFound.ts";
@@ -49,6 +49,7 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
     "/applications/:id/activities",
     {
+      bodyLimit: maxActivityBodyBytes,
       schema: {
         params: applicationParamsSchema,
         body: activityInputSchema,
@@ -77,6 +78,7 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
   app.put(
     "/applications/:id/activities/:activityId",
     {
+      bodyLimit: maxActivityBodyBytes,
       schema: {
         params: activityParamsSchema,
         body: activityInputSchema,
@@ -91,6 +93,12 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
 
       const { terms } = request.body;
       const row = await app.db.transaction(async (tx) => {
+        const [previous] = await tx
+          .select({ terms: activities.terms })
+          .from(activities)
+          .where(activityOf(id, activityId));
+        if (!previous) return undefined;
+
         const [updated] = await tx
           .update(activities)
           .set({
@@ -100,10 +108,9 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
           })
           .where(activityOf(id, activityId))
           .returning();
-        if (!updated) return undefined;
-        if (terms) await fillEmptyDetails(tx, id, terms);
+        if (terms) await fillEmptyDetails(tx, id, terms, previous.terms);
         await updateApplicationStatus(tx, id);
-        return updated;
+        return updated!;
       });
       if (!row) return reply.code(404).send({ error: "Not Found" });
       return toActivity(row);

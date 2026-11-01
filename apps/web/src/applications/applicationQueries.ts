@@ -12,6 +12,8 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { useApiClient } from "../api/useApiClient.ts";
+import { createActivitiesApi } from "../activities/activitiesApi.ts";
+import { fileIdsOf } from "../attachments/attachments.ts";
 import { invalidateJobCollections, jobKeys } from "../jobs/jobQueries.ts";
 import { createApplicationsApi } from "./applicationsApi.ts";
 
@@ -19,6 +21,7 @@ export const applicationKeys = {
   list: (status: ApplicationStatus | null) => ["applications", "list", status] as const,
   statusCounts: ["applications", "status-counts"] as const,
   detail: (id: string) => ["applications", "detail", id] as const,
+  activities: (id: string) => ["applications", "detail", id, "activities"] as const,
 };
 
 function invalidateCollections(queryClient: QueryClient) {
@@ -99,6 +102,7 @@ export function useSaveApplication(id: string) {
       queryClient.setQueryData(applicationKeys.detail(application.id), application);
       return Promise.all([
         invalidateCollections(queryClient),
+        queryClient.invalidateQueries({ queryKey: applicationKeys.activities(id) }),
         queryClient.invalidateQueries({ queryKey: jobKeys.detail(application.job.id) }),
       ]);
     },
@@ -107,13 +111,22 @@ export function useSaveApplication(id: string) {
 
 export function useDeleteApplication(application: Application) {
   const applicationsApi = useApplicationsApi();
+  const activitiesApi = createActivitiesApi(useApiClient());
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => applicationsApi.remove(application.id),
+    mutationFn: async () => {
+      const activities = await activitiesApi.list(application.id);
+      await applicationsApi.remove(application.id);
+      return activities.flatMap(({ attachments }) => fileIdsOf(attachments));
+    },
     onSuccess: () =>
       Promise.all([
         invalidateCollections(queryClient),
+        queryClient.invalidateQueries({
+          queryKey: applicationKeys.detail(application.id),
+          refetchType: "none",
+        }),
         invalidateJob(queryClient, application.job.id),
       ]),
   });

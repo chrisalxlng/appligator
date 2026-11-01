@@ -4,7 +4,7 @@ import { IconChevronRight, IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityForm } from "./ActivityForm.tsx";
-import { useAddActivity } from "./activityQueries.ts";
+import { useAddActivity, useDiffersFromDetails } from "./activityQueries.ts";
 import { rankActivityTypes } from "./activityRelevance.ts";
 import { AdoptTermsDrawer } from "./AdoptTerms.tsx";
 import styles from "./AddActivityDrawer.module.css";
@@ -30,10 +30,8 @@ export function AddActivityDrawer({
     type: null,
     open: false,
   });
-  const [added, setAdded] = useState<{ activity: Activity | null; open: boolean }>({
-    activity: null,
-    open: false,
-  });
+  const differsFromDetails = useDiffersFromDetails(application.id);
+  const [isAdopting, setIsAdopting] = useState(false);
   const rankedTypes = rankActivityTypes(activities.map(({ type }) => type));
   const shownTypes = showsAll ? rankedTypes : rankedTypes.slice(0, mostRelevantCount);
 
@@ -88,21 +86,18 @@ export function AddActivityDrawer({
               onSaved={(activity) => {
                 setSelected((current) => ({ ...current, open: false }));
                 changeOpen(false);
-                setAdded({ activity, open: true });
+                setIsAdopting(differsFromDetails(activity.id));
               }}
             />
           )}
         </Drawer>
       </Drawer>
-      {added.activity && (
-        <AdoptTermsDrawer
-          application={application}
-          activities={activities}
-          openFor={added.activity.id}
-          open={added.open}
-          onOpenChange={(nextOpen) => setAdded((current) => ({ ...current, open: nextOpen }))}
-        />
-      )}
+      <AdoptTermsDrawer
+        application={application}
+        activities={activities}
+        open={isAdopting}
+        onOpenChange={setIsAdopting}
+      />
     </>
   );
 }

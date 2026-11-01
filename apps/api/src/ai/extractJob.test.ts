@@ -319,3 +319,15 @@ test("keeps the description within the length a job allows", async () => {
 
   expect(description.length).toBeLessThanOrEqual(jobLimits.descriptionLength);
 });
+
+test("keeps the summary within its limit", async () => {
+  const paragraph = "a".repeat(jobLimits.summaryLength / 2);
+
+  const { extraction } = await extract({
+    ...modelOutput,
+    summary: [paragraph, paragraph, paragraph].join("\n\n"),
+  });
+
+  expect(extraction.summary.length).toBeLessThanOrEqual(jobLimits.summaryLength);
+  expect(extraction.summary).toContain(paragraph);
+});

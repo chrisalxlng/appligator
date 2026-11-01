@@ -29,5 +29,6 @@ CMD ["node", "dist/server.mjs"]
 
 FROM nginx:stable-alpine AS web
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/web/nginx-security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=web-build /app/apps/web/dist /usr/share/nginx/html
 EXPOSE 80

@@ -1,4 +1,4 @@
-import type { ActivityInput } from "@appligator/shared";
+import type { Activity, ActivityInput, Application } from "@appligator/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "../api/useApiClient.ts";
 import {
@@ -6,11 +6,7 @@ import {
   invalidateApplicationStatus,
 } from "../applications/applicationQueries.ts";
 import { createActivitiesApi } from "./activitiesApi.ts";
-
-const activityKeys = {
-  list: (applicationId: string) =>
-    [...applicationKeys.detail(applicationId), "activities"] as const,
-};
+import { collectDifferences } from "./termsDifferences.ts";
 
 function useActivitiesApi() {
   return createActivitiesApi(useApiClient());
@@ -19,7 +15,7 @@ function useActivitiesApi() {
 export function useActivities(applicationId: string) {
   const activitiesApi = useActivitiesApi();
   return useQuery({
-    queryKey: activityKeys.list(applicationId),
+    queryKey: applicationKeys.activities(applicationId),
     queryFn: () => activitiesApi.list(applicationId),
   });
 }
@@ -63,4 +59,20 @@ export function useReviewDetails(applicationId: string) {
 export function useDeleteActivity(applicationId: string, id: string) {
   const activitiesApi = useActivitiesApi();
   return useActivityMutation(applicationId, () => activitiesApi.remove(applicationId, id));
+}
+
+// Saving has refetched both by now, but the props of the saving component may still lag behind.
+export function useDiffersFromDetails(applicationId: string) {
+  const queryClient = useQueryClient();
+
+  return (activityId: string) => {
+    const details = queryClient.getQueryData<Application>(applicationKeys.detail(applicationId));
+    const activities = queryClient.getQueryData<Activity[]>(
+      applicationKeys.activities(applicationId),
+    );
+    if (!details || !activities) return false;
+    return collectDifferences(activities, details).some(
+      ({ activity }) => activity.id === activityId,
+    );
+  };
 }

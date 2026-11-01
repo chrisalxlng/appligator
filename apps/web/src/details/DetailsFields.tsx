@@ -152,7 +152,7 @@ export function DetailsFields({ values, onChange, errorFor }: DetailsFieldsProps
           onValueChange={setValue("homeOfficePercentage")}
         />
       </Field>
-      <Fieldset legend={t("fields.workingHours")}>
+      <Fieldset legend={t("fields.workingHours")} error={errorFor("workingHours")}>
         <div className={styles.pair}>
           <NumberInput
             aria-label={t("fields.workingHours")}

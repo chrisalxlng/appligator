@@ -96,3 +96,18 @@ test("fails when the catalog was never loaded", async () => {
 
   await expect(catalog.get()).rejects.toThrow("Model catalog request failed with 503");
 });
+
+test("skips malformed entries of the catalog", async () => {
+  const catalog = createModelCatalog({
+    fetch: fakeFetch(() =>
+      Response.json({
+        ...modelsDev,
+        other: "malformed",
+        anthropic: { models: { ...modelsDev.anthropic.models, broken: { id: 1 } } },
+        google: "malformed",
+      }),
+    ),
+  });
+
+  expect(await catalog.get()).toMatchObject({ anthropic: ["claude-sonnet"], google: [] });
+});

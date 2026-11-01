@@ -16,6 +16,7 @@
     "@ai-sdk/openai": "catalog:",
     "@appligator/shared": "workspace:*",
     "@fastify/cors": "catalog:",
+    "@fastify/rate-limit": "catalog:",
     "@fastify/swagger": "catalog:",
     "@fastify/swagger-ui": "catalog:",
     "ai": "catalog:",

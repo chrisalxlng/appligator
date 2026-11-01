@@ -488,3 +488,21 @@ test("AI routes require authentication", async () => {
 
   expect(response.statusCode).toBe(401);
 });
+
+test("POST /ai/settings/verification limits the calls per user", async () => {
+  await db.insert(aiSettings).values({
+    userId: "limited-user",
+    provider: "openai",
+    model: "gpt-6-astra",
+    encryptedApiKey: testApiKeyCipher.encrypt("sk-secret", "limited-user"),
+    language: "de",
+  });
+  const headers = { authorization: `Bearer ${await signToken({ sub: "limited-user" })}` };
+  const verify = () => app.inject({ method: "POST", url: "/ai/settings/verification", headers });
+
+  const statusCodes = [];
+  for (let call = 0; call <= 60; call++) statusCodes.push((await verify()).statusCode);
+
+  expect(statusCodes.at(-2)).toBe(204);
+  expect(statusCodes.at(-1)).toBe(429);
+});

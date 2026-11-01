@@ -58,6 +58,7 @@ const blockTags = new Set([
   "ul",
 ]);
 const titleSeparator = /(\s+[|–—·-]\s+|\s*\|\s*)/;
+const minSiteNameLength = 4;
 
 function isElement(node: Node): node is HTMLElement {
   return node.nodeType === NodeType.ELEMENT_NODE;
@@ -154,7 +155,9 @@ function normalize(text: string) {
 function siteNames(document: HTMLElement, link: string) {
   const siteName = document.querySelector('meta[property="og:site_name"]')?.getAttribute("content");
   const domainName = new URL(link).hostname.split(".").at(-2);
-  return [siteName, domainName].map((name) => normalize(name ?? "")).filter(Boolean);
+  return [siteName, domainName]
+    .map((name) => normalize(name ?? ""))
+    .filter((name) => name.length >= minSiteNameLength);
 }
 
 function cleanTitle(title: string, names: string[]) {

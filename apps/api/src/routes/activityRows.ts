@@ -1,7 +1,9 @@
-import type { ActivityInput } from "@appligator/shared";
+import { activityLimits, type ActivityInput } from "@appligator/shared";
 import type { activities } from "../db/schema.ts";
 
 type ActivityRow = typeof activities.$inferSelect;
+
+export const maxActivityBodyBytes = activityLimits.attachments * activityLimits.emailBodyLength * 2;
 
 export function toActivityColumns({ occurredAt, appointmentAt, ...input }: ActivityInput) {
   return {

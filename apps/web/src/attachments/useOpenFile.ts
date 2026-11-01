@@ -2,7 +2,9 @@ import { useMutation } from "@tanstack/react-query";
 import type { FileAttachment } from "./attachments.ts";
 import { useStash } from "./useStash.ts";
 
-const previewableTypes = [/^image\//, /^text\/plain$/, /^application\/pdf$/];
+// SVGs can contain scripts, which a blob URL would run with the origin of the app.
+const previewableTypes = [/^image\/(?!svg\+xml)/, /^text\/plain$/, /^application\/pdf$/];
+const blobLifetimeMs = 60_000;
 
 function isPreviewable(mimeType: string) {
   return previewableTypes.some((type) => type.test(mimeType));
@@ -25,6 +27,7 @@ export function useOpenFile() {
         const url = URL.createObjectURL(new Blob([blob], { type: file.mimeType }));
         if (tab) tab.location.href = url;
         else download(url, file.name);
+        setTimeout(() => URL.revokeObjectURL(url), blobLifetimeMs);
       } catch (error) {
         tab?.close();
         throw error;

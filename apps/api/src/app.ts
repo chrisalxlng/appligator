@@ -1,4 +1,5 @@
 import fastifyCors from "@fastify/cors";
+import fastifyRateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
 import {
   serializerCompiler,
@@ -38,6 +39,10 @@ export function buildApp({ auth, db, ai, webAppOrigin, apiDocs = false }: AppOpt
 
   app.register(fastifyCors, { origin: webAppOrigin, methods: ["GET", "POST", "PUT", "DELETE"] });
   requireAuthentication(app, auth);
+  app.register(fastifyRateLimit, {
+    global: false,
+    keyGenerator: (request) => request.userId || request.ip,
+  });
   if (apiDocs) serveApiDocs(app, auth);
 
   app.register(healthRoutes);

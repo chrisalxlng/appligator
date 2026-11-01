@@ -118,3 +118,11 @@ test("renders blocks as rich text", () => {
       "<p>R&amp;D</p><ul><li><p>Mentor</p></li></ul>",
   );
 });
+
+test("keeps title segments that only contain a short domain name", () => {
+  const head = "<title>Senior Controller - Company Holding</title>";
+
+  expect(readJobPage(page({ head }), "https://jobs.example.co.uk/1").title).toBe(
+    "Senior Controller - Company Holding",
+  );
+});

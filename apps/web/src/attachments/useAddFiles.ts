@@ -1,6 +1,6 @@
 import type { Attachment } from "@appligator/shared";
-import { useState } from "react";
-import { importEmail, isEmailFile } from "./emailImport.ts";
+import { useEffect, useRef, useState } from "react";
+import { exceedsEmailLimits, importEmail, isEmailFile } from "./emailImport.ts";
 import { maxFileSize, StashError } from "./stashClient.ts";
 import { useStash } from "./useStash.ts";
 
@@ -10,6 +10,7 @@ export type AttachmentError =
   | "limitReached"
   | "uploadFailed"
   | "importFailed"
+  | "emailTooLong"
   | "notAnEmail"
   | "fileRequired";
 
@@ -21,11 +22,23 @@ export function uploadError(error: unknown): AttachmentError {
 
 export function useUploadFile() {
   const stash = useStash();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   return async (file: File) => {
     if (file.size > maxFileSize) throw new StashError(413);
     const fileId = crypto.randomUUID();
     await stash.upload(fileId, file);
+    if (!isMounted.current) {
+      await stash.remove(fileId);
+      throw new Error("The form was left during the upload");
+    }
     return { fileId, name: file.name, mimeType: file.type };
   };
 }
@@ -44,6 +57,11 @@ export function useAddFiles(remaining: number, add: (attachments: Attachment[]) 
   async function addEmail(file: File) {
     try {
       const { email, links } = await importEmail(file);
+      if (exceedsEmailLimits(email)) {
+        setError("emailTooLong");
+        return;
+      }
+      if (links.length + 1 > remaining) setError("tooMany");
       add([email, ...links]);
     } catch {
       setError("importFailed");

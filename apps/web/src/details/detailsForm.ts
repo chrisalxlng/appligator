@@ -58,10 +58,14 @@ export type FieldError =
   | "contractTermMonthsRequired"
   | "contractTermDateRequired"
   | "noticePeriodTooLong"
+  | "workingHoursNotPositive"
   | "vacationDaysNotHalf";
 
 export type DetailsFormErrors = Partial<
-  Record<"salary" | "contractTerm" | "noticePeriod" | "vacationDays" | "notes", FieldError>
+  Record<
+    "salary" | "workingHours" | "contractTerm" | "noticePeriod" | "vacationDays" | "notes",
+    FieldError
+  >
 >;
 
 type DetailsResult =
@@ -171,6 +175,7 @@ export function parseDetailsForm(values: DetailsFormValues): DetailsResult {
 
   const errors: DetailsFormErrors = {
     salary: isError(salary) ? salary : undefined,
+    workingHours: values.workingHours === 0 ? "workingHoursNotPositive" : undefined,
     contractTerm: isError(contractTerm) ? contractTerm : undefined,
     noticePeriod: isError(noticePeriod) ? noticePeriod : undefined,
     vacationDays: isHalfStep(values.vacationDays) ? undefined : "vacationDaysNotHalf",
