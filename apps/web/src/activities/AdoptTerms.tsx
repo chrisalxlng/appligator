@@ -147,17 +147,19 @@ function AdoptTermsForm({ application, differences, onDone }: AdoptTermsFormProp
               checked={selected.has(key)}
               onCheckedChange={(checked) => toggle(key, checked)}
             >
-              <span className={styles.label}>{label(key)}</span>
-              <span className={styles.change}>
-                <span className={styles.current}>{currentValue(key)}</span>
-                <IconArrowRight size={16} stroke={2} aria-label={t("activities.adopt.becomes")} />
-                <span>{adoptedValue(key)}</span>
-              </span>
-              <span className={styles.source}>
-                {t("activities.adopt.source", {
-                  type: t(`activities.types.${activity.type}.label`),
-                  date: dateLabel(activity.occurredAt),
-                })}
+              <span className={styles.difference}>
+                <span className={styles.label}>{label(key)}</span>
+                <span className={styles.change}>
+                  <span className={styles.current}>{currentValue(key)}</span>
+                  <IconArrowRight size={16} stroke={2} aria-label={t("activities.adopt.becomes")} />
+                  <span>{adoptedValue(key)}</span>
+                </span>
+                <span className={styles.source}>
+                  {t("activities.adopt.source", {
+                    type: t(`activities.types.${activity.type}.label`),
+                    date: dateLabel(activity.occurredAt),
+                  })}
+                </span>
               </span>
             </Checkbox>
           </li>

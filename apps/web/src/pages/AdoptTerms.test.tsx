@@ -61,12 +61,12 @@ test("collects the differences of several activities and reviews all of them", a
   const startDate = within(drawer)
     .getByRole("checkbox", { name: /^Start date/ })
     .closest("label");
-  expect(startDate).toHaveTextContent("Start dateFebruary 1, 2027March 1, 2027from Interview held");
+  expect(startDate).toHaveTextContent("Start dateFebruary 1, 2027March 1, 2027From Interview held");
   expect(
     within(drawer)
       .getByRole("checkbox", { name: /^Salary/ })
       .closest("label"),
-  ).toHaveTextContent("from Offer received");
+  ).toHaveTextContent("From Offer received");
   await userEvent.click(within(drawer).getByRole("button", { name: "Take over 3 values" }));
 
   expect(await screen.findByText("Values taken over")).toBeInTheDocument();

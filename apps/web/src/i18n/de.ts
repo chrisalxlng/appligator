@@ -304,7 +304,7 @@ export const de: Translations = {
     adopt: {
       hint_one: "{{count}} Wert aus Aktivitäten weicht von den Details ab",
       hint_other: "{{count}} Werte aus Aktivitäten weichen von den Details ab",
-      source: "aus {{type}} • {{date}}",
+      source: "Aus {{type}} • {{date}}",
       action: "Werte übernehmen",
       title: "Werte übernehmen",
       description:
