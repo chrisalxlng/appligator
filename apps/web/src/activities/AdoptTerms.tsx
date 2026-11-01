@@ -10,15 +10,16 @@ import formStyles from "../details/form.module.css";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { useReviewDetails } from "./activityQueries.ts";
 import styles from "./AdoptTerms.module.css";
-import { termsDifferences, type TermsDifference } from "./termsDifferences.ts";
+import { collectDifferences, type TermsDifference } from "./termsDifferences.ts";
+import { useActivityDateLabel } from "./useActivityDateLabel.ts";
 
 interface AdoptTermsProps {
   application: Application;
-  activity: Activity;
+  activities: Activity[];
 }
 
-function differencesOf({ application, activity }: AdoptTermsProps) {
-  return activity.terms ? termsDifferences(activity.terms, application) : [];
+function differencesOf({ application, activities }: AdoptTermsProps) {
+  return collectDifferences(activities, application);
 }
 
 export function AdoptTermsHint(props: AdoptTermsProps) {
@@ -41,30 +42,39 @@ export function AdoptTermsHint(props: AdoptTermsProps) {
 }
 
 interface AdoptTermsDrawerProps extends AdoptTermsProps {
+  /** Opens only if this activity contributes a difference, e.g. right after it was saved. */
+  openFor?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 /** Opens only while values of the details would change; values for empty details are taken over anyway. */
-export function AdoptTermsDrawer({ open, onOpenChange, ...props }: AdoptTermsDrawerProps) {
+export function AdoptTermsDrawer({ openFor, open, onOpenChange, ...props }: AdoptTermsDrawerProps) {
   const { t } = useTranslation();
   const differences = differencesOf(props);
+  const isRelevant =
+    openFor === undefined || differences.some(({ activity }) => activity.id === openFor);
 
   return (
     <Drawer
       title={t("activities.adopt.title")}
       closeLabel={t("common.close")}
-      open={open && differences.length > 0}
+      open={open && isRelevant && differences.length > 0}
       onOpenChange={onOpenChange}
     >
       {differences.length > 0 && (
-        <AdoptTermsForm {...props} differences={differences} onDone={() => onOpenChange(false)} />
+        <AdoptTermsForm
+          application={props.application}
+          differences={differences}
+          onDone={() => onOpenChange(false)}
+        />
       )}
     </Drawer>
   );
 }
 
-interface AdoptTermsFormProps extends AdoptTermsProps {
+interface AdoptTermsFormProps {
+  application: Application;
   differences: TermsDifference[];
   onDone: () => void;
 }
@@ -77,10 +87,12 @@ function useDetailValues(details: Application) {
       : (entries.find((entry) => entry.key === key)?.value ?? <NotSpecified />);
 }
 
-function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTermsFormProps) {
+function AdoptTermsForm({ application, differences, onDone }: AdoptTermsFormProps) {
   const { t } = useTranslation();
   const save = useSaveApplication(application.id);
-  const review = useReviewDetails(application.id, activity.id);
+  const review = useReviewDetails(application.id);
+  const dateLabel = useActivityDateLabel();
+  const sourceIds = [...new Set(differences.map(({ activity }) => activity.id))];
   const showSuccess = useSuccessToast();
   const shortcutHints = useShortcutHints();
   const [selected, setSelected] = useState(() => new Set(differences.map(({ key }) => key)));
@@ -120,7 +132,7 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
     await save.mutateAsync(
       applicationInputSchema.parse(Object.assign({}, application, ...changes)),
     );
-    await review.mutateAsync(undefined);
+    await review.mutateAsync(sourceIds);
     showSuccess(t("activities.adopt.toast"));
     onDone();
   }
@@ -129,7 +141,7 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
     <form className={styles.form} onSubmit={submit} noValidate>
       <p className={styles.description}>{t("activities.adopt.description")}</p>
       <ul className={styles.differences}>
-        {differences.map(({ key }) => (
+        {differences.map(({ key, activity }) => (
           <li key={key}>
             <Checkbox
               checked={selected.has(key)}
@@ -140,6 +152,12 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
                 <span className={styles.current}>{currentValue(key)}</span>
                 <IconArrowRight size={16} stroke={2} aria-label={t("activities.adopt.becomes")} />
                 <span>{adoptedValue(key)}</span>
+              </span>
+              <span className={styles.source}>
+                {t("activities.adopt.source", {
+                  type: t(`activities.types.${activity.type}.label`),
+                  date: dateLabel(activity.occurredAt),
+                })}
               </span>
             </Checkbox>
           </li>
@@ -155,7 +173,7 @@ function AdoptTermsForm({ application, activity, differences, onDone }: AdoptTer
           type="button"
           variant="secondary"
           disabled={isPending}
-          onClick={() => void review.mutateAsync(undefined).then(onDone, () => {})}
+          onClick={() => void review.mutateAsync(sourceIds).then(onDone, () => {})}
         >
           {t("activities.adopt.ignore")}
         </Button>

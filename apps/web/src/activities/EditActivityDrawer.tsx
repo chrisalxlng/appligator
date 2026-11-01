@@ -14,6 +14,7 @@ import { useDeleteActivity, useSaveActivity } from "./activityQueries.ts";
 interface EditActivityDrawerProps {
   application: Application;
   activity: Activity;
+  activities: Activity[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -21,6 +22,7 @@ interface EditActivityDrawerProps {
 export function EditActivityDrawer({
   application,
   activity,
+  activities,
   open,
   onOpenChange,
 }: EditActivityDrawerProps) {
@@ -59,10 +61,10 @@ export function EditActivityDrawer({
           type={activity.type}
           activity={activity}
           save={save}
-          onSaved={(saved) => {
+          onSaved={() => {
             onOpenChange(false);
             showSuccess(t("activities.toast.updated"));
-            setIsAdopting(!saved.detailsReviewed);
+            setIsAdopting(true);
           }}
           submit={{ label: t("activities.form.update"), icon: IconPencil }}
           secondaryAction={
@@ -82,7 +84,8 @@ export function EditActivityDrawer({
       </Drawer>
       <AdoptTermsDrawer
         application={application}
-        activity={activity}
+        activities={activities}
+        openFor={activity.id}
         open={isAdopting}
         onOpenChange={setIsAdopting}
       />

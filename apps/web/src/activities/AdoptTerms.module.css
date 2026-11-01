@@ -57,6 +57,12 @@
   }
 }
 
+.source {
+  display: block;
+  color: var(--text-secondary);
+  font: var(--font-body-s);
+}
+
 .current {
   color: var(--text-secondary);
 }

@@ -302,12 +302,13 @@ export const de: Translations = {
       remove: "Konditionen entfernen",
     },
     adopt: {
-      hint_one: "{{count}} Wert weicht von den Details ab",
-      hint_other: "{{count}} Werte weichen von den Details ab",
+      hint_one: "{{count}} Wert aus Aktivitäten weicht von den Details ab",
+      hint_other: "{{count}} Werte aus Aktivitäten weichen von den Details ab",
+      source: "aus {{type}} • {{date}}",
       action: "Werte übernehmen",
       title: "Werte übernehmen",
       description:
-        "Wähle aus, welche Werte der Aktivität in die Details der Bewerbung übernommen werden.",
+        "Wähle aus, welche Werte aus den Aktivitäten in die Details der Bewerbung übernommen werden.",
       becomes: "wird zu",
       submit_one: "{{count}} Wert übernehmen",
       submit_other: "{{count}} Werte übernehmen",

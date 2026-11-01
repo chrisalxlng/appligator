@@ -97,7 +97,8 @@ export function AddActivityDrawer({
       {added.activity && (
         <AdoptTermsDrawer
           application={application}
-          activity={added.activity}
+          activities={activities}
+          openFor={added.activity.id}
           open={added.open}
           onOpenChange={(nextOpen) => setAdded((current) => ({ ...current, open: nextOpen }))}
         />

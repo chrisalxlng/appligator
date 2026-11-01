@@ -1,42 +1,62 @@
 import { activityTermsSchema, applicationInputSchema } from "@appligator/shared";
 import { expect, test } from "vite-plus/test";
-import { jobFixture } from "../testing/fakeApi.ts";
-import { termsDifferences } from "./termsDifferences.ts";
+import { activityWith, jobFixture } from "../testing/fakeApi.ts";
+import { collectDifferences } from "./termsDifferences.ts";
 
 const details = applicationInputSchema.parse(jobFixture);
 const sameTerms = activityTermsSchema.parse(jobFixture);
+const emptyTerms = activityTermsSchema.parse({
+  ...jobFixture,
+  ...Object.fromEntries(Object.keys(sameTerms).map((field) => [field, null])),
+  bonuses: [],
+  benefits: [],
+  locations: [],
+});
+const salary = { currency: "EUR" as const, period: "year" as const, min: 80_000, max: 80_000 };
 
 test("finds no differences when the terms match the details", () => {
-  expect(termsDifferences(sameTerms, details)).toEqual([]);
+  expect(collectDifferences([activityWith({ terms: sameTerms })], details)).toEqual([]);
 });
 
-test("ignores terms that are not specified", () => {
-  const terms = { ...sameTerms, salary: null, benefits: [], position: null };
+test("ignores terms and details that are not specified", () => {
+  const interview = activityWith({ terms: { ...emptyTerms, startDate: "2027-03-01" } });
 
-  expect(termsDifferences(terms, details)).toEqual([]);
+  expect(collectDifferences([interview], { ...details, startDate: null })).toEqual([]);
 });
 
-test("ignores details that are not specified", () => {
-  const terms = { ...sameTerms, startDate: "2027-03-01" };
+test("lists the changed fields in the order of the details with their activity", () => {
+  const offer = activityWith({
+    terms: { ...emptyTerms, vacationDays: 28, salary, position: "Staff Engineer" },
+  });
 
-  expect(termsDifferences(terms, { ...details, startDate: null })).toEqual([]);
-});
-
-test("lists the changed fields in the order of the details", () => {
-  const salary = { currency: "EUR" as const, period: "year" as const, min: 80_000, max: 80_000 };
-  const terms = { ...sameTerms, vacationDays: 28, salary, position: "Staff Engineer" };
-
-  expect(termsDifferences(terms, details)).toEqual([
-    { key: "position", changes: { position: "Staff Engineer" } },
-    { key: "salary", changes: { salary } },
-    { key: "vacationDays", changes: { vacationDays: 28 } },
+  expect(collectDifferences([offer], details)).toEqual([
+    { key: "position", changes: { position: "Staff Engineer" }, activity: offer },
+    { key: "salary", changes: { salary }, activity: offer },
+    { key: "vacationDays", changes: { vacationDays: 28 }, activity: offer },
   ]);
 });
 
-test("takes over fields shown together only where they differ", () => {
-  const terms = { ...sameTerms, employeeCount: 500 };
+test("collects the differences of several activities", () => {
+  const offer = activityWith({ terms: { ...emptyTerms, salary } });
+  const interview = activityWith({ terms: { ...emptyTerms, vacationDays: 28 } });
 
-  expect(termsDifferences(terms, details)).toEqual([
-    { key: "companySize", changes: { employeeCount: 500 } },
+  expect(collectDifferences([offer, interview], details)).toEqual([
+    { key: "salary", changes: { salary }, activity: offer },
+    { key: "vacationDays", changes: { vacationDays: 28 }, activity: interview },
+  ]);
+});
+
+test("only takes the latest activity that specifies a field into account", () => {
+  const offer = activityWith({ terms: { ...emptyTerms, vacationDays: 30 }, detailsReviewed: true });
+  const interview = activityWith({ terms: { ...emptyTerms, vacationDays: 28 } });
+
+  expect(collectDifferences([offer, interview], details)).toEqual([]);
+});
+
+test("takes over fields shown together only where they differ", () => {
+  const interview = activityWith({ terms: { ...sameTerms, employeeCount: 500 } });
+
+  expect(collectDifferences([interview], details)).toEqual([
+    { key: "companySize", changes: { employeeCount: 500 }, activity: interview },
   ]);
 });

@@ -38,12 +38,56 @@ async function openAdoption() {
   return screen.findByRole("dialog", { name: "Take over values" });
 }
 
-test("hints at the values of the latest terms that differ from the details", async () => {
+test("hints once at the values that differ from the details", async () => {
   renderAdoption();
   const log = await findLog();
 
-  expect(await within(log).findByText("2 values differ from the details")).toBeVisible();
+  expect(
+    await within(log).findByText("2 values from activities differ from the details"),
+  ).toBeVisible();
   expect(within(log).getAllByRole("button", { name: "Take over values" })).toHaveLength(1);
+});
+
+test("collects the differences of several activities and reviews all of them", async () => {
+  const interview = activityWith({
+    type: "interviewHeld",
+    occurredAt: "2026-10-22T10:00:00.000Z",
+    terms: { ...jobTerms, startDate: "2027-03-01" },
+  });
+  const offerWithoutStart = { ...offer, terms: { ...offer.terms!, startDate: null } };
+  const api = renderAdoption([offerWithoutStart, interview, submission]);
+
+  const drawer = await openAdoption();
+  const startDate = within(drawer)
+    .getByRole("checkbox", { name: /^Start date/ })
+    .closest("label");
+  expect(startDate).toHaveTextContent("Start dateFebruary 1, 2027March 1, 2027from Interview held");
+  expect(
+    within(drawer)
+      .getByRole("checkbox", { name: /^Salary/ })
+      .closest("label"),
+  ).toHaveTextContent("from Offer received");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Take over 3 values" }));
+
+  expect(await screen.findByText("Values taken over")).toBeInTheDocument();
+  expect(api.requestsWith("PUT").map(({ path }) => path)).toEqual([
+    `/applications/${application.id}`,
+    `/applications/${application.id}/activities/${offer.id}/details-review`,
+    `/applications/${application.id}/activities/${interview.id}/details-review`,
+  ]);
+});
+
+test("ignores a value superseded by a later activity", async () => {
+  const interview = activityWith({
+    type: "interviewHeld",
+    occurredAt: "2026-10-22T10:00:00.000Z",
+    terms: { ...jobTerms, startDate: "2027-03-01" },
+  });
+  renderAdoption([offer, interview, submission]);
+
+  const drawer = await openAdoption();
+
+  expect(within(drawer).queryByRole("checkbox", { name: /^Start date/ })).not.toBeInTheDocument();
 });
 
 test("lists the differing values with their current and new value", async () => {
@@ -185,7 +229,9 @@ test("keeps the hint when the drawer is closed without ignoring", async () => {
   await waitFor(() =>
     expect(screen.queryByRole("dialog", { name: "Take over values" })).not.toBeInTheDocument(),
   );
-  expect(within(await findLog()).getByText("2 values differ from the details")).toBeVisible();
+  expect(
+    within(await findLog()).getByText("2 values from activities differ from the details"),
+  ).toBeVisible();
   expect(api.requestsWith("PUT")).toEqual([]);
 });
 
@@ -196,6 +242,7 @@ test("takes over the values with Ctrl+Enter", async () => {
     "aria-keyshortcuts",
   );
 
+  await waitFor(() => expect(drawer).toContainElement(document.activeElement as HTMLElement));
   await userEvent.keyboard("{Control>}{Enter}{/Control}");
 
   expect(await screen.findByText("Values taken over")).toBeInTheDocument();

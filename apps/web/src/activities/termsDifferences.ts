@@ -1,4 +1,9 @@
-import { isSpecifiedDetail, type ActivityTerms, type ApplicationInput } from "@appligator/shared";
+import {
+  isSpecifiedDetail,
+  type Activity,
+  type ActivityTerms,
+  type ApplicationInput,
+} from "@appligator/shared";
 
 type TermsField = keyof ActivityTerms;
 
@@ -25,15 +30,28 @@ const termsGroups: { key: string; fields: TermsField[] }[] = [
 export interface TermsDifference {
   key: string;
   changes: Partial<ActivityTerms>;
+  activity: Activity;
 }
 
 function isEqual(a: unknown, b: unknown) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** Lists the terms that would replace other values in the details; empty details take them over anyway. */
-export function termsDifferences(terms: ActivityTerms, details: ApplicationInput) {
+function specifies(activity: Activity, fields: TermsField[]) {
+  return fields.some((field) => isSpecifiedDetail(activity.terms?.[field]));
+}
+
+/**
+ * Collects the terms that would replace other values in the details; empty details take them over
+ * anyway. Per field, only the latest activity that specifies it counts, and only until its terms
+ * are reviewed.
+ */
+export function collectDifferences(activitiesLatestFirst: Activity[], details: ApplicationInput) {
   return termsGroups.flatMap(({ key, fields }): TermsDifference[] => {
+    const activity = activitiesLatestFirst.find((candidate) => specifies(candidate, fields));
+    if (!activity?.terms || activity.detailsReviewed) return [];
+
+    const terms = activity.terms;
     const changed = fields.filter(
       (field) =>
         isSpecifiedDetail(terms[field]) &&
@@ -41,6 +59,12 @@ export function termsDifferences(terms: ActivityTerms, details: ApplicationInput
         !isEqual(terms[field], details[field]),
     );
     if (changed.length === 0) return [];
-    return [{ key, changes: Object.fromEntries(changed.map((field) => [field, terms[field]])) }];
+    return [
+      {
+        key,
+        changes: Object.fromEntries(changed.map((field) => [field, terms[field]])),
+        activity,
+      },
+    ];
   });
 }

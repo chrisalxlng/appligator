@@ -294,12 +294,13 @@ export const en = {
       remove: "Remove terms",
     },
     adopt: {
-      hint_one: "{{count}} value differs from the details",
-      hint_other: "{{count}} values differ from the details",
+      hint_one: "{{count}} value from activities differs from the details",
+      hint_other: "{{count}} values from activities differ from the details",
+      source: "from {{type}} • {{date}}",
       action: "Take over values",
       title: "Take over values",
       description:
-        "Choose which values of the activity to take over into the details of the application.",
+        "Choose which values from the activities to take over into the details of the application.",
       becomes: "becomes",
       submit_one: "Take over {{count}} value",
       submit_other: "Take over {{count}} values",

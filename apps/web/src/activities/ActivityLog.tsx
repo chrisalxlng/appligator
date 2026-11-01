@@ -24,7 +24,6 @@ import { useActivityDateLabel } from "./useActivityDateLabel.ts";
 export function ActivityLog({ application }: { application: Application }) {
   const { t } = useTranslation();
   const activities = useActivities(application.id);
-  const latestTerms = activities.data?.find(({ terms }) => terms !== null);
 
   return (
     <Section title={t("activities.title")}>
@@ -39,17 +38,20 @@ export function ActivityLog({ application }: { application: Application }) {
       ) : activities.data.length === 0 ? (
         <p className={styles.empty}>{t("activities.empty")}</p>
       ) : (
-        <ol className={styles.log}>
-          {activities.data.map((activity, index) => (
-            <ActivityEntry
-              key={activity.id}
-              application={application}
-              activity={activity}
-              isLatest={index === 0}
-              offersTerms={activity === latestTerms && !activity.detailsReviewed}
-            />
-          ))}
-        </ol>
+        <>
+          <AdoptTermsHint application={application} activities={activities.data} />
+          <ol className={styles.log}>
+            {activities.data.map((activity, index) => (
+              <ActivityEntry
+                key={activity.id}
+                application={application}
+                activity={activity}
+                activities={activities.data}
+                isLatest={index === 0}
+              />
+            ))}
+          </ol>
+        </>
       )}
     </Section>
   );
@@ -100,11 +102,11 @@ function useActivityProperties(activity: Activity): Detail[] {
 interface ActivityEntryProps {
   application: Application;
   activity: Activity;
+  activities: Activity[];
   isLatest: boolean;
-  offersTerms: boolean;
 }
 
-function ActivityEntry({ application, activity, isLatest, offersTerms }: ActivityEntryProps) {
+function ActivityEntry({ application, activity, activities, isLatest }: ActivityEntryProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const dateLabel = useActivityDateLabel()(activity.occurredAt);
@@ -136,11 +138,11 @@ function ActivityEntry({ application, activity, isLatest, offersTerms }: Activit
           </PropertyList>
         </div>
       )}
-      {offersTerms && <AdoptTermsHint application={application} activity={activity} />}
       {activity.attachments.length > 0 && <AttachmentCards attachments={activity.attachments} />}
       <EditActivityDrawer
         application={application}
         activity={activity}
+        activities={activities}
         open={isEditing}
         onOpenChange={setIsEditing}
       />
