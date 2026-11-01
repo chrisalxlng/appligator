@@ -185,6 +185,52 @@ test("PUT /applications/:id/activities/:activityId takes over terms into empty d
   });
 });
 
+async function statusOf(applicationId: string) {
+  return (await request("GET", `/applications/${applicationId}`)).json().status;
+}
+
+test("POST /applications/:id/activities derives the status of the application", async () => {
+  const applicationId = await createApplication();
+  expect(await statusOf(applicationId)).toBe("applied");
+
+  await request("POST", `/applications/${applicationId}/activities`, { body: offer });
+  expect(await statusOf(applicationId)).toBe("offer");
+
+  await request("POST", `/applications/${applicationId}/activities`, {
+    body: { ...activityInput, type: "statusInquired", occurredAt: "2026-10-31T08:00:00.000Z" },
+  });
+  expect(await statusOf(applicationId)).toBe("offer");
+});
+
+test("PUT and DELETE /applications/:id/activities/:activityId update the status", async () => {
+  const applicationId = await createApplication();
+  const { id } = await addOffer(applicationId);
+  const path = `/applications/${applicationId}/activities/${id}`;
+
+  await request("PUT", path, {
+    body: { ...offer, type: "rejectionReceived", terms: null, responseDeadline: null },
+  });
+  expect(await statusOf(applicationId)).toBe("rejected");
+
+  await request("DELETE", path);
+  expect(await statusOf(applicationId)).toBe("applied");
+});
+
+test("GET /applications filters and counts by the derived status", async () => {
+  const offered = await createApplication();
+  await createApplication();
+  await addOffer(offered);
+
+  const { items } = (await request("GET", "/applications?status=offer")).json();
+  const counts = (await request("GET", "/applications/status-counts")).json();
+
+  expect(items.map(({ id }: { id: string }) => id)).toEqual([offered]);
+  expect(counts).toEqual([
+    { status: "applied", count: 1 },
+    { status: "offer", count: 1 },
+  ]);
+});
+
 test("GET /applications/:id/activities lists the activities, latest first", async () => {
   const applicationId = await createApplication();
   await request("POST", `/applications/${applicationId}/activities`, { body: offer });

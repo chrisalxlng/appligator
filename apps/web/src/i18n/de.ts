@@ -145,6 +145,13 @@ export const de: Translations = {
     },
     status: {
       applied: "Beworben",
+      interviewing: "Im Gespräch",
+      offer: "Angebot",
+      accepted: "Angenommen",
+      declined: "Abgelehnt",
+      rejected: "Absage",
+      withdrawn: "Zurückgezogen",
+      paused: "Pausiert",
     },
     properties: {
       status: "Status",

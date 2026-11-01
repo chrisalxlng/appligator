@@ -1,5 +1,6 @@
 import {
   applicationCreateSchema,
+  applicationStatusOf,
   type ActivityInput,
   applicationInputSchema,
   applicationListPageSchema,
@@ -166,7 +167,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
             jobId,
             company: job.company,
             pinned: job.pinned,
-            status: "applied",
+            status: applicationStatusOf([activity.type]),
           })
           .returning({ id: applications.id });
         await tx

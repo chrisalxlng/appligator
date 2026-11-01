@@ -57,6 +57,13 @@
       "when": 1793483770428,
       "tag": "0007_add_activity_details_reviewed",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793525517312,
+      "tag": "0008_add_application_statuses",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ export {
   activityTermsSchema,
   activityTypeFields,
   activityTypes,
+  applicationStatusOf,
   isSpecifiedDetail,
   type Activity,
   type ActivityInput,

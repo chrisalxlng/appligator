@@ -22,3 +22,15 @@ export const Success: Story = {
 export const Active: Story = {
   args: { tone: "active" },
 };
+
+export const Info: Story = {
+  args: { tone: "info", children: "Interviewing" },
+};
+
+export const Highlight: Story = {
+  args: { tone: "highlight", children: "Offer" },
+};
+
+export const Negative: Story = {
+  args: { tone: "negative", children: "Rejected" },
+};

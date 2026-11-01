@@ -1,5 +1,6 @@
 import {
   applicationStatuses,
+  applicationStatusOf,
   isSpecifiedDetail,
   jobStatuses,
   type Activity,
@@ -144,7 +145,8 @@ export function createFakeApi(
   const holds = new Map<string, Promise<void>>();
 
   function withStatus(job: Job): Job {
-    const application = applications.find((current) => current.job.id === job.id);
+    const found = applications.find((current) => current.job.id === job.id);
+    const application = found && withDerivedFields(found);
     return {
       ...job,
       status: application ? "applied" : "open",
@@ -179,7 +181,7 @@ export function createFakeApi(
 
   function listApplications(searchParams: URLSearchParams) {
     const status = searchParams.get("status");
-    const matches = pinnedFirst(applications).filter(
+    const matches = pinnedFirst(applications.map(withDerivedFields)).filter(
       (application) => !status || application.status === status,
     );
     const { pageItems, nextCursor } = page(matches, searchParams.get("cursor"), fakePageSize);
@@ -252,7 +254,7 @@ export function createFakeApi(
       return json(listApplications(searchParams));
     }
     if (pathname === "/applications/status-counts") {
-      return json(countByStatus(applications, applicationStatuses));
+      return json(countByStatus(applications.map(withDerivedFields), applicationStatuses));
     }
     if (pathname === "/applications" && method === "POST") {
       const job = jobs.find((current) => current.id === body!.jobId);
@@ -267,14 +269,14 @@ export function createFakeApi(
       });
       applications = [created, ...applications];
       activities.set(created.id, [activityWith(body!.activity)]);
-      return json(withAppliedAt(created), 201);
+      return json(withDerivedFields(created), 201);
     }
 
     const [, id, action] = pathname.match(/^\/applications\/([^/]+)(?:\/(.+))?$/) ?? [];
     const application = applications.find((current) => current.id === id);
     if (!application) return json({ error: "Not Found" }, 404);
     if (action?.startsWith("activities")) return handleActivities(method, action, id!, body);
-    if (method === "GET") return json(withAppliedAt(application));
+    if (method === "GET") return json(withDerivedFields(application));
     if (action === "pin") {
       applications = applications.map((current) =>
         current.id === id ? { ...current, pinned: body!.pinned } : current,
@@ -284,7 +286,7 @@ export function createFakeApi(
     if (method === "PUT") {
       const updated = { ...application, ...body!, updatedAt: now };
       applications = applications.map((current) => (current.id === id ? updated : current));
-      return json(withAppliedAt(updated));
+      return json(withDerivedFields(updated));
     }
     applications = applications.filter((current) => current.id !== id);
     return new Response(null, { status: 204 });
@@ -296,11 +298,14 @@ export function createFakeApi(
     );
   }
 
-  function withAppliedAt(application: Application): Application {
-    const submissions = activitiesOf(application.id).filter(
-      (activity) => activity.type === "applicationSubmitted",
-    );
-    return { ...application, appliedAt: submissions.at(-1)?.occurredAt ?? null };
+  function withDerivedFields(application: Application): Application {
+    const current = activitiesOf(application.id);
+    const submissions = current.filter(({ type }) => type === "applicationSubmitted");
+    return {
+      ...application,
+      status: applicationStatusOf(current.map(({ type }) => type)),
+      appliedAt: submissions.at(-1)?.occurredAt ?? null,
+    };
   }
 
   function fillEmptyDetails(applicationId: string, terms: Activity["terms"]) {

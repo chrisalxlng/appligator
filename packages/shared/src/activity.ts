@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { jobDetailsSchema, jobLimits, requiredText } from "./job.ts";
+import type { ApplicationStatus } from "./status.ts";
 
 export const activityTypes = [
   "applicationSubmitted",
@@ -42,6 +43,31 @@ export const activityTypeFields: Record<ActivityType, readonly ActivityField[]> 
   applicationPaused: [],
   other: [],
 };
+
+// Other activities, e.g. a status inquiry, leave the status as it is.
+const activityStatuses: Partial<Record<ActivityType, ApplicationStatus>> = {
+  applicationSubmitted: "applied",
+  receiptConfirmed: "applied",
+  interviewScheduled: "interviewing",
+  interviewHeld: "interviewing",
+  taskReceived: "interviewing",
+  taskSubmitted: "interviewing",
+  offerReceived: "offer",
+  counterOfferSubmitted: "offer",
+  offerAccepted: "accepted",
+  offerDeclined: "declined",
+  rejectionReceived: "rejected",
+  applicationWithdrawn: "withdrawn",
+  applicationPaused: "paused",
+};
+
+export function applicationStatusOf(typesLatestFirst: ActivityType[]): ApplicationStatus {
+  for (const type of typesLatestFirst) {
+    const status = activityStatuses[type];
+    if (status) return status;
+  }
+  return "applied";
+}
 
 export const activityLimits = {
   attachments: 20,

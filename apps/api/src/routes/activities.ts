@@ -4,6 +4,7 @@ import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { activities, applications } from "../db/schema.ts";
 import { toActivity, toActivityColumns } from "./activityRows.ts";
+import { updateApplicationStatus } from "./applicationStatus.ts";
 import { fillEmptyDetails } from "./detailFills.ts";
 import { notFoundSchema } from "./notFound.ts";
 
@@ -66,6 +67,7 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
           .values({ ...toActivityColumns(request.body), applicationId: id })
           .returning();
         if (request.body.terms) await fillEmptyDetails(tx, id, request.body.terms);
+        await updateApplicationStatus(tx, id);
         return inserted!;
       });
       return reply.code(201).send(toActivity(row));
@@ -98,7 +100,9 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
           })
           .where(activityOf(id, activityId))
           .returning();
-        if (updated && terms) await fillEmptyDetails(tx, id, terms);
+        if (!updated) return undefined;
+        if (terms) await fillEmptyDetails(tx, id, terms);
+        await updateApplicationStatus(tx, id);
         return updated;
       });
       if (!row) return reply.code(404).send({ error: "Not Found" });
@@ -144,10 +148,14 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
         return reply.code(404).send({ error: "Not Found" });
       }
 
-      const [row] = await app.db
-        .delete(activities)
-        .where(activityOf(id, activityId))
-        .returning({ id: activities.id });
+      const row = await app.db.transaction(async (tx) => {
+        const [deleted] = await tx
+          .delete(activities)
+          .where(activityOf(id, activityId))
+          .returning({ id: activities.id });
+        if (deleted) await updateApplicationStatus(tx, id);
+        return deleted;
+      });
       if (!row) return reply.code(404).send({ error: "Not Found" });
       return reply.code(204).send(null);
     },

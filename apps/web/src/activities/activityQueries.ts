@@ -1,7 +1,10 @@
 import type { ActivityInput } from "@appligator/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "../api/useApiClient.ts";
-import { applicationKeys } from "../applications/applicationQueries.ts";
+import {
+  applicationKeys,
+  invalidateApplicationStatus,
+} from "../applications/applicationQueries.ts";
 import { createActivitiesApi } from "./activitiesApi.ts";
 
 const activityKeys = {
@@ -29,7 +32,10 @@ function useActivityMutation<Variables, Result>(
   return useMutation({
     mutationFn,
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: applicationKeys.detail(applicationId) }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: applicationKeys.detail(applicationId) }),
+        invalidateApplicationStatus(queryClient),
+      ]),
   });
 }
 
