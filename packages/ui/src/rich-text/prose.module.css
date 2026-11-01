@@ -6,16 +6,16 @@
     margin-top: var(--spacing-3);
   }
 
-  & h2 {
+  & :is(h2, h3, h4) {
     font: var(--font-heading-s);
     letter-spacing: var(--tracking-heading-s);
   }
 
-  & h2 strong {
+  & :is(h2, h3, h4) strong {
     font-weight: 700;
   }
 
-  & * + h2 {
+  & * + :is(h2, h3, h4) {
     margin-top: var(--spacing-6);
   }
 

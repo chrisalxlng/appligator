@@ -6,14 +6,23 @@ export interface EmptyStateProps {
   title: string;
   description: string;
   action?: ReactNode;
+  headingLevel?: 2 | 3 | 4;
 }
 
-export function EmptyState({ illustration, title, description, action }: EmptyStateProps) {
+export function EmptyState({
+  illustration,
+  title,
+  description,
+  action,
+  headingLevel = 2,
+}: EmptyStateProps) {
+  const Heading = `h${headingLevel}` as const;
+
   return (
     <div className={styles.emptyState}>
       <div className={styles.illustration}>{illustration}</div>
       <div className={styles.text}>
-        <h2 className={styles.title}>{title}</h2>
+        <Heading className={styles.title}>{title}</Heading>
         <p className={styles.description}>{description}</p>
       </div>
       {action && <div className={styles.action}>{action}</div>}

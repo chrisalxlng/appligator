@@ -170,3 +170,30 @@ test("reports the value after pasting", async () => {
   expect(onValuePaste).toHaveBeenCalledExactlyOnceWith("<p>Hi Pasted job ad</p>");
   expect(onValueChange).toHaveBeenLastCalledWith("<p>Hi Pasted job ad</p>");
 });
+
+test("connects the error of its field and focuses when its label is clicked", async () => {
+  const { rerender } = render(
+    <Field label="Description">
+      <RichTextEditor value="" onValueChange={() => {}} formatLabels={formatLabels} />
+    </Field>,
+  );
+  const editor = screen.getByRole("textbox", { name: "Description" });
+  expect(editor).not.toHaveAttribute("aria-invalid");
+
+  await userEvent.click(screen.getByText("Description"));
+  expect(editor).toHaveFocus();
+
+  rerender(
+    <Field label="Description" error="Too long">
+      <RichTextEditor value="" onValueChange={() => {}} formatLabels={formatLabels} />
+    </Field>,
+  );
+
+  expect(screen.getByRole("textbox", { name: "Description" })).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  expect(screen.getByRole("textbox", { name: "Description" })).toHaveAccessibleDescription(
+    "Too long",
+  );
+});

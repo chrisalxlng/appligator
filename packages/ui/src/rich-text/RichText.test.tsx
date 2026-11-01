@@ -7,7 +7,7 @@ test("renders the supported formatting", () => {
     <RichText html="<h2>Tasks</h2><p><strong>Bold</strong> <em>italic</em></p><ul><li><p>Item</p></li></ul>" />,
   );
 
-  expect(screen.getByRole("heading", { level: 2, name: "Tasks" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 4, name: "Tasks" })).toBeInTheDocument();
   expect(screen.getByText("Bold").tagName).toBe("STRONG");
   expect(screen.getByText("italic").tagName).toBe("EM");
   expect(screen.getByRole("listitem")).toHaveTextContent("Item");
@@ -28,4 +28,10 @@ test("is not editable", () => {
   render(<RichText html="<p>Text</p>" />);
 
   expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+});
+
+test("renders headings at the given level", () => {
+  render(<RichText html="<h2>Tasks</h2>" headingLevel={3} />);
+
+  expect(screen.getByRole("heading", { level: 3, name: "Tasks" })).toBeInTheDocument();
 });

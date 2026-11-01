@@ -4,6 +4,7 @@ import { IconCalendarEvent, IconUser, IconUsers } from "@tabler/icons-react";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Property, PropertyList } from "../collection/DetailView.tsx";
+import a11y from "../collection/visuallyHidden.module.css";
 import { formatDateTime } from "../details/format.ts";
 import styles from "./AttachmentCards.module.css";
 import { useDescribeAttachment } from "./useDescribeAttachment.ts";
@@ -22,6 +23,7 @@ export function AttachmentCards({ attachments }: { attachments: Attachment[] }) 
 
   function card(attachment: Attachment) {
     const { icon: AttachmentIcon, title, meta } = describe(attachment);
+    const hint = attachment.kind === "link" ? t("common.opensInNewTab") : t("common.openHint");
     const content: ReactNode = (
       <>
         <AttachmentIcon size={20} stroke={2} aria-hidden />
@@ -29,6 +31,7 @@ export function AttachmentCards({ attachments }: { attachments: Attachment[] }) 
           <span className={styles.title}>{title}</span>
           <span className={styles.meta}>{meta}</span>
         </span>
+        <span className={a11y.visuallyHidden}>{hint}</span>
       </>
     );
 
@@ -108,7 +111,7 @@ function Email({ email }: { email: EmailAttachment }) {
           )}
         </PropertyList>
       )}
-      <RichText html={email.body} />
+      <RichText html={email.body} headingLevel={3} />
     </div>
   );
 }

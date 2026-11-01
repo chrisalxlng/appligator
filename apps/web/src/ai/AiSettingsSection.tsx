@@ -3,6 +3,7 @@ import { ConfirmDialog, IconButton, Spinner, useSuccessToast } from "@appligator
 import { IconChevronRight, IconPlugConnected, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
+import a11y from "../collection/visuallyHidden.module.css";
 import { capitalize, formatRelativeTime } from "../i18n/formatRelativeTime.ts";
 import { LoadError } from "../loading/LoadError.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
@@ -41,6 +42,7 @@ export function AiSettingsSection() {
           title={t("ai.loadError.title")}
           description={t("ai.loadError.description")}
           onRetry={() => void settings.refetch()}
+          headingLevel={3}
         />
       )}
       {settings.isSuccess &&
@@ -114,6 +116,7 @@ function AiAccessCard({ settings, onEdit }: { settings: AiSettings; onEdit: () =
               }),
             )}
           </span>
+          <span className={a11y.visuallyHidden}>{t("common.editHint")}</span>
         </button>
         <IconButton
           variant="surface"
@@ -166,6 +169,7 @@ function AiLanguageCard({ settings, onEdit }: { settings: AiSettings; onEdit: ()
         <span className={styles.cardTitle}>{t(`ai.languageName.${settings.language}`)}</span>
         <span className={styles.cardText}>{t("ai.language.description")}</span>
       </span>
+      <span className={a11y.visuallyHidden}>{t("common.editHint")}</span>
       <IconChevronRight size={20} stroke={2} aria-hidden />
     </button>
   );

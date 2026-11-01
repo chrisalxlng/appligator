@@ -7,11 +7,13 @@ import {
   IconButton,
   submitKeyShortcuts,
   TextInput,
+  useFocusFirstError,
 } from "@appligator/ui";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useRef, useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
+import a11y from "../collection/visuallyHidden.module.css";
 import styles from "./list.module.css";
 
 type TextListKind = "location" | "bonus" | "benefit";
@@ -53,6 +55,7 @@ export function TextList({ kind, legend, items, onChange }: TextListProps) {
                 onClick={() => setDrawer({ open: true, index })}
               >
                 {item}
+                <span className={a11y.visuallyHidden}>{t("common.editHint")}</span>
               </button>
               <IconButton
                 variant="surface"
@@ -117,6 +120,7 @@ function TextForm({ kind, inputRef, initialValue, isEditing, onSave }: TextFormP
   const { t } = useTranslation();
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<TextError>();
+  const formRef = useFocusFirstError({ error });
   const shortcutHints = useShortcutHints();
 
   function submit(event: FormEvent) {
@@ -130,7 +134,7 @@ function TextForm({ kind, inputRef, initialValue, isEditing, onSave }: TextFormP
   }
 
   return (
-    <form className={styles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={styles.form} onSubmit={submit} noValidate>
       <Field label={t(`textList.${kind}.label`)} error={error && t(`textList.${kind}.${error}`)}>
         <TextInput ref={inputRef} value={value} onValueChange={setValue} />
       </Field>

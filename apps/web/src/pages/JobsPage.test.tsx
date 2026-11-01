@@ -262,13 +262,11 @@ test.each(["mobile", "tablet", "desktop"] as const)(
     createFakeApi([jobFixture]);
     renderApp(`/jobs/${jobFixture.id}`, { viewport });
     const detail = await screen.findByRole("article");
-    expect(
-      screen.queryByRole("heading", { level: 1, name: jobFixture.position }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(jobFixture.position, { selector: "p" })).not.toBeInTheDocument();
 
     act(scrollObservedElementsOutOfView);
 
-    const compactTitle = screen.getByRole("heading", { level: 1, name: jobFixture.position });
+    const compactTitle = screen.getByText(jobFixture.position, { selector: "p" });
     expect(compactTitle.parentElement).toHaveTextContent(jobFixture.company);
     expect(detail).not.toContainElement(compactTitle);
 
@@ -341,7 +339,7 @@ test("shows the details of a job", async () => {
   expect(within(detail).getByText("Lead position with a focus on Angular.")).toBeInTheDocument();
   const description = within(detail).getByRole("region", { name: "Description" });
   expect(within(description).getByRole("heading", { name: "Introduction" })).toBeInTheDocument();
-  expect(within(detail).getByRole("link", { name: "stepstone.de" })).toHaveAttribute(
+  expect(within(detail).getByRole("link", { name: /^stepstone\.de/ })).toHaveAttribute(
     "href",
     jobFixture.link,
   );
@@ -615,7 +613,7 @@ test("adds, edits and removes locations in a nested drawer", async () => {
   await userEvent.type(within(addLocation).getByRole("textbox", { name: "Location" }), "Bonn");
   await userEvent.click(within(addLocation).getByRole("button", { name: "Add" }));
 
-  await userEvent.click(await within(drawer).findByRole("button", { name: "Bonn" }));
+  await userEvent.click(await within(drawer).findByRole("button", { name: /^Bonn/ }));
   const editLocation = await screen.findByRole("dialog", { name: "Edit location" });
   const input = within(editLocation).getByRole("textbox", { name: "Location" });
   expect(input).toHaveValue("Bonn");
@@ -657,7 +655,7 @@ test("offers no further location once a job has the most locations it allows", a
   renderApp(`/jobs/${olderJob.id}`);
   const drawer = await openEditDrawer();
 
-  expect(within(drawer).getByRole("button", { name: "City 0" })).toBeInTheDocument();
+  expect(within(drawer).getByRole("button", { name: /^City 0/ })).toBeInTheDocument();
   expect(within(drawer).queryByRole("button", { name: "Add location" })).not.toBeInTheDocument();
 });
 
@@ -980,7 +978,7 @@ test("applies for a job from its detail view with the time and notes of the subm
   await userEvent.click(within(detail).getByRole("button", { name: "Apply" }));
   const drawer = await screen.findByRole("dialog", { name: "Apply" });
   expect(drawer).toHaveTextContent("JobLead Developer FrontendRandstad Digital Germany AG");
-  expect(within(drawer).getByRole("button", { name: "Edit terms" })).toHaveTextContent(
+  expect(within(drawer).getByRole("button", { name: /Edit terms$/ })).toHaveTextContent(
     "Lead Developer FrontendCompany, Salary, Bonuses",
   );
   const time = within(drawer).getByLabelText("Time");
@@ -1051,4 +1049,48 @@ test("does not open the edit drawer of an applied job with Alt+E", async () => {
   await userEvent.keyboard("{Alt>}e{/Alt}");
 
   expect(screen.queryByRole("dialog", { name: "Edit job" })).not.toBeInTheDocument();
+});
+
+test("moves to the first invalid field when saving fails the validation", async () => {
+  createFakeApi([]);
+  renderApp("/jobs");
+
+  await userEvent.click(await screen.findByRole("button", { name: "Add" }));
+  const drawer = await screen.findByRole("dialog", { name: "Add job" });
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+
+  const company = within(drawer).getByRole("textbox", { name: "Company" });
+  await waitFor(() => expect(company).toHaveFocus());
+  expect(company).toHaveAccessibleDescription("Please enter a company.");
+});
+
+test("moves to the group of a field with an error", async () => {
+  createFakeApi([]);
+  renderApp("/jobs");
+
+  await userEvent.click(await screen.findByRole("button", { name: "Add" }));
+  const drawer = await screen.findByRole("dialog", { name: "Add job" });
+  await userEvent.type(within(drawer).getByRole("textbox", { name: "Company" }), "Initech");
+  await userEvent.type(within(drawer).getByRole("textbox", { name: "Position" }), "Developer");
+  await userEvent.type(within(drawer).getByRole("textbox", { name: "Working hours" }), "0");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+
+  await waitFor(() =>
+    expect(within(drawer).getByRole("textbox", { name: "Working hours" })).toHaveFocus(),
+  );
+});
+
+test("offers to skip to the content and announces new pages", async () => {
+  createFakeApi([jobFixture]);
+  const router = renderApp("/jobs");
+  await screen.findByRole("heading", { level: 1, name: "Jobs" });
+
+  await userEvent.click(screen.getByRole("link", { name: "Skip to content" }));
+  expect(screen.getByRole("main")).toHaveFocus();
+
+  await router.navigate({ to: "/profile" });
+
+  await waitFor(() =>
+    expect(document.querySelector('[aria-live="polite"]')).toHaveTextContent("Profile"),
+  );
 });

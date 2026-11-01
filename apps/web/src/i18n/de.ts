@@ -6,12 +6,16 @@ export const de: Translations = {
   },
   navigation: {
     label: "Hauptnavigation",
+    skipToContent: "Zum Inhalt springen",
     home: "Home",
     jobs: "Stellen",
     applications: "Bewerbungen",
     profile: "Profil",
   },
   common: {
+    editHint: "– bearbeiten",
+    openHint: "– öffnen",
+    opensInNewTab: "(öffnet in neuem Tab)",
     close: "Schließen",
     moreActions: "Weitere Aktionen anzeigen",
     today: "Heute",
@@ -599,6 +603,7 @@ export const de: Translations = {
     close: "Schließen",
     selectPlaceholder: "Bitte wählen",
     access: {
+      keepApiKey: "Gespeichert – leer lassen, um ihn zu behalten",
       add: "Hinzufügen",
       addTitle: "KI-Zugang hinzufügen",
       editTitle: "KI-Zugang bearbeiten",

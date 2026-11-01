@@ -34,6 +34,7 @@ function ImportedJob({ jobId }: { jobId: string }) {
         rel="noreferrer"
       >
         {t("jobImport.open")}
+        <span className={styles.visuallyHidden}>{t("jobImport.opensInNewTab")}</span>
       </LinkButton>
     </div>
   );

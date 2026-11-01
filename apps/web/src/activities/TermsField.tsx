@@ -7,10 +7,12 @@ import {
   IconButton,
   submitKeyShortcuts,
   TextInput,
+  useFocusFirstError,
 } from "@appligator/ui";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import a11y from "../collection/visuallyHidden.module.css";
 import { DetailsFields } from "../details/DetailsFields.tsx";
 import { useDetails } from "../details/DetailsSection.tsx";
 import listStyles from "../details/list.module.css";
@@ -44,7 +46,6 @@ export function TermsField({ terms, onChange }: TermsFieldProps) {
           <button
             type="button"
             className={listStyles.itemButton}
-            aria-label={t("activities.terms.editTitle")}
             onClick={() => setIsEditing(true)}
           >
             <span className={listStyles.itemText}>
@@ -55,6 +56,7 @@ export function TermsField({ terms, onChange }: TermsFieldProps) {
                 </span>
               )}
             </span>
+            <span className={a11y.visuallyHidden}>{t("activities.terms.editTitle")}</span>
           </button>
           <IconButton
             variant="surface"
@@ -97,6 +99,7 @@ function TermsForm({ terms, onSave }: TermsFormProps) {
   const { t } = useTranslation();
   const [values, setValues] = useState(() => toTermsFormValues(terms));
   const [errors, setErrors] = useState<TermsFormErrors>({});
+  const formRef = useFocusFirstError(errors);
   const shortcutHints = useShortcutHints();
 
   function update(changes: Partial<TermsFormValues>) {
@@ -118,7 +121,7 @@ function TermsForm({ terms, onSave }: TermsFormProps) {
   }
 
   return (
-    <form className={listStyles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={listStyles.form} onSubmit={submit} noValidate>
       <Field label={t("fields.position")} error={errorFor("position")}>
         <TextInput value={values.position} onValueChange={(position) => update({ position })} />
       </Field>

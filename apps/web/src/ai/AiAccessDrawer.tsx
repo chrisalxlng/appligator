@@ -7,6 +7,7 @@ import {
   submitKeyShortcuts,
   TextInput,
   useSuccessToast,
+  useFocusFirstError,
 } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
@@ -22,8 +23,6 @@ import {
 } from "./aiAccessForm.ts";
 import { aiProviderNames } from "./aiProviders.ts";
 import { useAiModels, useSaveAiSettings } from "./aiQueries.ts";
-
-const maskedApiKey = "•".repeat(24);
 
 interface AiAccessDrawerProps {
   settings?: AiSettings;
@@ -63,6 +62,7 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
   const save = useSaveAiSettings();
   const [values, setValues] = useState(() => toAiAccessFormValues(settings));
   const [errors, setErrors] = useState<AiAccessFormErrors>({});
+  const formRef = useFocusFirstError(errors);
   const shortcutHints = useShortcutHints();
 
   function setValue<Key extends keyof AiAccessFormValues>(key: Key) {
@@ -99,7 +99,7 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
   ].map((model) => ({ value: model, label: model }));
 
   return (
-    <form className={styles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={styles.form} onSubmit={submit} noValidate>
       <Field label={t("ai.access.provider")} error={errorFor("provider")}>
         <Select
           items={aiProviders.map((provider) => ({
@@ -127,7 +127,7 @@ function AiAccessForm({ settings, onSaved }: AiAccessFormProps) {
           type="password"
           autoComplete="off"
           spellCheck={false}
-          placeholder={keepsProvider ? maskedApiKey : undefined}
+          placeholder={keepsProvider ? t("ai.access.keepApiKey") : undefined}
           value={values.apiKey}
           onValueChange={setValue("apiKey")}
         />

@@ -10,7 +10,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useFieldLabelId } from "../field/Field.tsx";
+import { useFieldContext } from "../field/Field.tsx";
 import { Tooltip } from "../tooltip/Tooltip.tsx";
 import { normalizeHeadings, richTextExtensions } from "./extensions.ts";
 import controlStyles from "../field/control.module.css";
@@ -44,17 +44,28 @@ export function RichTextEditor({
   formatLabels,
   "aria-label": ariaLabel,
 }: RichTextEditorProps) {
-  const labelId = useFieldLabelId();
+  const field = useFieldContext();
+  const labelId = field?.labelId;
+  const errorAttributes: Record<string, string> = field?.invalid
+    ? { "aria-invalid": "true", "aria-describedby": field.errorId, "data-invalid": "" }
+    : {};
+  const labelAttributes: Record<string, string> = ariaLabel
+    ? { "aria-label": ariaLabel }
+    : labelId
+      ? { "aria-labelledby": labelId }
+      : {};
+  const attributes = {
+    role: "textbox",
+    "aria-multiline": "true",
+    ...labelAttributes,
+    ...errorAttributes,
+    class: `${controlStyles.control} ${proseStyles.prose} ${styles.editor}`,
+  };
   const editor = useEditor({
     extensions: richTextExtensions,
     content: value,
     editorProps: {
-      attributes: {
-        role: "textbox",
-        "aria-multiline": "true",
-        ...(ariaLabel ? { "aria-label": ariaLabel } : labelId && { "aria-labelledby": labelId }),
-        class: `${controlStyles.control} ${proseStyles.prose} ${styles.editor}`,
-      },
+      attributes,
       transformPastedHTML: normalizeHeadings,
     },
     onUpdate: ({ editor, transaction }) => {
@@ -67,6 +78,20 @@ export function RichTextEditor({
   useEffect(() => {
     if (toValue(editor) !== value) editor.commands.setContent(value, { emitUpdate: false });
   }, [editor, value]);
+
+  const invalid = field?.invalid ?? false;
+  useEffect(() => {
+    editor.setOptions({ editorProps: { attributes, transformPastedHTML: normalizeHeadings } });
+    // The attributes only differ by the validity once the editor exists.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, invalid]);
+
+  useEffect(() => {
+    const label = labelId ? document.getElementById(labelId) : null;
+    const focusEditor = () => editor.commands.focus();
+    label?.addEventListener("click", focusEditor);
+    return () => label?.removeEventListener("click", focusEditor);
+  }, [editor, labelId]);
 
   return (
     <>

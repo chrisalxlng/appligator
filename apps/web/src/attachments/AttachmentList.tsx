@@ -3,6 +3,7 @@ import { Drawer, Fieldset, IconButton, Menu, MenuItem, SpinnerCircle } from "@ap
 import { IconFile, IconMail, IconPlus, IconTrash, IconWorld } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import a11y from "../collection/visuallyHidden.module.css";
 import listStyles from "../details/list.module.css";
 import { EmailForm } from "./EmailForm.tsx";
 import { FileForm } from "./FileForm.tsx";
@@ -92,6 +93,7 @@ export function AttachmentList({ attachments, uploads, error, onChange }: Attach
                     <span>{title}</span>
                     <span className={listStyles.itemMeta}>{meta}</span>
                   </span>
+                  <span className={a11y.visuallyHidden}>{t("common.editHint")}</span>
                 </button>
                 <IconButton
                   variant="surface"

@@ -55,9 +55,10 @@ export function SearchList<Item>({
           placeholder={placeholder}
         />
       </Autocomplete.InputGroup>
-      {status ? (
-        <div className={styles.status}>{status}</div>
-      ) : (
+      <div role="status" className={status ? styles.status : undefined}>
+        {status}
+      </div>
+      {!status && (
         <Autocomplete.List className={styles.list} aria-label={listLabel}>
           {(item: Item) => (
             <Autocomplete.Item

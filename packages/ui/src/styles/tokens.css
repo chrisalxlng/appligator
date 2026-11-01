@@ -26,7 +26,11 @@
   --highlight-text-secondary: var(--color-royal-purple-600);
   --highlight-fill: var(--color-royal-purple-200);
   --highlight-fill-hover: var(--color-royal-purple-300);
-  --highlight-fill-press: var(--color-royal-purple-400);
+  --highlight-fill-press: color-mix(
+    in srgb,
+    var(--color-royal-purple-300) 60%,
+    var(--color-royal-purple-400)
+  );
   --success-fill: var(--color-forest-green-200);
   --success-text-primary: var(--color-forest-green-900);
   --info-fill: var(--color-navy-blue-200);
@@ -39,7 +43,11 @@
   --destructive-surface: var(--color-burgundy-red-100);
   --destructive-surface-fill: var(--color-burgundy-red-200);
   --destructive-surface-fill-hover: var(--color-burgundy-red-300);
-  --destructive-surface-fill-press: var(--color-burgundy-red-400);
+  --destructive-surface-fill-press: color-mix(
+    in srgb,
+    var(--color-burgundy-red-300) 60%,
+    var(--color-burgundy-red-400)
+  );
   --destructive-surface-text-primary: var(--color-burgundy-red-900);
   --destructive-surface-text-secondary: var(--color-burgundy-red-600);
   --backdrop: rgb(19 20 20 / 30%);
@@ -85,32 +93,31 @@
   --font-family-heading: "Geist Variable", system-ui, sans-serif;
   --font-family-body: "Inter Variable", system-ui, sans-serif;
 
-  --font-heading-l: 500 24px / 32px var(--font-family-heading);
+  --font-heading-l: 500 1.5rem / 2rem var(--font-family-heading);
   --tracking-heading-l: -0.02em;
-  --font-heading-m: 700 20px / 28px var(--font-family-heading);
+  --font-heading-m: 700 1.25rem / 1.75rem var(--font-family-heading);
   --tracking-heading-m: -0.01em;
-  --font-heading-s: 600 16px / 24px var(--font-family-heading);
+  --font-heading-s: 600 1rem / 1.5rem var(--font-family-heading);
   --tracking-heading-s: -0.01em;
-  --font-label-m: 600 15px / 22px var(--font-family-body);
+  --font-label-m: 600 0.9375rem / 1.375rem var(--font-family-body);
   --tracking-label-m: 0.01em;
-  --font-label-s: 400 13px / 18px var(--font-family-body);
+  --font-label-s: 400 0.8125rem / 1.125rem var(--font-family-body);
   --tracking-label-s: 0.02em;
-  --font-body-m: 400 15px / 22px var(--font-family-body);
-  --font-body-s: 400 13px / 18px var(--font-family-body);
-  --font-caption: 400 11px / 16px var(--font-family-body);
+  --font-body-m: 400 0.9375rem / 1.375rem var(--font-family-body);
+  --font-body-s: 400 0.8125rem / 1.125rem var(--font-family-body);
+  --font-caption: 400 0.6875rem / 1rem var(--font-family-body);
   --tracking-caption: 0.02em;
 }
 
 @media (width >= 768px) {
   :root {
-    --font-heading-l: 500 36px / 40px var(--font-family-heading);
+    --font-heading-l: 500 2.25rem / 2.5rem var(--font-family-heading);
     --tracking-heading-l: -0.04em;
-    --font-heading-m: 700 22px / 32px var(--font-family-heading);
+    --font-heading-m: 700 1.375rem / 2rem var(--font-family-heading);
     --tracking-heading-m: -0.02em;
-    --font-label-m: 600 14px / 20px var(--font-family-body);
-    --font-label-s: 400 12px / 16px var(--font-family-body);
-    --font-body-m: 400 14px / 20px var(--font-family-body);
-    --font-body-s: 400 12px / 16px var(--font-family-body);
-    --font-caption: 400 10px / 14px var(--font-family-body);
+    --font-label-m: 600 0.875rem / 1.25rem var(--font-family-body);
+    --font-label-s: 400 0.75rem / 1rem var(--font-family-body);
+    --font-body-m: 400 0.875rem / 1.25rem var(--font-family-body);
+    --font-body-s: 400 0.75rem / 1rem var(--font-family-body);
   }
 }

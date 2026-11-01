@@ -48,8 +48,8 @@ test("fills the empty fields after pasting a job ad", async () => {
     "Initech is looking for a frontend developer.",
   );
   expect(within(drawer).getByRole("combobox", { name: "Work model" })).toHaveTextContent("Remote");
-  expect(within(drawer).getByRole("button", { name: "Munich" })).toBeVisible();
-  expect(within(drawer).getByRole("button", { name: "Job bike" })).toBeVisible();
+  expect(within(drawer).getByRole("button", { name: /^Munich/ })).toBeVisible();
+  expect(within(drawer).getByRole("button", { name: /^Job bike/ })).toBeVisible();
   expect(within(drawer).getByRole("textbox", { name: "Working hours" })).toHaveValue("40 hr");
   expect(within(drawer).getByRole("textbox", { name: "Description" })).toHaveTextContent(jobAd);
   expect(api.requestsWith("POST")[0]!.body).toEqual({ description: `<p>${jobAd}</p>` });

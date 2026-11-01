@@ -2,10 +2,12 @@ import { Field as BaseField } from "@base-ui/react/field";
 import { createContext, useContext, useId, type ReactNode } from "react";
 import styles from "./Field.module.css";
 
-const FieldLabelIdContext = createContext<string | undefined>(undefined);
+const FieldContext = createContext<{ labelId: string; errorId: string; invalid: boolean } | null>(
+  null,
+);
 
-export function useFieldLabelId() {
-  return useContext(FieldLabelIdContext);
+export function useFieldContext() {
+  return useContext(FieldContext);
 }
 
 export interface FieldProps {
@@ -16,14 +18,16 @@ export interface FieldProps {
 
 export function Field({ label, error, children }: FieldProps) {
   const labelId = useId();
+  const errorId = useId();
+  const invalid = Boolean(error);
 
   return (
-    <BaseField.Root invalid={Boolean(error)} className={styles.field}>
+    <BaseField.Root invalid={invalid} className={styles.field}>
       <BaseField.Label id={labelId} className={styles.label}>
         {label}
       </BaseField.Label>
-      <FieldLabelIdContext value={labelId}>{children}</FieldLabelIdContext>
-      <BaseField.Error match={Boolean(error)} className={styles.error}>
+      <FieldContext value={{ labelId, errorId, invalid }}>{children}</FieldContext>
+      <BaseField.Error id={errorId} match={invalid} className={styles.error}>
         {error}
       </BaseField.Error>
     </BaseField.Root>

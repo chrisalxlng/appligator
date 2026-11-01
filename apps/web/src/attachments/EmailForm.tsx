@@ -6,6 +6,7 @@ import {
   RichTextEditor,
   submitKeyShortcuts,
   TextInput,
+  useFocusFirstError,
 } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useId, useRef, useState, type FormEvent, type RefObject } from "react";
@@ -55,6 +56,7 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
   const formatLabels = useFormatLabels();
   const [values, setValues] = useState(() => toFormValues(attachment));
   const [errors, setErrors] = useState<Partial<Record<keyof EmailFormValues, FieldError>>>({});
+  const formRef = useFocusFirstError(errors);
   const [importError, setImportError] = useState<"importFailed" | "notAnEmail">();
   const [links, setLinks] = useState<LinkAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +119,7 @@ export function EmailForm({ inputRef, attachment, onSave }: EmailFormProps) {
       label={t("attachments.email.dropHere")}
       onFiles={(files) => void importFile(files[0])}
     >
-      <form className={listStyles.form} onSubmit={submit} noValidate>
+      <form ref={formRef} className={listStyles.form} onSubmit={submit} noValidate>
         <div className={styles.import}>
           <Button
             type="button"

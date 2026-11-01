@@ -61,4 +61,8 @@
 .typeDescription {
   color: var(--text-secondary);
   font: var(--font-body-s);
+
+  .type:is(:hover, :active) & {
+    color: var(--text-primary);
+  }
 }

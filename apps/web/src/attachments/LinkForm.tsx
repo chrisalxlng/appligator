@@ -1,5 +1,5 @@
 import { jobLimits, type Attachment } from "@appligator/shared";
-import { Button, Field, submitKeyShortcuts, TextInput } from "@appligator/ui";
+import { Button, Field, submitKeyShortcuts, TextInput, useFocusFirstError } from "@appligator/ui";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useState, type FormEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,7 @@ export function LinkForm({ inputRef, attachment, onSave }: LinkFormProps) {
   const [url, setUrl] = useState(attachment?.url ?? "");
   const [title, setTitle] = useState(attachment?.title ?? "");
   const [errors, setErrors] = useState<{ url?: string; title?: string }>({});
+  const formRef = useFocusFirstError(errors);
   const shortcutHints = useShortcutHints();
 
   function submit(event: FormEvent) {
@@ -40,7 +41,7 @@ export function LinkForm({ inputRef, attachment, onSave }: LinkFormProps) {
   }
 
   return (
-    <form className={listStyles.form} onSubmit={submit} noValidate>
+    <form ref={formRef} className={listStyles.form} onSubmit={submit} noValidate>
       <Field label={t("attachments.link.url")} error={errors.url}>
         <TextInput ref={inputRef} type="url" value={url} onValueChange={setUrl} />
       </Field>

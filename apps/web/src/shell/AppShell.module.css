@@ -12,11 +12,32 @@
   }
 }
 
+.skipLink {
+  position: fixed;
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  z-index: 1;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-m);
+  background: var(--interactive-fill);
+  color: var(--interactive-text-primary);
+  font: var(--font-label-m);
+  letter-spacing: var(--tracking-label-m);
+  transform: translateY(-200%);
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--active-separator);
+    outline-offset: var(--focus-ring-offset);
+    transform: none;
+  }
+}
+
 .main {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
+  outline: none;
 }
 
 .footer {

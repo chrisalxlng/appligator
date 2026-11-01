@@ -8,9 +8,10 @@ interface LoadErrorProps {
   title: string;
   description: string;
   onRetry: () => void;
+  headingLevel?: 2 | 3 | 4;
 }
 
-export function LoadError({ title, description, onRetry }: LoadErrorProps) {
+export function LoadError({ title, description, onRetry, headingLevel }: LoadErrorProps) {
   const { t } = useTranslation();
 
   return (
@@ -19,6 +20,7 @@ export function LoadError({ title, description, onRetry }: LoadErrorProps) {
         illustration={<img src={errorIllustration} alt="" width={225} height={224} />}
         title={title}
         description={description}
+        headingLevel={headingLevel}
         action={
           <Button onClick={onRetry}>
             <IconRefresh size={20} stroke={2.4} aria-hidden />

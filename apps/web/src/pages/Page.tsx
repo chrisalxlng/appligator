@@ -19,7 +19,8 @@ export function Page({ title, actions, hideHeader, compactTitle, className, chil
         <header className={styles.header} data-compact={compactTitle ? "" : undefined}>
           {compactTitle ? (
             <div className={styles.compactTitle}>
-              <h1 className={styles.compactHeading}>{compactTitle.title}</h1>
+              <h1 className={styles.compactPageHeading}>{title}</h1>
+              <p className={styles.compactHeading}>{compactTitle.title}</p>
               <p className={styles.compactSubtitle}>{compactTitle.subtitle}</p>
             </div>
           ) : (

@@ -60,6 +60,20 @@
   }
 }
 
+/* The list next to the details has the heading of the page on wide screens. */
+.compactPageHeading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+
+  @media (width >= 1200px) {
+    display: none;
+  }
+}
+
 .compactTitle {
   min-width: 0;
 
