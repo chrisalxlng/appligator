@@ -128,10 +128,6 @@
   color: var(--text-secondary);
   font: var(--font-body-s);
 
-  .card:active:not([data-status="active"]) & {
-    color: var(--text-primary);
-  }
-
   [data-status="active"] & {
     color: var(--active-text-secondary);
   }
@@ -149,10 +145,6 @@
   color: var(--text-secondary);
   font: var(--font-caption);
   letter-spacing: var(--tracking-caption);
-
-  .card:active:not([data-status="active"]) & {
-    color: var(--text-primary);
-  }
 
   [data-status="active"] & {
     color: var(--active-text-secondary);

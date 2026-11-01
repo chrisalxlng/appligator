@@ -62,10 +62,6 @@
 .meta {
   color: var(--text-secondary);
   font: var(--font-body-s);
-
-  .card:is(:hover, :active) & {
-    color: var(--text-primary);
-  }
 }
 
 .error {
