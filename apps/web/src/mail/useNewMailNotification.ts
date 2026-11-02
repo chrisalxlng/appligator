@@ -6,25 +6,44 @@ import { useTranslation } from "react-i18next";
 import {
   invalidateMailAccount,
   invalidateMailCollections,
-  usePendingMailCount,
+  useMailMessageStatusCounts,
 } from "./mailQueries.ts";
+
+function totalOf(counts: { count: number }[]) {
+  return counts.reduce((sum, { count }) => sum + count, 0);
+}
+
+function automaticOf(counts: { status: string; count: number }[]) {
+  return counts.find(({ status }) => status === "autoAssigned")?.count ?? 0;
+}
 
 export function useNewMailNotification() {
   const { t } = useTranslation();
-  const count = usePendingMailCount();
+  const { data: counts } = useMailMessageStatusCounts();
   const queryClient = useQueryClient();
   const showInfo = useInfoToast();
-  const previousCount = useRef<number | undefined>(undefined);
+  const previousCounts = useRef(counts);
 
   useEffect(() => {
-    if (count === undefined) return;
+    if (!counts) return;
 
-    const previous = previousCount.current;
-    previousCount.current = count;
-    if (previous === undefined || count <= previous) return;
+    const previous = previousCounts.current;
+    previousCounts.current = counts;
+    if (!previous) return;
+
+    const newMails = totalOf(counts) - totalOf(previous);
+    const newlyAssigned = automaticOf(counts) - automaticOf(previous);
+    if (newMails <= 0 && newlyAssigned <= 0) return;
 
     void invalidateMailCollections(queryClient);
     void invalidateMailAccount(queryClient);
-    showInfo(t("emails.toast.newMails", { count: count - previous }), IconMail);
-  }, [count, queryClient, showInfo, t]);
+    if (newlyAssigned > 0) {
+      void queryClient.invalidateQueries({ queryKey: ["applications"] });
+      showInfo(t("emails.toast.autoAssigned", { count: newlyAssigned }), IconMail);
+    }
+    const unassignedMails = newMails - newlyAssigned;
+    if (unassignedMails > 0) {
+      showInfo(t("emails.toast.newMails", { count: unassignedMails }), IconMail);
+    }
+  }, [counts, queryClient, showInfo, t]);
 }

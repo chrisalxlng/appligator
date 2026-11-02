@@ -1,5 +1,5 @@
 import type { Activity, Application } from "@appligator/shared";
-import { RichText, Spinner } from "@appligator/ui";
+import { Badge, RichText, Spinner } from "@appligator/ui";
 import {
   IconArrowBackUp,
   IconCalendarEvent,
@@ -117,7 +117,10 @@ function ActivityEntry({ application, activity, activities, isLatest }: Activity
   return (
     <li className={`${styles.entry} ${isLatest ? styles.latest : ""}`}>
       <div className={styles.header}>
-        <h4 className={styles.title}>{typeLabel}</h4>
+        <div className={styles.heading}>
+          <h4 className={styles.title}>{typeLabel}</h4>
+          {activity.automatic && <Badge tone="highlight">{t("activities.automatic")}</Badge>}
+        </div>
         <button
           type="button"
           className={styles.edit}

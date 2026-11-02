@@ -3,7 +3,7 @@ import { useRef, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { usePendingMailCount } from "../mail/mailQueries.ts";
 import { ActiveIndicator } from "./ActiveIndicator.tsx";
-import { navigationItems } from "./navigation.ts";
+import { useNavigationItems } from "./navigation.ts";
 import { ScrollToTop } from "./ScrollToTop.tsx";
 import styles from "./TabBar.module.css";
 import { useActiveLinkRect } from "./useActiveLinkRect.ts";
@@ -16,7 +16,8 @@ interface TabBarProps {
 export function TabBar({ floatingActionsRef }: TabBarProps) {
   const { t } = useTranslation();
   const navRef = useRef<HTMLElement>(null);
-  const activeLinkRect = useActiveLinkRect(navRef);
+  const navigationItems = useNavigationItems();
+  const activeLinkRect = useActiveLinkRect(navRef, navigationItems.length);
   const isDesktop = useIsDesktop();
   const pendingMailCount = usePendingMailCount();
 

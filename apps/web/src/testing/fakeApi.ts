@@ -94,6 +94,7 @@ export function activityWith(overrides: Partial<Activity> = {}): Activity {
     notes: "",
     attachments: [],
     detailsReviewed: false,
+    automatic: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
@@ -425,8 +426,8 @@ export function createFakeApi(
     const method = init?.method ?? "GET";
     const path = url.replace(import.meta.env.VITE_API_URL, "");
     const { pathname, searchParams } = new URL(path, location.origin);
-    // The navigation asks for the number of emails on every page.
-    if (pathname === "/mail/messages/status-counts") return json([]);
+    // The navigation asks for the mailbox on every page.
+    if (pathname === "/mail/account") return json(null);
     const body = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
     requests.push({ method, path, body });
     await holds.get(method);

@@ -116,7 +116,8 @@ function MailAccountForm({ account, onSaved }: MailAccountFormProps) {
       )}
       <Field label={t("mail.account.username")} error={errorFor("username")}>
         <TextInput
-          autoComplete="off"
+          name="username"
+          autoComplete="username"
           spellCheck={false}
           placeholder={t("mail.account.usernamePlaceholder")}
           value={values.username}
@@ -126,7 +127,8 @@ function MailAccountForm({ account, onSaved }: MailAccountFormProps) {
       <Field label={t("mail.account.password")} error={errorFor("password")}>
         <TextInput
           type="password"
-          autoComplete="off"
+          name="password"
+          autoComplete="current-password"
           spellCheck={false}
           value={values.password}
           onValueChange={setValue("password")}

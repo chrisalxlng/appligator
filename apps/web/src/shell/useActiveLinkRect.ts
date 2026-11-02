@@ -8,7 +8,7 @@ export interface LinkRect {
   height: number;
 }
 
-export function useActiveLinkRect(navRef: RefObject<HTMLElement | null>) {
+export function useActiveLinkRect(navRef: RefObject<HTMLElement | null>, itemCount: number) {
   const pathname = useLocation({ select: (location) => location.pathname });
   const [rect, setRect] = useState<LinkRect | null>(null);
 
@@ -22,7 +22,7 @@ export function useActiveLinkRect(navRef: RefObject<HTMLElement | null>) {
     const observer = new ResizeObserver(measure);
     observer.observe(nav);
     return () => observer.disconnect();
-  }, [navRef, pathname]);
+  }, [navRef, pathname, itemCount]);
 
   return rect;
 }

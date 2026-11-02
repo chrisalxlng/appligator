@@ -1,6 +1,13 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, expect, test, vi } from "vite-plus/test";
-import { activities, applications, jobs, mailAccounts, mailMessages } from "../db/schema.ts";
+import {
+  activities,
+  applications,
+  jobs,
+  mailAccounts,
+  mailAssignments,
+  mailMessages,
+} from "../db/schema.ts";
 import type { VerifyMailAccess } from "../mail/mailAccess.ts";
 import type { ReadNewMail } from "../mail/mailReader.ts";
 import { buildTestApp, signToken, testMailPasswordCipher } from "../testAuth.ts";
@@ -21,6 +28,7 @@ beforeEach(async () => {
   // The rate limit of the connection checks counts per app instance.
   app = buildTestApp({ db, mail: { verifyMailAccess, readNewMail } });
   await db.delete(mailAccounts);
+  await db.delete(mailAssignments);
   await db.delete(mailMessages);
   await db.delete(activities);
   await db.delete(applications);
@@ -68,6 +76,7 @@ test("PUT /mail/account verifies and stores the access without returning the pas
     accessUpdatedAt: expect.any(String),
     lastSyncedAt: null,
     syncError: null,
+    aiAssignment: false,
   });
   expect(response.body).not.toContain("app password");
 
@@ -212,7 +221,7 @@ async function storedMessage({
 }: {
   userId?: string;
   hash?: string;
-  status?: "pending" | "assigned" | "dismissed";
+  status?: "pending" | "autoAssigned" | "assigned" | "dismissed";
   createdAt?: Date;
 } = {}) {
   const [message] = await db
@@ -273,6 +282,7 @@ test("GET /mail/messages lists the emails of the user without their bodies, newe
     items: [
       {
         ...listed,
+        hasSuggestion: false,
         id: newer.id,
         folder: "inbox",
         status: "dismissed",
@@ -280,6 +290,7 @@ test("GET /mail/messages lists the emails of the user without their bodies, newe
       },
       {
         ...listed,
+        hasSuggestion: false,
         id: older.id,
         folder: "inbox",
         status: "pending",
@@ -494,4 +505,142 @@ test("POST /mail/sync limits how often connections are attempted", async () => {
   for (let count = 0; count < 10; count++) expect((await attempt()).statusCode).toBe(200);
 
   expect((await attempt()).statusCode).toBe(429);
+});
+
+test("PUT /mail/account/ai-assignment stores the consent and keeps it with new credentials", async () => {
+  await request("PUT", { body: input });
+
+  const response = await request("PUT", {
+    url: "/mail/account/ai-assignment",
+    body: { enabled: true },
+  });
+
+  expect(response.json()).toMatchObject({ aiAssignment: true });
+  await request("PUT", { body: { ...input, password: "new" } });
+  expect((await request("GET")).json()).toMatchObject({ aiAssignment: true });
+});
+
+test("PUT /mail/account/ai-assignment responds with 404 without an account", async () => {
+  const response = await request("PUT", {
+    url: "/mail/account/ai-assignment",
+    body: { enabled: true },
+  });
+
+  expect(response.statusCode).toBe(404);
+});
+
+function emptySuggestion(applicationId: string) {
+  return {
+    applicationId,
+    activityType: "other" as const,
+    appointmentAt: null,
+    dueDate: null,
+    responseDeadline: null,
+  };
+}
+
+test("GET /mail/messages/:id resolves a suggestion and marks it in the list", async () => {
+  const application = await storedApplication();
+  const message = await storedMessage();
+  await db.update(mailMessages).set({
+    suggestion: {
+      applicationId: application.id,
+      activityType: "interviewScheduled",
+      appointmentAt: "2026-11-10T13:00:00.000Z",
+      dueDate: null,
+      responseDeadline: null,
+    },
+  });
+
+  const detail = (await request("GET", { url: `/mail/messages/${message.id}` })).json();
+  const list = (await request("GET", { url: "/mail/messages" })).json();
+
+  expect(detail.suggestion).toEqual({
+    application: { id: application.id, position: "Developer" },
+    activityType: "interviewScheduled",
+    appointmentAt: "2026-11-10T13:00:00.000Z",
+    dueDate: null,
+    responseDeadline: null,
+  });
+  expect(list.items[0].hasSuggestion).toBe(true);
+});
+
+test("GET /mail/messages/:id drops a suggestion for a deleted application", async () => {
+  const application = await storedApplication();
+  const message = await storedMessage();
+  await db.update(mailMessages).set({ suggestion: emptySuggestion(application.id) });
+  await db.delete(applications).where(eq(applications.id, application.id));
+
+  const detail = (await request("GET", { url: `/mail/messages/${message.id}` })).json();
+
+  expect(detail.suggestion).toBeNull();
+});
+
+test("assigning remembers the email for later replies and clears the suggestion", async () => {
+  const application = await storedApplication();
+  const message = await storedMessage();
+  await db.update(mailMessages).set({ suggestion: emptySuggestion(application.id) });
+
+  await request("POST", {
+    url: `/mail/messages/${message.id}/assignment`,
+    body: { applicationId: application.id, activity },
+  });
+
+  expect(await db.select().from(mailAssignments)).toMatchObject([
+    { messageIdHash: "hash", sender: "jobs@acme.example", applicationId: application.id },
+  ]);
+  const [stored] = await db.select().from(mailMessages).where(eq(mailMessages.id, message.id));
+  expect(stored).toMatchObject({ suggestion: null, status: "assigned" });
+  expect(stored!.activityId).not.toBeNull();
+});
+
+test("DELETE /mail/messages/:id/assignment undoes an assignment completely", async () => {
+  const application = await storedApplication();
+  const message = await storedMessage();
+  await request("POST", {
+    url: `/mail/messages/${message.id}/assignment`,
+    body: { applicationId: application.id, activity },
+  });
+
+  const response = await request("DELETE", { url: `/mail/messages/${message.id}/assignment` });
+
+  expect(response.statusCode).toBe(204);
+  expect(await db.select().from(activities)).toEqual([]);
+  expect(await db.select().from(mailAssignments)).toEqual([]);
+  const [stored] = await db.select().from(mailMessages).where(eq(mailMessages.id, message.id));
+  expect(stored).toMatchObject({ status: "pending", applicationId: null, activityId: null });
+  const [updated] = await db.select().from(applications).where(eq(applications.id, application.id));
+  expect(updated!.status).toBe("applied");
+});
+
+test("DELETE /mail/messages/:id/assignment only works for own assigned emails", async () => {
+  const pending = await storedMessage();
+  const foreign = await storedMessage({ userId: "other-user-id", status: "assigned" });
+
+  expect(
+    (await request("DELETE", { url: `/mail/messages/${pending.id}/assignment` })).statusCode,
+  ).toBe(404);
+  expect(
+    (await request("DELETE", { url: `/mail/messages/${foreign.id}/assignment` })).statusCode,
+  ).toBe(404);
+});
+
+test("DELETE /mail/account also forgets the assignments of the user only", async () => {
+  await request("PUT", { body: input });
+  const application = await storedApplication();
+  const foreignApplication = await storedApplication("other-user-id");
+  await db.insert(mailAssignments).values([
+    { userId: "user-id", messageIdHash: "a", sender: "x", applicationId: application.id },
+    {
+      userId: "other-user-id",
+      messageIdHash: "b",
+      sender: "x",
+      applicationId: foreignApplication.id,
+    },
+  ]);
+
+  await request("DELETE");
+
+  const links = await db.select().from(mailAssignments);
+  expect(links.map(({ userId }) => userId)).toEqual(["other-user-id"]);
 });

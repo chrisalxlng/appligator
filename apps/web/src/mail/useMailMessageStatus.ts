@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 const tones: Record<MailMessageStatus, BadgeTone> = {
   pending: "info",
+  autoAssigned: "highlight",
   assigned: "success",
   dismissed: "neutral",
 };

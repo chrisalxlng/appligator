@@ -58,6 +58,11 @@
   }
 }
 
+.switchCard:has(:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--active-separator);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .accessCard {
   position: relative;
 

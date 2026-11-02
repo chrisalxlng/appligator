@@ -2,6 +2,7 @@ import {
   activitySchema,
   mailAccountInputSchema,
   mailAccountSchema,
+  mailAiAssignmentInputSchema,
   mailAssignmentInputSchema,
   mailErrorSchema,
   mailMessageListPageSchema,
@@ -10,14 +11,22 @@ import {
   mailMessageStatuses,
   mailSyncResultSchema,
 } from "@appligator/shared";
-import { and, count, desc, eq, ne, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import type { SecretCipher } from "../crypto/secretCipher.ts";
-import { applications, mailAccounts, mailMessages, type MailContent } from "../db/schema.ts";
+import {
+  applications,
+  mailAccounts,
+  mailAssignments,
+  mailMessages,
+  type MailContent,
+  type MailSuggestion,
+} from "../db/schema.ts";
+import { assignMessage, unassignMessage } from "../mail/assignMessage.ts";
 import type { VerifyMailAccess } from "../mail/mailAccess.ts";
 import type { ReadNewMail } from "../mail/mailReader.ts";
-import { insertActivity, maxActivityBodyBytes, toActivity } from "./activityRows.ts";
+import { maxActivityBodyBytes, toActivity } from "./activityRows.ts";
 import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
 import { afterCursor, cursorCreatedAt, pageQuerySchema, toPage } from "./pagination.ts";
@@ -39,6 +48,7 @@ function toMailAccount({
   accessUpdatedAt,
   lastSyncedAt,
   syncError,
+  aiAssignment,
 }: typeof mailAccounts.$inferSelect) {
   return {
     host,
@@ -46,6 +56,7 @@ function toMailAccount({
     accessUpdatedAt: accessUpdatedAt.toISOString(),
     lastSyncedAt: lastSyncedAt?.toISOString() ?? null,
     syncError,
+    aiAssignment,
   };
 }
 
@@ -111,12 +122,32 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
     },
   );
 
+  app.put(
+    "/mail/account/ai-assignment",
+    {
+      schema: {
+        body: mailAiAssignmentInputSchema,
+        response: { 200: mailAccountSchema, 404: notFoundSchema },
+      },
+    },
+    async (request, reply) => {
+      const [row] = await app.db
+        .update(mailAccounts)
+        .set({ aiAssignment: request.body.enabled })
+        .where(eq(mailAccounts.userId, request.userId))
+        .returning();
+      if (!row) return reply.code(404).send({ error: "Not Found" });
+      return toMailAccount(row);
+    },
+  );
+
   app.delete(
     "/mail/account",
     { schema: { response: { 204: z.null(), 404: notFoundSchema } } },
     async (request, reply) => {
       const row = await app.db.transaction(async (tx) => {
         await tx.delete(mailMessages).where(eq(mailMessages.userId, request.userId));
+        await tx.delete(mailAssignments).where(eq(mailAssignments.userId, request.userId));
         const [deleted] = await tx
           .delete(mailAccounts)
           .where(eq(mailAccounts.userId, request.userId))
@@ -156,6 +187,25 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
     createdAt: mailMessages.createdAt,
   };
 
+  // The suggested application may have been deleted in the meantime.
+  async function resolveSuggestion(suggestion: MailSuggestion | null, userId: string) {
+    if (!suggestion) return null;
+
+    const [application] = await app.db
+      .select({ id: applications.id, position: applications.position })
+      .from(applications)
+      .where(and(eq(applications.id, suggestion.applicationId), eq(applications.userId, userId)));
+    return application
+      ? {
+          application,
+          activityType: suggestion.activityType,
+          appointmentAt: suggestion.appointmentAt,
+          dueDate: suggestion.dueDate,
+          responseDeadline: suggestion.responseDeadline,
+        }
+      : null;
+  }
+
   app.get(
     "/mail/messages",
     {
@@ -172,6 +222,7 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
           folder: mailMessages.folder,
           status: mailMessages.status,
           content: sql<Omit<MailContent, "body">>`${mailMessages.content} - 'body'`,
+          hasSuggestion: sql<boolean>`${mailMessages.suggestion} is not null`,
           pinned: notPinned,
           createdAt: mailMessages.createdAt,
           cursorCreatedAt: cursorCreatedAt(messagePageColumns),
@@ -220,6 +271,7 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
           folder: mailMessages.folder,
           status: mailMessages.status,
           content: mailMessages.content,
+          suggestion: mailMessages.suggestion,
           createdAt: mailMessages.createdAt,
           application: { id: applications.id, position: applications.position },
         })
@@ -228,8 +280,14 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
         .where(ownMessage(request.params.id, request.userId));
       if (!row) return reply.code(404).send({ error: "Not Found" });
 
-      const { content, createdAt, ...message } = row;
-      return { ...message, ...content, createdAt: createdAt.toISOString() };
+      const { content, createdAt, suggestion, ...message } = row;
+      return {
+        ...message,
+        ...content,
+        hasSuggestion: suggestion !== null,
+        suggestion: await resolveSuggestion(suggestion, request.userId),
+        createdAt: createdAt.toISOString(),
+      };
     },
   );
 
@@ -251,18 +309,39 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
         .where(and(eq(applications.id, applicationId), eq(applications.userId, request.userId)));
       if (!application) return reply.code(404).send({ error: "Not Found" });
 
-      const row = await app.db.transaction(async (tx) => {
-        const [message] = await tx
-          .update(mailMessages)
-          .set({ status: "assigned", applicationId })
-          .where(
-            and(ownMessage(request.params.id, request.userId), ne(mailMessages.status, "assigned")),
-          )
-          .returning({ id: mailMessages.id });
-        return message ? insertActivity(tx, applicationId, activity) : undefined;
-      });
+      const row = await app.db.transaction((tx) =>
+        assignMessage(tx, {
+          messageWhere: and(
+            ownMessage(request.params.id, request.userId),
+            inArray(mailMessages.status, ["pending", "dismissed"]),
+          ),
+          applicationId,
+          activity,
+          automatic: false,
+        }),
+      );
       if (!row) return reply.code(404).send({ error: "Not Found" });
       return reply.code(201).send(toActivity(row));
+    },
+  );
+
+  app.delete(
+    "/mail/messages/:id/assignment",
+    { schema: { params: idParamsSchema, response: { 204: z.null(), 404: notFoundSchema } } },
+    async (request, reply) => {
+      const [message] = await app.db
+        .select()
+        .from(mailMessages)
+        .where(
+          and(
+            ownMessage(request.params.id, request.userId),
+            inArray(mailMessages.status, ["assigned", "autoAssigned"]),
+          ),
+        );
+      if (!message) return reply.code(404).send({ error: "Not Found" });
+
+      await app.db.transaction((tx) => unassignMessage(tx, message));
+      return reply.code(204).send(null);
     },
   );
 

@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test } from "vite-plus/test";
-import { createFakeAiApi } from "../testing/fakeAiApi.ts";
+import { aiSettingsFixture, createFakeAiApi } from "../testing/fakeAiApi.ts";
 import { createFakeApi } from "../testing/fakeApi.ts";
 import { createFakeMailApi, mailAccountFixture } from "../testing/fakeMailApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
@@ -206,5 +206,64 @@ test("explains a disrupted retrieval", async () => {
 
   expect(await within(await mailSection()).findByRole("alert")).toHaveTextContent(
     "The server rejects the login.",
+  );
+});
+
+test("explains the AI assignment without an AI access", async () => {
+  createFakeMailApi(mailAccountFixture);
+  renderApp("/profile");
+
+  const section = await mailSection();
+
+  expect(await within(section).findByText(/Add an AI access/)).toBeVisible();
+  expect(within(section).queryByRole("switch")).toBeNull();
+});
+
+test("asks for consent before sending emails to the AI provider", async () => {
+  createFakeAiApi(aiSettingsFixture);
+  const api = createFakeMailApi(mailAccountFixture);
+  renderApp("/profile");
+
+  const section = await mailSection();
+  const toggle = await within(section).findByRole("switch", { name: "Assign emails with AI" });
+
+  expect(toggle).not.toBeChecked();
+  expect(section).toHaveTextContent(
+    "subject and text of new emails as well as your applications to OpenAI",
+  );
+
+  await userEvent.click(within(section).getByText("Assign emails with AI"));
+
+  await waitFor(() => expect(toggle).toBeChecked());
+  expect(api.requestsWith("PUT")[0]).toMatchObject({
+    path: "/mail/account/ai-assignment",
+    body: { enabled: true },
+  });
+});
+
+test("shows an error when the consent can't be saved", async () => {
+  createFakeAiApi(aiSettingsFixture);
+  const api = createFakeMailApi(mailAccountFixture);
+  api.failWith("PUT /mail/account/ai-assignment", 500);
+  renderApp("/profile");
+
+  const section = await mailSection();
+  await userEvent.click(await within(section).findByRole("switch"));
+
+  expect(await within(section).findByRole("alert")).toHaveTextContent(
+    "The setting could not be saved.",
+  );
+});
+
+test("lets password managers recognize the credentials", async () => {
+  createFakeMailApi();
+  renderApp("/profile");
+
+  const drawer = await openAddDrawer();
+
+  expect(within(drawer).getByLabelText("Username")).toHaveAttribute("autocomplete", "username");
+  expect(within(drawer).getByLabelText("Password")).toHaveAttribute(
+    "autocomplete",
+    "current-password",
   );
 });

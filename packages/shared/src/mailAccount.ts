@@ -18,7 +18,10 @@ export const mailAccountSchema = mailAccountInputSchema.omit({ password: true })
   accessUpdatedAt: z.iso.datetime(),
   lastSyncedAt: z.iso.datetime().nullable(),
   syncError: z.enum(mailErrorCodes).nullable(),
+  aiAssignment: z.boolean(),
 });
+
+export const mailAiAssignmentInputSchema = z.object({ enabled: z.boolean() });
 
 export const mailErrorSchema = z.object({ error: z.enum(mailErrorCodes) });
 

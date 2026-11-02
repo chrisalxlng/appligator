@@ -92,6 +92,13 @@
       "when": 1793642782796,
       "tag": "0012_keep_handled_mails",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793645312780,
+      "tag": "0013_add_mail_auto_assignment",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import {
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { serveApiDocs } from "./apiDocs.ts";
+import { createLanguageModelLoader } from "./ai/storedLanguageModel.ts";
 import { requireAuthentication, type AuthOptions } from "./auth.ts";
 import type { Database } from "./db/database.ts";
 import { createMailSync, type MailSync } from "./mail/mailSync.ts";
@@ -40,7 +41,15 @@ export function buildApp({ auth, db, ai, mail, webAppOrigin, apiDocs = false }: 
   app.setSerializerCompiler(serializerCompiler);
 
   app.decorate("db", db);
-  app.decorate("mailSync", createMailSync({ ...mail, db, log: app.log }));
+  app.decorate(
+    "mailSync",
+    createMailSync({
+      ...mail,
+      db,
+      loadLanguageModel: createLanguageModelLoader({ ...ai, db }),
+      log: app.log,
+    }),
+  );
 
   app.register(fastifyCors, { origin: webAppOrigin, methods: ["GET", "POST", "PUT", "DELETE"] });
   requireAuthentication(app, auth);

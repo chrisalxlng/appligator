@@ -209,6 +209,7 @@ export const de: Translations = {
     },
   },
   activities: {
+    automatic: "Automatisch erkannt",
     title: "Aktivitäten",
     add: "Aktivität hinzufügen",
     edit: "{{date}}: {{type}} bearbeiten",
@@ -731,6 +732,14 @@ export const de: Translations = {
         error: "Der Postfach-Zugang konnte nicht gelöscht werden. Bitte versuche es erneut.",
       },
     },
+    aiAssignment: {
+      label: "E-Mails mit KI zuordnen",
+      description:
+        "Antworten und bekannte Absender ordnet Appligator ohne KI zu. Mit dieser Option sendet Appligator außerdem Absender, Empfänger, Betreff und Text neuer E-Mails sowie deine Bewerbungen an {{provider}}, um die passende Bewerbung und Aktivität zu erkennen und irrelevante E-Mails zu verwerfen. Das verbraucht dein KI-Guthaben.",
+      noAccess:
+        "Antworten und bekannte Absender ordnet Appligator automatisch zu. Füge einen KI-Zugang hinzu, um auch andere E-Mails zuordnen zu lassen.",
+      error: "Die Einstellung konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    },
     toast: {
       added: "Postfach-Zugang hinzugefügt",
       updated: "Postfach-Zugang aktualisiert",
@@ -777,6 +786,7 @@ export const de: Translations = {
     noSubject: "(Kein Betreff)",
     status: {
       pending: "Zu prüfen",
+      autoAssigned: "Automatisch zugeordnet",
       assigned: "Zugeordnet",
       dismissed: "Verworfen",
     },
@@ -807,6 +817,21 @@ export const de: Translations = {
         description: "Erstelle zuerst eine Bewerbung, um ihr E-Mails zuzuordnen.",
       },
     },
+    suggestion: {
+      label: "KI-Vorschlag",
+      hint: "KI-Vorschlag: „{{type}}“ bei {{position}}",
+      accept: "Vorschlag übernehmen",
+      error: "Der Vorschlag konnte nicht übernommen werden. Bitte versuche es erneut.",
+    },
+    unassign: {
+      action: "Zuordnung aufheben",
+      title: "Zuordnung aufheben?",
+      description:
+        "Die Aktivität in der Bewerbung wird endgültig gelöscht, und die E-Mail steht wieder zur Prüfung bereit.",
+      confirm: "Aufheben",
+      cancel: "Abbrechen",
+      error: "Die Zuordnung konnte nicht aufgehoben werden. Bitte versuche es erneut.",
+    },
     dismiss: {
       action: "Verwerfen",
       title: "E-Mail verwerfen?",
@@ -817,6 +842,9 @@ export const de: Translations = {
       error: "Die E-Mail konnte nicht verworfen werden. Bitte versuche es erneut.",
     },
     toast: {
+      autoAssigned_one: "{{count}} E-Mail automatisch zugeordnet",
+      autoAssigned_other: "{{count}} E-Mails automatisch zugeordnet",
+      unassigned: "Zuordnung aufgehoben",
       newMails_one: "{{count}} neue E-Mail",
       newMails_other: "{{count}} neue E-Mails",
       noNewMails: "Keine neuen E-Mails",

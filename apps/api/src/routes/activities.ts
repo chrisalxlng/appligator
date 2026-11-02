@@ -88,6 +88,7 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
           .update(activities)
           .set({
             ...toActivityColumns(request.body),
+            automatic: false,
             detailsReviewed: sql`case when ${activities.terms} is not distinct from ${terms && JSON.stringify(terms)}::jsonb then ${activities.detailsReviewed} else false end`,
             updatedAt: new Date(),
           })
