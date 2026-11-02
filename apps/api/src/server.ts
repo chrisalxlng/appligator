@@ -11,7 +11,7 @@ import * as schema from "./db/schema.ts";
 import { requireEnv } from "./env.ts";
 import { createMailAccessVerifier, createMailboxOpener } from "./mail/mailAccess.ts";
 import { createMailReader } from "./mail/mailReader.ts";
-import { createMailSync, startMailSync } from "./mail/mailSync.ts";
+import { startMailSync } from "./mail/mailSync.ts";
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? "localhost";
@@ -48,6 +48,7 @@ const app = buildApp({
   mail: {
     passwordCipher: mailPasswordCipher,
     verifyMailAccess: createMailAccessVerifier(openMailbox),
+    readNewMail: createMailReader(openMailbox),
   },
   webAppOrigin,
   apiDocs: process.env.API_DOCS === "true",
@@ -62,15 +63,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 try {
   await migrate(db, { migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url)) });
-  const stopMailSync = startMailSync(
-    createMailSync({
-      db,
-      passwordCipher: mailPasswordCipher,
-      readNewMail: createMailReader(openMailbox),
-      log: app.log,
-    }),
-    app.log,
-  );
+  const stopMailSync = startMailSync(app.mailSync, app.log);
   app.addHook("onClose", stopMailSync);
   await app.listen({ port, host });
 } catch (error) {

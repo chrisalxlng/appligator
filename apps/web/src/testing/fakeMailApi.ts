@@ -36,6 +36,7 @@ export function createFakeMailApi(
 ) {
   let account = initialAccount;
   let messages = initialMessages;
+  let incoming: MailMessage[] = [];
   const requests: {
     method: string;
     path: string;
@@ -45,6 +46,12 @@ export function createFakeMailApi(
   const otherFetch = globalThis.fetch;
 
   function handleMessages(method: string, path: string) {
+    if (path === "/mail/sync") {
+      const newMails = incoming.length;
+      messages = [...incoming, ...messages];
+      incoming = [];
+      return json({ newMails });
+    }
     if (path === "/mail/messages/count") return json({ count: messages.length });
     if (path === "/mail/messages") {
       return json({
@@ -87,7 +94,9 @@ export function createFakeMailApi(
     const failure = failures.get(`${method} ${path}`);
     if (failure) return json(failure.error ? { error: failure.error } : null, failure.status);
 
-    if (path.startsWith("/mail/messages")) return handleMessages(method, path);
+    if (path.startsWith("/mail/messages") || path === "/mail/sync") {
+      return handleMessages(method, path);
+    }
     if (method === "GET") return json(account);
     if (method === "PUT") {
       const { password: _password, ...input } = body as MailAccountInput;
@@ -116,5 +125,9 @@ export function createFakeMailApi(
     failWith: (request: string, status: number, error?: string) =>
       failures.set(request, { status, error }),
     recover: () => failures.clear(),
+    prepareNewMail: (message: MailMessage) => void incoming.push(message),
+    receiveMail: (message: MailMessage) => {
+      messages = [message, ...messages];
+    },
   };
 }

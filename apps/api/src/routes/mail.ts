@@ -8,6 +8,7 @@ import {
   mailMessageCountSchema,
   mailMessageListSchema,
   mailMessageSchema,
+  mailSyncResultSchema,
 } from "@appligator/shared";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
@@ -15,6 +16,7 @@ import { z } from "zod";
 import type { SecretCipher } from "../crypto/secretCipher.ts";
 import { applications, mailAccounts, mailMessages, type MailContent } from "../db/schema.ts";
 import type { VerifyMailAccess } from "../mail/mailAccess.ts";
+import type { ReadNewMail } from "../mail/mailReader.ts";
 import { insertActivity, maxActivityBodyBytes, toActivity } from "./activityRows.ts";
 import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
@@ -22,6 +24,7 @@ import { notFoundSchema } from "./notFound.ts";
 export interface MailOptions {
   passwordCipher: SecretCipher;
   verifyMailAccess: VerifyMailAccess;
+  readNewMail: ReadNewMail;
 }
 
 // Each check opens a connection to a server of the user's choice and attempts a login there. The
@@ -134,6 +137,22 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
 
       if (!row) return reply.code(404).send({ error: "Not Found" });
       return reply.code(204).send(null);
+    },
+  );
+
+  app.post(
+    "/mail/sync",
+    {
+      config: { rateLimit: connectionRateLimit },
+      schema: {
+        response: { 200: mailSyncResultSchema, 404: notFoundSchema, 422: mailErrorSchema },
+      },
+    },
+    async (request, reply) => {
+      const result = await app.mailSync.syncAccountOf(request.userId);
+      if (!result) return reply.code(404).send({ error: "Not Found" });
+      if ("error" in result) return reply.code(422).send(result);
+      return result;
     },
   );
 

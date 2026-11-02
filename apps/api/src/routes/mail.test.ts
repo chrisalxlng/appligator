@@ -2,11 +2,13 @@ import { eq } from "drizzle-orm";
 import { beforeEach, expect, test, vi } from "vite-plus/test";
 import { activities, applications, jobs, mailAccounts, mailMessages } from "../db/schema.ts";
 import type { VerifyMailAccess } from "../mail/mailAccess.ts";
+import type { ReadNewMail } from "../mail/mailReader.ts";
 import { buildTestApp, signToken, testMailPasswordCipher } from "../testAuth.ts";
 import { createTestDatabase } from "../testDatabase.ts";
 
 const db = await createTestDatabase();
 const verifyMailAccess = vi.fn<VerifyMailAccess>();
+const readNewMail = vi.fn<ReadNewMail>();
 let app: ReturnType<typeof buildTestApp>;
 
 const input = {
@@ -17,13 +19,14 @@ const input = {
 
 beforeEach(async () => {
   // The rate limit of the connection checks counts per app instance.
-  app = buildTestApp({ db, mail: { verifyMailAccess } });
+  app = buildTestApp({ db, mail: { verifyMailAccess, readNewMail } });
   await db.delete(mailAccounts);
   await db.delete(mailMessages);
   await db.delete(activities);
   await db.delete(applications);
   await db.delete(jobs);
   verifyMailAccess.mockReset().mockResolvedValue(undefined);
+  readNewMail.mockReset();
 });
 
 async function request(
@@ -358,4 +361,50 @@ test("DELETE /mail/account also removes the stored emails of the user only", asy
 
   const messages = await db.select().from(mailMessages);
   expect(messages.map(({ userId }) => userId)).toEqual(["other-user-id"]);
+});
+
+test("POST /mail/sync reads the mailbox of the user and reports the new emails", async () => {
+  await request("PUT", { body: input });
+  readNewMail.mockImplementation(async (_access, cursors, onMail) => {
+    await onMail({
+      folder: "inbox",
+      source: Buffer.from("Message-ID: <a@example.com>\r\nSubject: Hello\r\n\r\nText"),
+    });
+    return { cursors, hasMore: false };
+  });
+
+  const response = await request("POST", { url: "/mail/sync" });
+
+  expect(response.statusCode).toBe(200);
+  expect(response.json()).toEqual({ newMails: 1 });
+  expect(readNewMail.mock.calls[0]![0]).toEqual(input);
+  expect((await request("GET", { url: "/mail/messages/count" })).json()).toEqual({ count: 1 });
+});
+
+test("POST /mail/sync reports a failure and stores it", async () => {
+  await request("PUT", { body: input });
+  readNewMail.mockRejectedValue(new Error("offline"));
+
+  const response = await request("POST", { url: "/mail/sync" });
+
+  expect(response.statusCode).toBe(422);
+  expect(response.json()).toEqual({ error: "connectionFailed" });
+  expect((await request("GET")).json()).toMatchObject({ syncError: "connectionFailed" });
+});
+
+test("POST /mail/sync responds with 404 without an account of the user", async () => {
+  await request("PUT", { body: input, userId: "other-user-id" });
+
+  expect((await request("POST", { url: "/mail/sync" })).statusCode).toBe(404);
+  expect(readNewMail).not.toHaveBeenCalled();
+});
+
+test("POST /mail/sync limits how often connections are attempted", async () => {
+  await request("PUT", { body: input });
+  readNewMail.mockImplementation(async (_access, cursors) => ({ cursors, hasMore: false }));
+  const attempt = () => request("POST", { url: "/mail/sync" });
+
+  for (let count = 0; count < 10; count++) expect((await attempt()).statusCode).toBe(200);
+
+  expect((await attempt()).statusCode).toBe(429);
 });

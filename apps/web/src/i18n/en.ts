@@ -745,6 +745,10 @@ export const en = {
       connectionFailed: "Retrieving emails is disrupted: The server can't be reached.",
       action: "Check inbox access",
     },
+    sync: {
+      action: "Retrieve emails",
+      error: "The emails could not be retrieved. Please try again.",
+    },
     limited: "Showing the newest {{shown}} of {{total}} emails.",
     noSubject: "(No subject)",
     sent: "Sent",
@@ -781,6 +785,9 @@ export const en = {
       error: "The email could not be dismissed. Please try again.",
     },
     toast: {
+      newMails_one: "{{count}} new email",
+      newMails_other: "{{count}} new emails",
+      noNewMails: "No new emails",
       dismissed: "Email dismissed",
     },
   },

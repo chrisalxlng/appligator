@@ -237,3 +237,35 @@ test("stops between accounts when asked to", async () => {
 
   expect(readNewMail).not.toHaveBeenCalled();
 });
+
+test("syncs an account on request before it is due and reports the new emails", async () => {
+  await connectAccount({ nextSyncAt: new Date(Date.now() + minutes(5)) });
+  readNewMail.mockImplementation(async (_access, _cursors, onMail) => {
+    await onMail({ folder: "inbox", source: rawMail("a@example.com") });
+    await onMail({ folder: "sent", source: rawMail("a@example.com") });
+    await onMail({ folder: "inbox", source: rawMail("b@example.com") });
+    return { cursors, hasMore: false };
+  });
+
+  expect(await sync.syncAccountOf(userId)).toEqual({ newMails: 2 });
+  expect((await storedAccount()).cursors).toEqual(cursors);
+});
+
+test("reports a failed sync on request", async () => {
+  await connectAccount();
+  readNewMail.mockRejectedValue(new Error("offline"));
+
+  expect(await sync.syncAccountOf(userId)).toEqual({ error: "connectionFailed" });
+  expect((await storedAccount()).syncError).toBe("connectionFailed");
+});
+
+test("does not log in on request while the account is paused", async () => {
+  await connectAccount({ nextSyncAt: null, syncError: "loginRejected" });
+
+  expect(await sync.syncAccountOf(userId)).toEqual({ error: "loginRejected" });
+  expect(readNewMail).not.toHaveBeenCalled();
+});
+
+test("has nothing to sync on request without an account", async () => {
+  expect(await sync.syncAccountOf(userId)).toBeUndefined();
+});

@@ -1,3 +1,4 @@
+import type { MailErrorCode } from "@appligator/shared";
 import { and, eq, lt, sql } from "drizzle-orm";
 import type { FastifyBaseLogger } from "fastify";
 import type { SecretCipher } from "../crypto/secretCipher.ts";
@@ -25,6 +26,8 @@ export interface MailSyncOptions {
 }
 
 export type MailSync = ReturnType<typeof createMailSync>;
+
+type MailSyncResult = { newMails: number } | { error: MailErrorCode };
 
 function nextAttemptAfterFailure(code: string, failures: number) {
   // Repeated logins with a wrong password could get the mailbox locked by its provider.
@@ -57,10 +60,11 @@ export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyn
 
   async function ingestSafely(userId: string, mail: RawMail) {
     try {
-      await ingestMail(db, userId, mail);
+      return await ingestMail(db, userId, mail);
     } catch (error) {
       // An email that can't be read must not block the ones after it forever.
       log.error({ err: error, folder: mail.folder }, "Ingesting an email failed");
+      return false;
     }
   }
 
@@ -94,19 +98,20 @@ export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyn
     }
   }
 
-  async function syncAccount(account: MailAccountRow) {
+  async function syncAccount(account: MailAccountRow): Promise<MailSyncResult> {
     const { userId, host, username, cursors, syncFailures } = account;
     const password = readPassword(account);
     // Only entering the password again helps, so retrying would be pointless.
     if (!password) {
       await saveResult(account, { nextSyncAt: null, syncError: "loginRejected" });
-      return;
+      return { error: "loginRejected" };
     }
 
+    let newMails = 0;
     try {
-      const result = await readNewMail({ host, username, password }, cursors, (mail) =>
-        ingestSafely(userId, mail),
-      );
+      const result = await readNewMail({ host, username, password }, cursors, async (mail) => {
+        if (await ingestSafely(userId, mail)) newMails++;
+      });
       await saveResult(account, {
         cursors: result.cursors,
         nextSyncAt: result.hasMore ? new Date() : new Date(Date.now() + syncIntervalMs),
@@ -114,6 +119,7 @@ export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyn
         syncError: null,
         syncFailures: 0,
       });
+      return { newMails };
     } catch (error) {
       const code = toMailErrorCode(error);
       const failures = syncFailures + 1;
@@ -123,8 +129,10 @@ export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyn
         syncError: code,
         syncFailures: failures,
       });
+      return { error: code };
+    } finally {
+      await removeMailsOfDisconnectedAccount(userId);
     }
-    await removeMailsOfDisconnectedAccount(userId);
   }
 
   function deleteExpiredMails() {
@@ -139,6 +147,15 @@ export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyn
   }
 
   return {
+    // Running alongside a scheduled sync of the same account is harmless: emails are only stored
+    // once, and the older of the two positions just means looking at a few emails again.
+    async syncAccountOf(userId: string): Promise<MailSyncResult | undefined> {
+      const [account] = await db.select().from(mailAccounts).where(eq(mailAccounts.userId, userId));
+      if (!account) return undefined;
+      if (account.nextSyncAt === null) return { error: "loginRejected" };
+      return syncAccount(account);
+    },
+
     async syncDueAccounts(shouldStop: () => boolean = () => false) {
       await deleteExpiredMails();
       while (!shouldStop()) {

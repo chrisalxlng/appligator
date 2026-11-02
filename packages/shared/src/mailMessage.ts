@@ -24,6 +24,8 @@ export const mailMessageListSchema = z.object({
 
 export const mailMessageCountSchema = z.object({ count: z.number().int().min(0) });
 
+export const mailSyncResultSchema = z.object({ newMails: z.number().int().min(0) });
+
 export const mailAssignmentInputSchema = z.object({
   applicationId: z.uuid(),
   activity: activityInputSchema,

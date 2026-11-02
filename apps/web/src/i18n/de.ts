@@ -759,6 +759,10 @@ export const de: Translations = {
       connectionFailed: "Der Abruf ist gestört: Der Server ist nicht erreichbar.",
       action: "Postfach-Zugang prüfen",
     },
+    sync: {
+      action: "E-Mails abrufen",
+      error: "Die E-Mails konnten nicht abgerufen werden. Bitte versuche es erneut.",
+    },
     limited: "Die neuesten {{shown}} von {{total}} E-Mails werden angezeigt.",
     noSubject: "(Kein Betreff)",
     sent: "Gesendet",
@@ -796,6 +800,9 @@ export const de: Translations = {
       error: "Die E-Mail konnte nicht verworfen werden. Bitte versuche es erneut.",
     },
     toast: {
+      newMails_one: "{{count}} neue E-Mail",
+      newMails_other: "{{count}} neue E-Mails",
+      noNewMails: "Keine neuen E-Mails",
       dismissed: "E-Mail verworfen",
     },
   },

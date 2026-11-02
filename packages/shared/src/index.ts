@@ -109,6 +109,7 @@ export {
   mailMessageListSchema,
   mailMessageSchema,
   mailMessageStatuses,
+  mailSyncResultSchema,
   type MailAssignmentInput,
   type MailFolder,
   type MailMessage,

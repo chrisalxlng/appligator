@@ -15,8 +15,10 @@ export async function ingestMail(db: Database, userId: string, { folder, source 
     .update(messageId ?? source)
     .digest("hex");
 
-  await db
+  const inserted = await db
     .insert(mailMessages)
     .values({ userId, messageIdHash, folder, content })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning({ id: mailMessages.id });
+  return inserted.length > 0;
 }

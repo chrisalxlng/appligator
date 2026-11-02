@@ -10,6 +10,10 @@
   font: var(--font-body-s);
 }
 
+.centeredNotices {
+  text-align: center;
+}
+
 .syncError {
   color: var(--destructive-text);
   font: var(--font-body-s);

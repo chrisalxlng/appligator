@@ -1,5 +1,6 @@
 import type { ActivityInput, MailAccountInput } from "@appligator/shared";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { useApiClient } from "../api/useApiClient.ts";
 import {
   applicationKeys,
@@ -13,7 +14,9 @@ const mailMessageKeys = {
   count: ["mail", "messages", "count"] as const,
   detail: (id: string) => ["mail", "messages", "detail", id] as const,
 };
-const newMailCheckIntervalMs = 5 * 60 * 1000;
+// Asking for the number is enough to notice new emails soon, because the mailboxes themselves are
+// only read every 10 minutes, and unlike a push channel it works with any number of API instances.
+const newMailCheckIntervalMs = 30 * 1000;
 
 // A handled email is gone, so its detail query must not be fetched again.
 function invalidateMailMessages(queryClient: QueryClient) {
@@ -55,12 +58,38 @@ export function useDeleteMailAccount() {
   });
 }
 
+export function useSyncMail() {
+  const mailApi = useMailApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: mailApi.sync,
+    onSettled: () =>
+      Promise.all([
+        invalidateMailMessages(queryClient),
+        queryClient.invalidateQueries({ queryKey: mailAccountKey }),
+      ]),
+  });
+}
+
+export function useRefreshMailAfterNewMessages() {
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: mailMessageKeys.list }),
+        queryClient.invalidateQueries({ queryKey: mailAccountKey }),
+      ]),
+    [queryClient],
+  );
+}
+
 export function useMailMessages() {
   const mailApi = useMailApi();
   return useQuery({
     queryKey: mailMessageKeys.list,
     queryFn: mailApi.listMessages,
-    refetchInterval: newMailCheckIntervalMs,
   });
 }
 
