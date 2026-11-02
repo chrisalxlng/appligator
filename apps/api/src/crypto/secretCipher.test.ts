@@ -1,8 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { expect, test } from "vite-plus/test";
-import { createApiKeyCipher } from "./apiKeyCipher.ts";
+import { createSecretCipher } from "./secretCipher.ts";
 
-const cipher = createApiKeyCipher(randomBytes(32).toString("base64"));
+const encryptionKey = randomBytes(32).toString("base64");
+const cipher = createSecretCipher(encryptionKey, "test-purpose");
 
 test("decrypts what it encrypted", () => {
   const encrypted = cipher.encrypt("sk-secret", "user-id");
@@ -10,7 +11,7 @@ test("decrypts what it encrypted", () => {
   expect(cipher.decrypt(encrypted, "user-id")).toBe("sk-secret");
 });
 
-test("does not contain the plain API key and differs on every encryption", () => {
+test("does not contain the plain secret and differs on every encryption", () => {
   const first = cipher.encrypt("sk-secret", "user-id");
   const second = cipher.encrypt("sk-secret", "user-id");
 
@@ -18,7 +19,7 @@ test("does not contain the plain API key and differs on every encryption", () =>
   expect(first).not.toBe(second);
 });
 
-test("rejects an API key encrypted for another user", () => {
+test("rejects a secret encrypted for another user", () => {
   const encrypted = cipher.encrypt("sk-secret", "user-id");
 
   expect(() => cipher.decrypt(encrypted, "other-user-id")).toThrow();
@@ -34,14 +35,25 @@ test("rejects a tampered ciphertext", () => {
   ).toThrow();
 });
 
-test("rejects an API key encrypted with another key", () => {
-  const otherCipher = createApiKeyCipher(randomBytes(32).toString("base64"));
+test("rejects a secret encrypted with another key", () => {
+  const otherCipher = createSecretCipher(randomBytes(32).toString("base64"), "test-purpose");
 
   expect(() => otherCipher.decrypt(cipher.encrypt("sk-secret", "user-id"), "user-id")).toThrow();
 });
 
 test("accepts any secret and derives the same key from it", () => {
-  const encrypted = createApiKeyCipher("example-key").encrypt("sk-secret", "user-id");
+  const encrypted = createSecretCipher("example-key", "test-purpose").encrypt(
+    "sk-secret",
+    "user-id",
+  );
 
-  expect(createApiKeyCipher("example-key").decrypt(encrypted, "user-id")).toBe("sk-secret");
+  expect(createSecretCipher("example-key", "test-purpose").decrypt(encrypted, "user-id")).toBe(
+    "sk-secret",
+  );
+});
+
+test("rejects a secret encrypted for another purpose", () => {
+  const otherCipher = createSecretCipher(encryptionKey, "other-purpose");
+
+  expect(() => otherCipher.decrypt(cipher.encrypt("sk-secret", "user-id"), "user-id")).toThrow();
 });

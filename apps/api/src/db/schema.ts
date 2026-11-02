@@ -152,3 +152,12 @@ export const aiSettings = pgTable("ai_settings", {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   accessUpdatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
+
+export const mailAccounts = pgTable("mail_accounts", {
+  userId: text().primaryKey(),
+  host: text().notNull(),
+  username: text().notNull(),
+  encryptedPassword: text().notNull(),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  accessUpdatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});

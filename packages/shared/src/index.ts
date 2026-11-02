@@ -92,3 +92,12 @@ export {
   type StatusCount,
 } from "./status.ts";
 export { jobImportInputSchema, maxJobPageLength, type JobImportInput } from "./jobImport.ts";
+export {
+  mailAccountInputSchema,
+  mailAccountSchema,
+  mailErrorSchema,
+  mailHostSchema,
+  type MailAccount,
+  type MailAccountInput,
+  type MailErrorCode,
+} from "./mailAccount.ts";

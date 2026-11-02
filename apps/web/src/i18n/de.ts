@@ -669,6 +669,64 @@ export const de: Translations = {
       languageUpdated: "KI-Sprache aktualisiert",
     },
   },
+  mail: {
+    title: "E-Mail-Postfach",
+    description:
+      "Verknüpfe ein Postfach per IMAP, damit Appligator eingehende und gesendete Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert.",
+    loading: "E-Mail-Postfach wird geladen …",
+    loadError: {
+      title: "E-Mail-Postfach konnte nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    account: {
+      add: "Verknüpfen",
+      addTitle: "Postfach verknüpfen",
+      editTitle: "Postfach bearbeiten",
+      privacyHint:
+        "Appligator kann alle Mails in diesem Postfach lesen, ändert darin aber nichts. Nutze daher am besten ein eigenes Postfach nur für Bewerbungen.",
+      setupHint: {
+        preset:
+          "Aktiviere dafür IMAP in den Einstellungen von {{provider}} unter „POP3/IMAP Abruf“. Mit Zwei-Faktor-Authentifizierung brauchst du ein anwendungsspezifisches Passwort.",
+        other:
+          "Den IMAP-Server findest du in der Hilfe deines Anbieters. Er muss über Port 993 mit TLS erreichbar sein.",
+      },
+      provider: "Anbieter",
+      otherProvider: "Anderer Anbieter",
+      host: "IMAP-Server",
+      username: "Benutzername",
+      usernamePlaceholder: "bewerbung@meine-domain.de",
+      password: "Passwort",
+      updated: "{{time}} aktualisiert",
+      submitAdd: "Verknüpfen",
+      submitUpdate: "Aktualisieren",
+      errors: {
+        providerRequired: "Bitte wähle einen Anbieter.",
+        hostRequired: "Bitte gib den IMAP-Server an.",
+        hostInvalid: "Bitte gib einen gültigen Servernamen an, z. B. imap.example.com.",
+        usernameRequired: "Bitte gib den Benutzernamen an.",
+        passwordRequired: "Bitte gib das Passwort an.",
+        loginRejected:
+          "Der Server hat die Anmeldung abgelehnt. Prüfe Benutzername und Passwort und ob IMAP aktiviert ist.",
+        connectionFailed:
+          "Die Verbindung zum Server ist fehlgeschlagen. Prüfe den IMAP-Server und versuche es erneut.",
+        saveFailed: "Das Postfach konnte nicht gespeichert werden. Bitte versuche es erneut.",
+      },
+      delete: {
+        action: "Postfach trennen",
+        title: "Postfach trennen?",
+        description:
+          "Appligator löscht die Zugangsdaten für {{username}} und ruft keine neuen Mails mehr ab.",
+        confirm: "Trennen",
+        cancel: "Abbrechen",
+        error: "Das Postfach konnte nicht getrennt werden. Bitte versuche es erneut.",
+      },
+    },
+    toast: {
+      added: "Postfach verknüpft",
+      updated: "Postfach aktualisiert",
+      deleted: "Postfach getrennt",
+    },
+  },
   loadError: {
     retry: "Erneut versuchen",
   },

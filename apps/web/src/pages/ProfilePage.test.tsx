@@ -4,10 +4,12 @@ import i18n from "i18next";
 import { afterEach, beforeEach, expect, test } from "vite-plus/test";
 import { aiSettingsFixture, createFakeAiApi } from "../testing/fakeAiApi.ts";
 import { createFakeApi } from "../testing/fakeApi.ts";
+import { createFakeMailApi } from "../testing/fakeMailApi.ts";
 import { renderApp } from "../testing/renderApp.tsx";
 
 beforeEach(() => {
   createFakeApi();
+  createFakeMailApi();
 });
 
 afterEach(async () => {

@@ -14,6 +14,7 @@ import { aiRoutes, type AiOptions } from "./routes/ai.ts";
 import { applicationRoutes } from "./routes/applications.ts";
 import { healthRoutes } from "./routes/health.ts";
 import { jobRoutes } from "./routes/jobs.ts";
+import { mailRoutes, type MailOptions } from "./routes/mail.ts";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -25,11 +26,12 @@ export interface AppOptions {
   auth: AuthOptions;
   db: Database;
   ai: AiOptions;
+  mail: MailOptions;
   webAppOrigin: string;
   apiDocs?: boolean;
 }
 
-export function buildApp({ auth, db, ai, webAppOrigin, apiDocs = false }: AppOptions) {
+export function buildApp({ auth, db, ai, mail, webAppOrigin, apiDocs = false }: AppOptions) {
   const app = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
@@ -50,6 +52,7 @@ export function buildApp({ auth, db, ai, webAppOrigin, apiDocs = false }: AppOpt
   app.register(applicationRoutes);
   app.register(activityRoutes);
   app.register(aiRoutes, ai);
+  app.register(mailRoutes, mail);
 
   return app;
 }

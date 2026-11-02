@@ -71,6 +71,13 @@
       "when": 1793562912862,
       "tag": "0009_hard_proemial_gods",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793626642824,
+      "tag": "0010_create_mail_accounts",
+      "breakpoints": true
     }
   ]
 }

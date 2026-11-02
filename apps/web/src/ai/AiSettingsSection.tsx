@@ -8,13 +8,13 @@ import listStyles from "../details/list.module.css";
 import { capitalize, formatRelativeTime } from "../i18n/formatRelativeTime.ts";
 import { LoadError } from "../loading/LoadError.tsx";
 import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
+import styles from "../profile/settingsSection.module.css";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import { accessError } from "./accessError.ts";
 import { AiAccessDrawer } from "./AiAccessDrawer.tsx";
 import { AiLanguageDrawer } from "./AiLanguageDrawer.tsx";
 import { aiProviderNames } from "./aiProviders.ts";
 import { useAiSettings, useDeleteAiSettings, useVerifyAiSettings } from "./aiQueries.ts";
-import styles from "./AiSettingsSection.module.css";
 
 type OpenDrawer = "access" | "language" | null;
 

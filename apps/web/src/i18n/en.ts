@@ -657,6 +657,64 @@ export const en = {
       languageUpdated: "AI language updated",
     },
   },
+  mail: {
+    title: "Email inbox",
+    description:
+      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted.",
+    loading: "Loading email inbox …",
+    loadError: {
+      title: "Email inbox could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    account: {
+      add: "Connect",
+      addTitle: "Connect inbox",
+      editTitle: "Edit inbox",
+      privacyHint:
+        "Appligator can read all emails in this inbox but doesn't change anything in it. It's best to use a separate inbox just for applications.",
+      setupHint: {
+        preset:
+          "Enable IMAP in the {{provider}} settings under “POP3/IMAP”. With two-factor authentication, you need an application-specific password.",
+        other:
+          "You can find the IMAP server in your provider's help pages. It must be reachable on port 993 with TLS.",
+      },
+      provider: "Provider",
+      otherProvider: "Other provider",
+      host: "IMAP server",
+      username: "Username",
+      usernamePlaceholder: "applications@my-domain.com",
+      password: "Password",
+      updated: "Updated {{time}}",
+      submitAdd: "Connect",
+      submitUpdate: "Update",
+      errors: {
+        providerRequired: "Please select a provider.",
+        hostRequired: "Please enter the IMAP server.",
+        hostInvalid: "Please enter a valid server name, e.g. imap.example.com.",
+        usernameRequired: "Please enter the username.",
+        passwordRequired: "Please enter the password.",
+        loginRejected:
+          "The server rejected the login. Check the username and password and whether IMAP is enabled.",
+        connectionFailed:
+          "The connection to the server failed. Check the IMAP server and try again.",
+        saveFailed: "The inbox could not be saved. Please try again.",
+      },
+      delete: {
+        action: "Disconnect inbox",
+        title: "Disconnect inbox?",
+        description:
+          "Appligator deletes the credentials for {{username}} and stops retrieving new emails.",
+        confirm: "Disconnect",
+        cancel: "Cancel",
+        error: "The inbox could not be disconnected. Please try again.",
+      },
+    },
+    toast: {
+      added: "Inbox connected",
+      updated: "Inbox updated",
+      deleted: "Inbox disconnected",
+    },
+  },
   loadError: {
     retry: "Try again",
   },

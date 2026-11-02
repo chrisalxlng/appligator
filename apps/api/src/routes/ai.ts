@@ -15,7 +15,6 @@ import type { FastifyBaseLogger, FastifyReply } from "fastify";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { aiErrorStatus, toAiErrorCode } from "../ai/aiError.ts";
-import type { ApiKeyCipher } from "../ai/apiKeyCipher.ts";
 import { extractJob, extractJobFromPage } from "../ai/extractJob.ts";
 import { readJobPage } from "../ai/jobPage.ts";
 import {
@@ -24,13 +23,14 @@ import {
   type CreateLanguageModel,
 } from "../ai/languageModel.ts";
 import type { ModelCatalog } from "../ai/modelCatalog.ts";
+import type { SecretCipher } from "../crypto/secretCipher.ts";
 import { aiSettings, jobs } from "../db/schema.ts";
 import { toJob } from "./jobs.ts";
 import { toSalaryColumns } from "./salaryColumns.ts";
 import { notFoundSchema } from "./notFound.ts";
 
 export interface AiOptions {
-  apiKeyCipher: ApiKeyCipher;
+  apiKeyCipher: SecretCipher;
   modelCatalog: ModelCatalog;
   createLanguageModel: CreateLanguageModel;
 }

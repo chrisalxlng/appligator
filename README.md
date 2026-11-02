@@ -27,6 +27,12 @@ The API applies pending migrations from `apps/api/drizzle` on startup, before it
 
 Users connect their own AI API key (OpenAI, Anthropic, Google or Mistral) on the profile page. The API encrypts these keys with AES-256-GCM using a key derived from `AI_API_KEY_ENCRYPTION_KEY`. `vp run dev` loads the placeholder `dev-only-example-key` from `apps/api/.env.development`; production must set a long random secret instead (e.g. `openssl rand -base64 32`) and keep it stable, because changing it makes stored API keys unreadable. The selectable models come from the [models.dev](https://models.dev) catalog, which the API caches for a day.
 
+Users connect a mailbox via IMAP on the profile page. The API encrypts the passwords with AES-256-GCM using a key derived from `MAIL_CREDENTIAL_ENCRYPTION_KEY`, for which the same rules apply as for `AI_API_KEY_ENCRYPTION_KEY`. It only connects to port 993 with TLS and a valid certificate, and refuses hosts that resolve to a non-public address. For local tests, `MAIL_LOCAL_DEV_PORT` (set in `apps/api/.env.development`) exempts the host `localhost` on that port from both rules, certificate included, so production leaves it unset. A local IMAP server for it:
+
+```bash
+docker run --rm -p 3993:3993 -e GREENMAIL_OPTS="-Dgreenmail.setup.test.imaps -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.users=bewerbung:secret@example.com -Dgreenmail.users.login=email" greenmail/standalone
+```
+
 With `API_DOCS=true` (set in `apps/api/.env.development`), the API serves its OpenAPI document and a Swagger UI at http://localhost:3001/docs, generated from the Zod schemas of the routes. The `Authorize` button logs in via Keycloak, which requires `http://localhost:3001/docs/static/oauth2-redirect.html` as a redirect URI of the `appligator-app` client (set up by cl-dev in development). Production leaves `API_DOCS` unset.
 
 - Install dependencies:
@@ -64,7 +70,7 @@ vp run ready
 The [cl-dev](https://github.com/chrisalxlng/cl-dev) setup runs the web app and the API in production from the images `ghcr.io/chrisalxlng/appligator-web` and `ghcr.io/chrisalxlng/appligator-api`. Both are built from the `Dockerfile` in the root (targets `web` and `api`):
 
 - `web` serves the build of the web app with nginx. Its URLs come from `apps/web/.env.production` at build time.
-- `api` listens on port 3000, applies the migrations on startup and requires `DATABASE_URL`, `KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID`, `WEB_APP_ORIGIN` and `AI_API_KEY_ENCRYPTION_KEY`.
+- `api` listens on port 3000, applies the migrations on startup and requires `DATABASE_URL`, `KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID`, `WEB_APP_ORIGIN`, `AI_API_KEY_ENCRYPTION_KEY` and `MAIL_CREDENTIAL_ENCRYPTION_KEY`.
 
 The version tag is the only source of the version: the web app and the extension read it from `VITE_APP_VERSION` at build time, which is `0.0.0` in development, as are the versions in the `package.json` files. Pushing a tag like `v1.2.3` runs the release workflow: it checks and tests everything, pushes both images for `linux/amd64` and `linux/arm64` tagged with the version tag (e.g. `v1.2.3`) and `latest`, and creates a GitHub release with the extension package.
 
