@@ -672,15 +672,15 @@ export const de: Translations = {
   mail: {
     title: "E-Mail-Postfach",
     description:
-      "Verknüpfe ein Postfach per IMAP, damit Appligator eingehende und gesendete Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert.",
+      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert.",
     loading: "E-Mail-Postfach wird geladen …",
     loadError: {
       title: "E-Mail-Postfach konnte nicht geladen werden",
       description: "Prüfe deine Verbindung und versuche es erneut.",
     },
     account: {
-      add: "Verknüpfen",
-      addTitle: "Postfach verknüpfen",
+      add: "Hinzufügen",
+      addTitle: "Postfach hinzufügen",
       editTitle: "Postfach bearbeiten",
       privacyHint:
         "Appligator kann alle Mails in diesem Postfach lesen, ändert darin aber nichts. Nutze daher am besten ein eigenes Postfach nur für Bewerbungen.",
@@ -697,7 +697,7 @@ export const de: Translations = {
       usernamePlaceholder: "bewerbung@meine-domain.de",
       password: "Passwort",
       updated: "{{time}} aktualisiert",
-      submitAdd: "Verknüpfen",
+      submitAdd: "Hinzufügen",
       submitUpdate: "Aktualisieren",
       errors: {
         providerRequired: "Bitte wähle einen Anbieter.",
@@ -712,19 +712,19 @@ export const de: Translations = {
         saveFailed: "Das Postfach konnte nicht gespeichert werden. Bitte versuche es erneut.",
       },
       delete: {
-        action: "Postfach trennen",
-        title: "Postfach trennen?",
+        action: "Postfach entfernen",
+        title: "Postfach entfernen?",
         description:
           "Appligator löscht die Zugangsdaten für {{username}} und ruft keine neuen Mails mehr ab.",
-        confirm: "Trennen",
+        confirm: "Entfernen",
         cancel: "Abbrechen",
-        error: "Das Postfach konnte nicht getrennt werden. Bitte versuche es erneut.",
+        error: "Das Postfach konnte nicht entfernt werden. Bitte versuche es erneut.",
       },
     },
     toast: {
-      added: "Postfach verknüpft",
+      added: "Postfach hinzugefügt",
       updated: "Postfach aktualisiert",
-      deleted: "Postfach getrennt",
+      deleted: "Postfach entfernt",
     },
   },
   loadError: {

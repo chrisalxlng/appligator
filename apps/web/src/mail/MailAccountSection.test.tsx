@@ -16,8 +16,8 @@ function mailSection() {
 }
 
 async function openAddDrawer() {
-  await userEvent.click(await screen.findByRole("button", { name: "Connect inbox" }));
-  return screen.findByRole("dialog", { name: "Connect inbox" });
+  await userEvent.click(await screen.findByRole("button", { name: "Add inbox" }));
+  return screen.findByRole("dialog", { name: "Add inbox" });
 }
 
 async function chooseProvider(drawer: HTMLElement, provider: string) {
@@ -25,12 +25,12 @@ async function chooseProvider(drawer: HTMLElement, provider: string) {
   await userEvent.click(await screen.findByRole("option", { name: provider }));
 }
 
-test("offers to connect an inbox when none is connected", async () => {
+test("offers to add an inbox when none is connected", async () => {
   createFakeMailApi();
   renderApp("/profile");
 
   expect(
-    await within(await mailSection()).findByRole("button", { name: "Connect inbox" }),
+    await within(await mailSection()).findByRole("button", { name: "Add inbox" }),
   ).toBeVisible();
 });
 
@@ -45,7 +45,7 @@ test("shows the connected inbox without a password", async () => {
   ).toHaveTextContent("bewerbung@example.comimap.example.comUpdated 1 month ago");
 });
 
-test("warns about the access to the whole inbox before connecting", async () => {
+test("warns about the access to the whole inbox before adding it", async () => {
   createFakeMailApi();
   renderApp("/profile");
 
@@ -54,7 +54,7 @@ test("warns about the access to the whole inbox before connecting", async () => 
   expect(drawer).toHaveTextContent("Appligator can read all emails in this inbox");
 });
 
-test("connects a preset provider with its known server", async () => {
+test("adds a preset provider with its known server", async () => {
   const api = createFakeMailApi();
   renderApp("/profile");
 
@@ -64,7 +64,7 @@ test("connects a preset provider with its known server", async () => {
   expect(within(drawer).queryByLabelText("IMAP server")).toBeNull();
   await userEvent.type(within(drawer).getByLabelText("Username"), "bewerbung@gmx.de");
   await userEvent.type(within(drawer).getByLabelText("Password"), "secret");
-  await userEvent.click(within(drawer).getByRole("button", { name: "Connect" }));
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
 
   await waitFor(() => expect(drawer).not.toBeInTheDocument());
   expect(api.requestsWith("PUT")[0]!.body).toEqual({
@@ -72,11 +72,11 @@ test("connects a preset provider with its known server", async () => {
     username: "bewerbung@gmx.de",
     password: "secret",
   });
-  expect(screen.getByText("Inbox connected")).toBeInTheDocument();
+  expect(screen.getByText("Inbox added")).toBeInTheDocument();
   expect(await screen.findByRole("button", { name: /^bewerbung@gmx.de/ })).toBeVisible();
 });
 
-test("connects another provider with a custom server", async () => {
+test("adds another provider with a custom server", async () => {
   const api = createFakeMailApi();
   renderApp("/profile");
 
@@ -85,7 +85,7 @@ test("connects another provider with a custom server", async () => {
   await userEvent.type(within(drawer).getByLabelText("IMAP server"), "imap.my-domain.de");
   await userEvent.type(within(drawer).getByLabelText("Username"), "bewerbung@my-domain.de");
   await userEvent.type(within(drawer).getByLabelText("Password"), "secret");
-  await userEvent.click(within(drawer).getByRole("button", { name: "Connect" }));
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
 
   await waitFor(() => expect(drawer).not.toBeInTheDocument());
   expect(api.requestsWith("PUT")[0]!.body).toMatchObject({ host: "imap.my-domain.de" });
@@ -96,7 +96,7 @@ test("shows the errors of invalid input without sending it", async () => {
   renderApp("/profile");
 
   const drawer = await openAddDrawer();
-  await userEvent.click(within(drawer).getByRole("button", { name: "Connect" }));
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
 
   expect(within(drawer).getByText("Please select a provider.")).toBeVisible();
   expect(within(drawer).getByText("Please enter the username.")).toBeVisible();
@@ -117,7 +117,7 @@ test.each([
   await chooseProvider(drawer, "WEB.DE");
   await userEvent.type(within(drawer).getByLabelText("Username"), "bewerbung@web.de");
   await userEvent.type(within(drawer).getByLabelText("Password"), "wrong");
-  await userEvent.click(within(drawer).getByRole("button", { name: "Connect" }));
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
 
   expect(await within(drawer).findByRole("alert")).toHaveTextContent(message);
 });
@@ -144,32 +144,32 @@ test("edits the inbox and asks for the password again", async () => {
   expect(screen.getByText("Inbox updated")).toBeInTheDocument();
 });
 
-test("disconnects the inbox after a confirmation", async () => {
+test("removes the inbox after a confirmation", async () => {
   const api = createFakeMailApi(mailAccountFixture);
   renderApp("/profile");
 
-  await userEvent.click(await screen.findByRole("button", { name: "Disconnect inbox" }));
-  const dialog = await screen.findByRole("alertdialog", { name: "Disconnect inbox?" });
+  await userEvent.click(await screen.findByRole("button", { name: "Remove inbox" }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Remove inbox?" });
   expect(dialog).toHaveTextContent("bewerbung@example.com");
-  await userEvent.click(within(dialog).getByRole("button", { name: "Disconnect" }));
+  await userEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
 
   await waitFor(() => expect(dialog).not.toBeInTheDocument());
   expect(api.requestsWith("DELETE")).toHaveLength(1);
-  expect(screen.getByText("Inbox disconnected")).toBeInTheDocument();
-  expect(await screen.findByRole("button", { name: "Connect inbox" })).toBeVisible();
+  expect(screen.getByText("Inbox removed")).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "Add inbox" })).toBeVisible();
 });
 
-test("keeps the inbox and shows an error when disconnecting fails", async () => {
+test("keeps the inbox and shows an error when removing it fails", async () => {
   const api = createFakeMailApi(mailAccountFixture);
   api.failWith("DELETE", 500);
   renderApp("/profile");
 
-  await userEvent.click(await screen.findByRole("button", { name: "Disconnect inbox" }));
-  const dialog = await screen.findByRole("alertdialog", { name: "Disconnect inbox?" });
-  await userEvent.click(within(dialog).getByRole("button", { name: "Disconnect" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Remove inbox" }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Remove inbox?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
 
   expect(
-    await within(dialog).findByText("The inbox could not be disconnected. Please try again."),
+    await within(dialog).findByText("The inbox could not be removed. Please try again."),
   ).toBeVisible();
 });
 

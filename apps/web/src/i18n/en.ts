@@ -667,8 +667,8 @@ export const en = {
       description: "Check your connection and try again.",
     },
     account: {
-      add: "Connect",
-      addTitle: "Connect inbox",
+      add: "Add",
+      addTitle: "Add inbox",
       editTitle: "Edit inbox",
       privacyHint:
         "Appligator can read all emails in this inbox but doesn't change anything in it. It's best to use a separate inbox just for applications.",
@@ -685,7 +685,7 @@ export const en = {
       usernamePlaceholder: "applications@my-domain.com",
       password: "Password",
       updated: "Updated {{time}}",
-      submitAdd: "Connect",
+      submitAdd: "Add",
       submitUpdate: "Update",
       errors: {
         providerRequired: "Please select a provider.",
@@ -700,19 +700,19 @@ export const en = {
         saveFailed: "The inbox could not be saved. Please try again.",
       },
       delete: {
-        action: "Disconnect inbox",
-        title: "Disconnect inbox?",
+        action: "Remove inbox",
+        title: "Remove inbox?",
         description:
           "Appligator deletes the credentials for {{username}} and stops retrieving new emails.",
-        confirm: "Disconnect",
+        confirm: "Remove",
         cancel: "Cancel",
-        error: "The inbox could not be disconnected. Please try again.",
+        error: "The inbox could not be removed. Please try again.",
       },
     },
     toast: {
-      added: "Inbox connected",
+      added: "Inbox added",
       updated: "Inbox updated",
-      deleted: "Inbox disconnected",
+      deleted: "Inbox removed",
     },
   },
   loadError: {
