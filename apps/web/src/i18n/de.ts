@@ -192,7 +192,7 @@ export const de: Translations = {
       },
     },
     toast: {
-      created: "Bewerbung erstellt",
+      added: "Bewerbung hinzugefügt",
       updated: "Bewerbung aktualisiert",
       deleted: "Bewerbung gelöscht",
     },

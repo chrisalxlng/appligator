@@ -81,7 +81,7 @@ function ApplyForm({ job, onApplied }: { job: Job; onApplied: ApplyContentProps[
       prefill={{ terms: activityTermsSchema.parse(job), notes: job.notes }}
       save={apply}
       onSaved={(application) => {
-        showSuccess(t("applications.toast.created"));
+        showSuccess(t("applications.toast.added"));
         onApplied(application);
       }}
       submit={{ label: t("applications.applyForm.submit"), icon: IconSend }}

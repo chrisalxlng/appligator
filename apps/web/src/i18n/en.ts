@@ -187,7 +187,7 @@ export const en = {
       },
     },
     toast: {
-      created: "Application created",
+      added: "Application added",
       updated: "Application updated",
       deleted: "Application deleted",
     },
