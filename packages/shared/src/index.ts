@@ -95,6 +95,7 @@ export { jobImportInputSchema, maxJobPageLength, type JobImportInput } from "./j
 export {
   mailAccountInputSchema,
   mailAccountSchema,
+  mailAiAssignmentInputSchema,
   mailErrorCodes,
   mailErrorSchema,
   mailHostSchema,
@@ -103,6 +104,8 @@ export {
   type MailErrorCode,
 } from "./mailAccount.ts";
 export {
+  activityInputFromMail,
+  attachmentFromMail,
   mailAssignmentInputSchema,
   mailFolders,
   mailMessageListPageSchema,

@@ -326,3 +326,98 @@ test("marks new emails in the mobile navigation", async () => {
 
   expect(await screen.findByRole("link", { name: "Emails, 1 to review" })).toBeVisible();
 });
+
+test("marks a suggestion in the list and accepts it in one step", async () => {
+  const api = createFakeMailApi(mailAccountFixture, [
+    {
+      ...mailMessageFixture,
+      hasSuggestion: true,
+      suggestion: {
+        application: { id: application.id, position: application.position },
+        activityType: "interviewScheduled",
+      },
+    },
+  ]);
+  renderApp(messagePath);
+
+  expect(await messageCard()).toHaveTextContent("AI suggestion");
+  const detail = await screen.findByRole("article");
+  expect(detail).toHaveTextContent(
+    `AI suggestion: “Interview scheduled” at ${application.position}`,
+  );
+
+  await userEvent.click(within(detail).getByRole("button", { name: "Accept suggestion" }));
+
+  await waitFor(() => expect(api.requestsWith("POST")).toHaveLength(1));
+  expect(api.requestsWith("POST")[0]!.body).toMatchObject({
+    applicationId: application.id,
+    activity: {
+      type: "interviewScheduled",
+      attachments: [{ kind: "email", subject: "Einladung zum Gespräch" }],
+    },
+  });
+  expect(await screen.findByText("Activity added")).toBeInTheDocument();
+  await waitFor(() =>
+    expect(screen.queryByRole("button", { name: "Accept suggestion" })).toBeNull(),
+  );
+});
+
+test("shows an error when accepting a suggestion fails", async () => {
+  const api = createFakeMailApi(mailAccountFixture, [
+    {
+      ...mailMessageFixture,
+      suggestion: {
+        application: { id: application.id, position: application.position },
+        activityType: "other",
+      },
+    },
+  ]);
+  api.failWith(`POST /mail/messages/${mailMessageFixture.id}/assignment`, 500);
+  renderApp(messagePath);
+
+  await userEvent.click(await screen.findByRole("button", { name: "Accept suggestion" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "The suggestion could not be accepted.",
+  );
+});
+
+test("undoes an automatic assignment after a confirmation", async () => {
+  const api = createFakeMailApi(mailAccountFixture, [
+    {
+      ...mailMessageFixture,
+      status: "autoAssigned",
+      application: { id: application.id, position: "Automatic position" },
+    },
+  ]);
+  renderApp(messagePath);
+
+  expect(await messageCard()).toHaveTextContent("Assigned automatically");
+  expect(await screen.findByRole("link", { name: "Automatic position" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Assign to application" })).toBeNull();
+
+  await userEvent.click(screen.getByRole("button", { name: "Undo assignment" }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Undo assignment?" });
+  expect(dialog).toHaveTextContent("will be permanently deleted");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Undo" }));
+
+  await waitFor(() => expect(dialog).not.toBeInTheDocument());
+  expect(api.requestsWith("DELETE")[0]!.path).toBe(
+    `/mail/messages/${mailMessageFixture.id}/assignment`,
+  );
+  expect(screen.getByText("Assignment undone")).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "Assign to application" })).toBeVisible();
+});
+
+test("announces automatically assigned emails instead of new ones", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  const api = createFakeMailApi(mailAccountFixture, [mailMessageFixture]);
+  renderApp(messagePath);
+  await messageCard();
+
+  api.receiveMail({ ...newMail, status: "autoAssigned" });
+  await vi.advanceTimersByTimeAsync(30_000);
+
+  expect(await screen.findByText("1 email assigned automatically")).toBeInTheDocument();
+  expect(screen.queryByText(/new email/)).toBeNull();
+});

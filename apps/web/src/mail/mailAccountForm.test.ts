@@ -14,6 +14,7 @@ const account: MailAccount = {
   accessUpdatedAt: "2026-10-01T12:00:00.000Z",
   lastSyncedAt: null,
   syncError: null,
+  aiAssignment: false,
 };
 
 const values: MailAccountFormValues = {

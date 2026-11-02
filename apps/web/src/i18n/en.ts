@@ -204,6 +204,7 @@ export const en = {
     },
   },
   activities: {
+    automatic: "Detected automatically",
     title: "Activities",
     add: "Add activity",
     edit: "{{date}}: Edit {{type}}",
@@ -717,6 +718,14 @@ export const en = {
         error: "The inbox access could not be deleted. Please try again.",
       },
     },
+    aiAssignment: {
+      label: "Assign emails with AI",
+      description:
+        "Appligator assigns replies and known senders without AI. With this option, Appligator also sends the sender, recipients, subject and text of new emails as well as your applications to {{provider}} to detect the matching application and activity and to dismiss irrelevant emails. This uses your AI credit.",
+      noAccess:
+        "Appligator assigns replies and known senders automatically. Add an AI access to have other emails assigned as well.",
+      error: "The setting could not be saved. Please try again.",
+    },
     toast: {
       added: "Inbox access added",
       updated: "Inbox access updated",
@@ -763,6 +772,7 @@ export const en = {
     noSubject: "(No subject)",
     status: {
       pending: "To review",
+      autoAssigned: "Assigned automatically",
       assigned: "Assigned",
       dismissed: "Dismissed",
     },
@@ -793,6 +803,21 @@ export const en = {
         description: "Create an application first to assign emails to it.",
       },
     },
+    suggestion: {
+      label: "AI suggestion",
+      hint: "AI suggestion: “{{type}}” at {{position}}",
+      accept: "Accept suggestion",
+      error: "The suggestion could not be accepted. Please try again.",
+    },
+    unassign: {
+      action: "Undo assignment",
+      title: "Undo assignment?",
+      description:
+        "The activity of the application will be permanently deleted, and the email is ready for review again.",
+      confirm: "Undo",
+      cancel: "Cancel",
+      error: "The assignment could not be undone. Please try again.",
+    },
     dismiss: {
       action: "Dismiss",
       title: "Dismiss email?",
@@ -803,6 +828,9 @@ export const en = {
       error: "The email could not be dismissed. Please try again.",
     },
     toast: {
+      autoAssigned_one: "{{count}} email assigned automatically",
+      autoAssigned_other: "{{count}} emails assigned automatically",
+      unassigned: "Assignment undone",
       newMails_one: "{{count}} new email",
       newMails_other: "{{count}} new emails",
       noNewMails: "No new emails",

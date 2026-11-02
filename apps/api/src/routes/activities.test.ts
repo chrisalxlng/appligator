@@ -1,6 +1,7 @@
 import type { ActivityInput, JobInput } from "@appligator/shared";
+import { eq } from "drizzle-orm";
 import { beforeEach, expect, test } from "vite-plus/test";
-import { applications, jobs } from "../db/schema.ts";
+import { activities, applications, jobs } from "../db/schema.ts";
 import { buildTestApp, signToken } from "../testAuth.ts";
 import { createTestDatabase } from "../testDatabase.ts";
 
@@ -116,6 +117,7 @@ test("POST /applications/:id/activities adds an activity with its fields", async
     ...offer,
     id: expect.any(String),
     detailsReviewed: false,
+    automatic: false,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
   });
@@ -448,4 +450,18 @@ test("POST /applications/:id/activities accepts more than the default body limit
   });
 
   expect(response.statusCode).toBe(201);
+});
+
+test("PUT /applications/:id/activities/:activityId removes the automatic marker", async () => {
+  const applicationId = await createApplication();
+  const [submission] = await listActivities(applicationId);
+  await db.update(activities).set({ automatic: true }).where(eq(activities.id, submission.id));
+
+  const response = await request(
+    "PUT",
+    `/applications/${applicationId}/activities/${submission.id}`,
+    { body: activityInput },
+  );
+
+  expect(response.json()).toMatchObject({ automatic: false });
 });

@@ -104,3 +104,28 @@ test("copes with an email without any headers or content", async () => {
     attachmentCount: 0,
   });
 });
+
+test("collects the emails it refers to", async () => {
+  const { referencedMessageIds } = await parseMail(
+    rawMail(
+      [
+        ...headers,
+        "In-Reply-To: <reply@example.com>",
+        "References: <a@example.com> <b@example.com>",
+      ],
+      "Hello",
+    ),
+  );
+
+  expect(referencedMessageIds).toEqual([
+    "<reply@example.com>",
+    "<a@example.com>",
+    "<b@example.com>",
+  ]);
+});
+
+test("has no references for a new conversation", async () => {
+  const { referencedMessageIds } = await parseMail(rawMail(headers, "Hello"));
+
+  expect(referencedMessageIds).toEqual([]);
+});

@@ -9,15 +9,18 @@ export interface RawMail {
   source: Uint8Array;
 }
 
+function hash(value: string | Uint8Array) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
 export async function ingestMail(db: Database, userId: string, { folder, source }: RawMail) {
-  const { messageId, content } = await parseMail(source);
-  const messageIdHash = createHash("sha256")
-    .update(messageId ?? source)
-    .digest("hex");
+  const { messageId, referencedMessageIds, content } = await parseMail(source);
+  const messageIdHash = hash(messageId ?? source);
+  const referencedHashes = referencedMessageIds.map(hash);
 
   const inserted = await db
     .insert(mailMessages)
-    .values({ userId, messageIdHash, folder, content })
+    .values({ userId, messageIdHash, folder, content, referencedHashes })
     .onConflictDoNothing()
     .returning({ id: mailMessages.id });
   return inserted.length > 0;

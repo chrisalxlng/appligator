@@ -31,7 +31,7 @@ function toHeader(value: string) {
 }
 
 export async function parseMail(source: Uint8Array) {
-  const { messageId, subject, from, to, date, html, text, attachments } =
+  const { messageId, inReplyTo, references, subject, from, to, date, html, text, attachments } =
     await PostalMime.parse(source);
 
   const content: MailContent = {
@@ -42,5 +42,6 @@ export async function parseMail(source: Uint8Array) {
     body: toBody(html, text),
     attachmentCount: attachments.filter(({ disposition }) => disposition === "attachment").length,
   };
-  return { messageId, content };
+  const referencedMessageIds = `${inReplyTo ?? ""} ${references ?? ""}`.match(/<[^<>\s]+>/g) ?? [];
+  return { messageId, referencedMessageIds, content };
 }

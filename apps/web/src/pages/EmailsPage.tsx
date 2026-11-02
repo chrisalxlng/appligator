@@ -99,7 +99,11 @@ export function EmailsPage() {
           }))}
           dateLabel={mailDateLabel}
           openedId={messageId}
-          status={(message) => messageStatus(message.status)}
+          status={(message) =>
+            message.status === "pending" && message.hasSuggestion
+              ? { label: t("emails.suggestion.label"), tone: "highlight" }
+              : messageStatus(message.status)
+          }
           renderLink={(message, props) => (
             <Link to="/emails/$messageId" params={{ messageId: message.id }} {...props} />
           )}

@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { DetailView, NotSpecified, Property } from "../collection/DetailView.tsx";
 import { formatDateTime } from "../details/format.ts";
 import { MailMessageActions } from "./MailMessageActions.tsx";
+import { MailSuggestionHint } from "./MailSuggestionHint.tsx";
 import { useMailMessageStatus } from "./useMailMessageStatus.ts";
 
 export function MailMessageDetail({ message }: { message: MailMessage }) {
@@ -64,6 +65,9 @@ export function MailMessageDetail({ message }: { message: MailMessage }) {
         </>
       }
     >
+      {message.status === "pending" && message.suggestion && (
+        <MailSuggestionHint message={message} suggestion={message.suggestion} />
+      )}
       <RichText html={message.body} headingLevel={3} />
     </DetailView>
   );

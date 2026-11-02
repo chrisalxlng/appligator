@@ -13,6 +13,7 @@ const sync = createMailSync({
   db,
   passwordCipher: testMailPasswordCipher,
   readNewMail,
+  loadLanguageModel: async () => undefined,
   log: log as never,
 });
 

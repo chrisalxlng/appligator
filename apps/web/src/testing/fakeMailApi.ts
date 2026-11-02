@@ -13,6 +13,7 @@ export const mailAccountFixture: MailAccount = {
   accessUpdatedAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
   lastSyncedAt: null,
   syncError: null,
+  aiAssignment: false,
 };
 
 export const mailMessageFixture: MailMessage = {
@@ -24,9 +25,11 @@ export const mailMessageFixture: MailMessage = {
   sentAt: "2026-10-30T09:14:00.000Z",
   status: "pending",
   attachmentCount: 0,
+  hasSuggestion: false,
   createdAt: "2026-10-30T09:20:00.000Z",
   body: "<p>Wir laden Sie ein.</p>",
   application: null,
+  suggestion: null,
 };
 
 function json(data: unknown, status = 200) {
@@ -84,6 +87,10 @@ export function createFakeMailApi(
     const update = (changes: Partial<MailMessage>) => {
       messages = messages.map((other) => (other.id === id ? { ...other, ...changes } : other));
     };
+    if (method === "DELETE" && pathname.endsWith("/assignment")) {
+      update({ status: "pending", application: null });
+      return new Response(null, { status: 204 });
+    }
     if (method === "DELETE") {
       update({ status: "dismissed" });
       return new Response(null, { status: 204 });
@@ -91,6 +98,8 @@ export function createFakeMailApi(
     update({
       status: "assigned",
       application: { id: assignment!.applicationId, position: "Assigned application" },
+      suggestion: null,
+      hasSuggestion: false,
     });
     return json(
       {
@@ -99,6 +108,7 @@ export function createFakeMailApi(
         occurredAt: message.createdAt,
         terms: null,
         detailsReviewed: false,
+        automatic: false,
         appointmentAt: null,
         dueDate: null,
         responseDeadline: null,
@@ -111,6 +121,11 @@ export function createFakeMailApi(
     );
   }
 
+  function handleAiAssignment(enabled: boolean) {
+    account = { ...account!, aiAssignment: enabled };
+    return json(account);
+  }
+
   function handle(path: string, init?: RequestInit) {
     const method = init?.method ?? "GET";
     const body = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
@@ -119,6 +134,7 @@ export function createFakeMailApi(
     const failure = failures.get(`${method} ${path}`);
     if (failure) return json(failure.error ? { error: failure.error } : null, failure.status);
 
+    if (path === "/mail/account/ai-assignment") return handleAiAssignment(body.enabled);
     if (path.startsWith("/mail/messages") || path === "/mail/sync") {
       return handleMessages(method, path, body);
     }
@@ -130,6 +146,7 @@ export function createFakeMailApi(
         accessUpdatedAt: new Date().toISOString(),
         lastSyncedAt: null,
         syncError: null,
+        aiAssignment: false,
       };
       return json(account);
     }

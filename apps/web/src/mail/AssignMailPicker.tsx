@@ -1,4 +1,4 @@
-import type { ActivityType, MailMessage } from "@appligator/shared";
+import { attachmentFromMail, type ActivityType, type MailMessage } from "@appligator/shared";
 import { Button, Drawer, Popover, SearchList, Spinner, useSuccessToast } from "@appligator/ui";
 import { IconLink, IconPlus } from "@tabler/icons-react";
 import { useRef, useState, type RefObject } from "react";
@@ -210,14 +210,13 @@ interface AssignFormProps {
 function AssignForm({ message, applicationId, type, onSaved }: AssignFormProps) {
   const { t } = useTranslation();
   const assign = useAssignMailMessage(message.id, applicationId);
-  const { subject, from, to, sentAt, body, createdAt } = message;
 
   return (
     <ActivityForm
       type={type}
       prefill={{
-        occurredAt: sentAt ?? createdAt,
-        attachments: [{ kind: "email", subject, from, to, sentAt, body }],
+        occurredAt: message.sentAt ?? message.createdAt,
+        attachments: [attachmentFromMail(message)],
       }}
       save={assign}
       onSaved={onSaved}

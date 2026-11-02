@@ -1,9 +1,11 @@
 import type { MailErrorCode } from "@appligator/shared";
 import { and, eq, lt, sql } from "drizzle-orm";
 import type { FastifyBaseLogger } from "fastify";
+import type { LoadLanguageModel } from "../ai/storedLanguageModel.ts";
 import type { SecretCipher } from "../crypto/secretCipher.ts";
 import type { Database } from "../db/database.ts";
 import { mailAccounts, mailMessages } from "../db/schema.ts";
+import { createMailAutoAssigner } from "./autoAssignMails.ts";
 import { ingestMail, type RawMail } from "./ingestMail.ts";
 import { toMailErrorCode } from "./mailAccess.ts";
 import type { ReadNewMail } from "./mailReader.ts";
@@ -22,6 +24,7 @@ export interface MailSyncOptions {
   db: Database;
   passwordCipher: SecretCipher;
   readNewMail: ReadNewMail;
+  loadLanguageModel: LoadLanguageModel;
   log: FastifyBaseLogger;
 }
 
@@ -35,7 +38,15 @@ function nextAttemptAfterFailure(code: string, failures: number) {
   return new Date(Date.now() + Math.min(syncIntervalMs * 2 ** failures, maxBackoffMs));
 }
 
-export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyncOptions) {
+export function createMailSync({
+  db,
+  passwordCipher,
+  readNewMail,
+  loadLanguageModel,
+  log,
+}: MailSyncOptions) {
+  const assignNewMails = createMailAutoAssigner({ db, loadLanguageModel, log });
+
   // The lease keeps other API instances away for the duration of the sync, without holding a
   // transaction open during the network requests, and lets them retry if this one crashes.
   async function claimDueAccount() {
@@ -112,9 +123,11 @@ export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyn
       const result = await readNewMail({ host, username, password }, cursors, async (mail) => {
         if (await ingestSafely(userId, mail)) newMails++;
       });
+      const hasMoreToAssign = await assignNewMails(account);
       await saveResult(account, {
         cursors: result.cursors,
-        nextSyncAt: result.hasMore ? new Date() : new Date(Date.now() + syncIntervalMs),
+        nextSyncAt:
+          result.hasMore || hasMoreToAssign ? new Date() : new Date(Date.now() + syncIntervalMs),
         lastSyncedAt: new Date(),
         syncError: null,
         syncFailures: 0,

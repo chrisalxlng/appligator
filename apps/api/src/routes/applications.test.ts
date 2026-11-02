@@ -121,6 +121,7 @@ test("POST /applications applies to a job with the terms and notes of the submis
       ...submission,
       id: expect.any(String),
       detailsReviewed: false,
+      automatic: false,
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     },

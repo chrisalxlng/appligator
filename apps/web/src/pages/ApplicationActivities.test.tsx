@@ -309,3 +309,11 @@ test("shows the status that the latest activity results in", async () => {
     await screen.findByRole("link", { name: /Lead Developer Frontend.*Rejected$/ }),
   ).toBeVisible();
 });
+
+test("marks an automatically created activity", async () => {
+  renderActivities([activityWith({ type: "interviewScheduled", automatic: true }), submission]);
+
+  const log = await findLog();
+
+  expect(within(log).getAllByText("Detected automatically")).toHaveLength(1);
+});

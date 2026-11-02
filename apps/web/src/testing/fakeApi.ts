@@ -94,6 +94,7 @@ export function activityWith(overrides: Partial<Activity> = {}): Activity {
     notes: "",
     attachments: [],
     detailsReviewed: false,
+    automatic: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,

@@ -1,9 +1,15 @@
 import { z } from "zod";
-import { activityInputSchema } from "./activity.ts";
+import {
+  activityInputSchema,
+  activityTypes,
+  type ActivityInput,
+  type ActivityType,
+  type Attachment,
+} from "./activity.ts";
 import { statusCountsSchema } from "./status.ts";
 
 export const mailFolders = ["inbox", "sent"] as const;
-export const mailMessageStatuses = ["pending", "assigned", "dismissed"] as const;
+export const mailMessageStatuses = ["pending", "autoAssigned", "assigned", "dismissed"] as const;
 
 export const mailMessageListItemSchema = z.object({
   id: z.uuid(),
@@ -14,12 +20,18 @@ export const mailMessageListItemSchema = z.object({
   to: z.string(),
   sentAt: z.iso.datetime().nullable(),
   attachmentCount: z.number().int().min(0),
+  hasSuggestion: z.boolean(),
   createdAt: z.iso.datetime(),
 });
 
+const linkedApplicationSchema = z.object({ id: z.uuid(), position: z.string() });
+
 export const mailMessageSchema = mailMessageListItemSchema.extend({
   body: z.string(),
-  application: z.object({ id: z.uuid(), position: z.string() }).nullable(),
+  application: linkedApplicationSchema.nullable(),
+  suggestion: z
+    .object({ application: linkedApplicationSchema, activityType: z.enum(activityTypes) })
+    .nullable(),
 });
 
 export const mailMessageListPageSchema = z.object({
@@ -41,3 +53,26 @@ export type MailMessageStatus = (typeof mailMessageStatuses)[number];
 export type MailMessageListItem = z.infer<typeof mailMessageListItemSchema>;
 export type MailMessage = z.infer<typeof mailMessageSchema>;
 export type MailAssignmentInput = z.infer<typeof mailAssignmentInputSchema>;
+
+type MailAttachmentFields = Omit<Extract<Attachment, { kind: "email" }>, "kind">;
+
+export function attachmentFromMail({ subject, from, to, sentAt, body }: MailAttachmentFields) {
+  return { kind: "email" as const, subject, from, to, sentAt, body };
+}
+
+export function activityInputFromMail(
+  type: ActivityType,
+  mail: MailAttachmentFields,
+  receivedAt: string,
+): ActivityInput {
+  return {
+    type,
+    occurredAt: mail.sentAt ?? receivedAt,
+    terms: null,
+    appointmentAt: null,
+    dueDate: null,
+    responseDeadline: null,
+    notes: "",
+    attachments: [attachmentFromMail(mail)],
+  };
+}

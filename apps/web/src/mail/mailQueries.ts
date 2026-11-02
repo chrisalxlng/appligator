@@ -67,6 +67,16 @@ export function useDeleteMailAccount() {
   });
 }
 
+export function useSetMailAiAssignment() {
+  const mailApi = useMailApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: mailApi.setAiAssignment,
+    onSuccess: (account) => queryClient.setQueryData(mailAccountKey, account),
+  });
+}
+
 export function useSyncMail() {
   const mailApi = useMailApi();
   const queryClient = useQueryClient();
@@ -147,6 +157,17 @@ export function useAssignMailMessage(id: string, applicationId: string) {
         queryClient.invalidateQueries({ queryKey: applicationKeys.detail(applicationId) }),
         invalidateApplicationStatus(queryClient),
       ]),
+  );
+}
+
+export function useUnassignMailMessage(id: string) {
+  const mailApi = useMailApi();
+  const queryClient = useQueryClient();
+
+  return useMailMessageMutation(
+    id,
+    () => mailApi.unassignMessage(id),
+    () => queryClient.invalidateQueries({ queryKey: ["applications"] }),
   );
 }
 

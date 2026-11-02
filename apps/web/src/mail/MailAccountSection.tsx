@@ -1,8 +1,10 @@
 import type { MailAccount } from "@appligator/shared";
-import { ConfirmDialog, IconButton, Spinner, useSuccessToast } from "@appligator/ui";
+import { Checkbox, ConfirmDialog, IconButton, Spinner, useSuccessToast } from "@appligator/ui";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { aiProviderNames } from "../ai/aiProviders.ts";
+import { useAiSettings } from "../ai/aiQueries.ts";
 import listStyles from "../details/list.module.css";
 import { capitalize, formatRelativeTime } from "../i18n/formatRelativeTime.ts";
 import { LoadError } from "../loading/LoadError.tsx";
@@ -11,7 +13,7 @@ import styles from "../profile/settingsSection.module.css";
 import { useShortcutHints } from "../shortcuts/useShortcutHints.ts";
 import a11y from "../styles/visuallyHidden.module.css";
 import { MailAccountDrawer } from "./MailAccountDrawer.tsx";
-import { useDeleteMailAccount, useMailAccount } from "./mailQueries.ts";
+import { useDeleteMailAccount, useMailAccount, useSetMailAiAssignment } from "./mailQueries.ts";
 
 export function MailAccountSection() {
   const { t } = useTranslation();
@@ -39,7 +41,10 @@ export function MailAccountSection() {
       )}
       {account.isSuccess &&
         (account.data ? (
-          <MailAccountCard account={account.data} onEdit={() => setIsDrawerOpen(true)} />
+          <>
+            <MailAccountCard account={account.data} onEdit={() => setIsDrawerOpen(true)} />
+            <MailAiAssignmentSetting account={account.data} />
+          </>
         ) : (
           <button
             type="button"
@@ -125,5 +130,37 @@ function MailAccountCard({ account, onEdit }: { account: MailAccount; onEdit: ()
         </p>
       )}
     </>
+  );
+}
+
+function MailAiAssignmentSetting({ account }: { account: MailAccount }) {
+  const { t } = useTranslation();
+  const aiSettings = useAiSettings();
+  const setAiAssignment = useSetMailAiAssignment();
+
+  if (!aiSettings.isSuccess) return null;
+  if (!aiSettings.data) {
+    return <p className={styles.description}>{t("mail.aiAssignment.noAccess")}</p>;
+  }
+
+  return (
+    <div className={styles.intro}>
+      <Checkbox
+        checked={account.aiAssignment}
+        onCheckedChange={(enabled) => setAiAssignment.mutate(enabled)}
+      >
+        {t("mail.aiAssignment.label")}
+      </Checkbox>
+      <p className={styles.description}>
+        {t("mail.aiAssignment.description", {
+          provider: aiProviderNames[aiSettings.data.provider],
+        })}
+      </p>
+      {setAiAssignment.isError && (
+        <p role="alert" className={styles.settingError}>
+          {t("mail.aiAssignment.error")}
+        </p>
+      )}
+    </div>
   );
 }

@@ -101,6 +101,11 @@
   font: var(--font-body-s);
 }
 
+.settingError {
+  color: var(--destructive-text);
+  font: var(--font-body-s);
+}
+
 .cardContent {
   display: flex;
   flex: 1;

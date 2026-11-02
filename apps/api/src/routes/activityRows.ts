@@ -16,10 +16,15 @@ export function toActivityColumns({ occurredAt, appointmentAt, ...input }: Activ
   };
 }
 
-export async function insertActivity(tx: Database, applicationId: string, input: ActivityInput) {
+export async function insertActivity(
+  tx: Database,
+  applicationId: string,
+  input: ActivityInput,
+  { automatic = false } = {},
+) {
   const [inserted] = await tx
     .insert(activities)
-    .values({ ...toActivityColumns(input), applicationId })
+    .values({ ...toActivityColumns(input), applicationId, automatic })
     .returning();
   if (input.terms) await fillEmptyDetails(tx, applicationId, input.terms);
   await updateApplicationStatus(tx, applicationId);

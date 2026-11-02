@@ -23,6 +23,7 @@ import {
   type CreateLanguageModel,
 } from "../ai/languageModel.ts";
 import type { ModelCatalog } from "../ai/modelCatalog.ts";
+import { createLanguageModelLoader, readStoredApiKey } from "../ai/storedLanguageModel.ts";
 import type { SecretCipher } from "../crypto/secretCipher.ts";
 import { aiSettings, jobs } from "../db/schema.ts";
 import { toJob } from "./jobs.ts";
@@ -66,15 +67,13 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
   app,
   { apiKeyCipher, modelCatalog, createLanguageModel },
 ) => {
-  // A key stored with another encryption secret can't be decrypted and counts as missing.
-  function readApiKey({ encryptedApiKey, userId }: AiSettingsRow, log: FastifyBaseLogger) {
-    try {
-      return apiKeyCipher.decrypt(encryptedApiKey, userId);
-    } catch (error) {
-      log.error(error, "Decrypting the stored API key failed");
-      return undefined;
-    }
-  }
+  const readApiKey = (settings: AiSettingsRow, log: FastifyBaseLogger) =>
+    readStoredApiKey(apiKeyCipher, settings, log);
+  const loadLanguageModel = createLanguageModelLoader({
+    db: app.db,
+    apiKeyCipher,
+    createLanguageModel,
+  });
 
   async function verifyAccess(access: AiAccess, log: FastifyBaseLogger) {
     try {
@@ -85,17 +84,6 @@ export const aiRoutes: FastifyPluginAsyncZod<AiOptions> = async (
       log.info({ code }, "AI access verification failed");
       return code;
     }
-  }
-
-  async function loadLanguageModel(userId: string, log: FastifyBaseLogger) {
-    const [settings] = await app.db.select().from(aiSettings).where(eq(aiSettings.userId, userId));
-    if (!settings) return undefined;
-
-    const apiKey = readApiKey(settings, log);
-    if (!apiKey) return undefined;
-
-    const { provider, model, language } = settings;
-    return { model: createLanguageModel({ provider, model, apiKey }), language };
   }
 
   app.get(

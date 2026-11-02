@@ -12,6 +12,7 @@ import {
   salaryPeriods,
   workModels,
   type ActivityTerms,
+  type ActivityType,
   type Attachment,
   type ContractTerm,
   type MailFolder,
@@ -28,6 +29,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -137,6 +139,7 @@ export const activities = pgTable(
     occurredAt: timestamp({ withTimezone: true }).notNull(),
     terms: jsonb().$type<ActivityTerms>(),
     detailsReviewed: boolean().notNull().default(false),
+    automatic: boolean().notNull().default(false),
     appointmentAt: timestamp({ withTimezone: true }),
     dueDate: date(),
     responseDeadline: date(),
@@ -180,6 +183,7 @@ export const mailAccounts = pgTable(
     lastSyncedAt: timestamp({ withTimezone: true }),
     syncError: mailErrorEnum(),
     syncFailures: integer().notNull().default(0),
+    aiAssignment: boolean().notNull().default(false),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     accessUpdatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
@@ -195,6 +199,11 @@ export interface MailContent {
   attachmentCount: number;
 }
 
+export interface MailSuggestion {
+  applicationId: string;
+  activityType: ActivityType;
+}
+
 export const mailMessages = pgTable(
   "mail_messages",
   {
@@ -205,10 +214,34 @@ export const mailMessages = pgTable(
     status: mailMessageStatusEnum().notNull().default("pending"),
     content: jsonb().$type<MailContent>().notNull(),
     applicationId: uuid().references(() => applications.id, { onDelete: "set null" }),
+    activityId: uuid().references(() => activities.id, { onDelete: "set null" }),
+    referencedHashes: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    suggestion: jsonb().$type<MailSuggestion>(),
+    classifiedAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     unique().on(table.userId, table.messageIdHash),
     index().on(table.userId, table.status, table.createdAt.desc()),
+  ],
+);
+
+export const mailAssignments = pgTable(
+  "mail_assignments",
+  {
+    userId: text().notNull(),
+    messageIdHash: text().notNull(),
+    sender: text().notNull(),
+    applicationId: uuid()
+      .notNull()
+      .references(() => applications.id, { onDelete: "cascade" }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.messageIdHash] }),
+    index().on(table.userId, table.sender),
   ],
 );
