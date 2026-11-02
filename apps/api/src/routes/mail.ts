@@ -195,7 +195,15 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
       .select({ id: applications.id, position: applications.position })
       .from(applications)
       .where(and(eq(applications.id, suggestion.applicationId), eq(applications.userId, userId)));
-    return application ? { application, activityType: suggestion.activityType } : null;
+    return application
+      ? {
+          application,
+          activityType: suggestion.activityType,
+          appointmentAt: suggestion.appointmentAt,
+          dueDate: suggestion.dueDate,
+          responseDeadline: suggestion.responseDeadline,
+        }
+      : null;
   }
 
   app.get(

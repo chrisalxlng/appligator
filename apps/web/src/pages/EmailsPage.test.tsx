@@ -335,6 +335,9 @@ test("marks a suggestion in the list and accepts it in one step", async () => {
       suggestion: {
         application: { id: application.id, position: application.position },
         activityType: "interviewScheduled",
+        appointmentAt: "2026-11-10T13:00:00.000Z",
+        dueDate: null,
+        responseDeadline: null,
       },
     },
   ]);
@@ -353,6 +356,7 @@ test("marks a suggestion in the list and accepts it in one step", async () => {
     applicationId: application.id,
     activity: {
       type: "interviewScheduled",
+      appointmentAt: "2026-11-10T13:00:00.000Z",
       attachments: [{ kind: "email", subject: "Einladung zum Gespräch" }],
     },
   });
@@ -369,6 +373,9 @@ test("shows an error when accepting a suggestion fails", async () => {
       suggestion: {
         application: { id: application.id, position: application.position },
         activityType: "other",
+        appointmentAt: null,
+        dueDate: null,
+        responseDeadline: null,
       },
     },
   ]);
@@ -420,4 +427,43 @@ test("announces automatically assigned emails instead of new ones", async () => 
 
   expect(await screen.findByText("1 email assigned automatically")).toBeInTheDocument();
   expect(screen.queryByText(/new email/)).toBeNull();
+});
+
+test("hides the emails page from the navigation without an inbox", async () => {
+  createFakeMailApi();
+  renderApp("/jobs");
+
+  const [navigation] = await screen.findAllByRole("navigation", { name: "Main navigation" });
+  await waitFor(() =>
+    expect(within(navigation!).getByRole("link", { name: "Jobs" })).toBeVisible(),
+  );
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  expect(within(navigation!).queryByRole("link", { name: /^Emails/ })).toBeNull();
+});
+
+test("doesn't ask for new emails without an inbox", async () => {
+  const api = createFakeMailApi();
+  renderApp("/jobs");
+
+  await waitFor(() => expect(api.requestsWith("GET").length).toBeGreaterThan(0));
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  expect(api.requestsWith("GET").map(({ path }) => path)).toEqual(["/mail/account"]);
+});
+
+test("shows the emails page in the navigation once an inbox is connected", async () => {
+  createFakeMailApi();
+  renderApp("/profile");
+
+  await userEvent.click(await screen.findByRole("button", { name: "Add inbox access" }));
+  const drawer = await screen.findByRole("dialog", { name: "Add inbox access" });
+  await userEvent.click(within(drawer).getByRole("combobox", { name: "Provider" }));
+  await userEvent.click(await screen.findByRole("option", { name: "GMX" }));
+  await userEvent.type(within(drawer).getByLabelText("Username"), "bewerbung@gmx.de");
+  await userEvent.type(within(drawer).getByLabelText("Password"), "secret");
+  await userEvent.click(within(drawer).getByRole("button", { name: "Add" }));
+
+  const [navigation] = await screen.findAllByRole("navigation", { name: "Main navigation" });
+  expect(await within(navigation!).findByRole("link", { name: /^Emails/ })).toBeVisible();
 });

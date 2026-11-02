@@ -58,6 +58,11 @@
   }
 }
 
+.switchCard:has(:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--active-separator);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .accessCard {
   position: relative;
 
@@ -97,11 +102,6 @@
 
 .verifyError {
   margin-top: calc(-1 * var(--spacing-4));
-  color: var(--destructive-text);
-  font: var(--font-body-s);
-}
-
-.settingError {
   color: var(--destructive-text);
   font: var(--font-body-s);
 }

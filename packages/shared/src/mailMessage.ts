@@ -30,7 +30,13 @@ export const mailMessageSchema = mailMessageListItemSchema.extend({
   body: z.string(),
   application: linkedApplicationSchema.nullable(),
   suggestion: z
-    .object({ application: linkedApplicationSchema, activityType: z.enum(activityTypes) })
+    .object({
+      application: linkedApplicationSchema,
+      activityType: z.enum(activityTypes),
+      appointmentAt: z.iso.datetime().nullable(),
+      dueDate: z.iso.date().nullable(),
+      responseDeadline: z.iso.date().nullable(),
+    })
     .nullable(),
 });
 
@@ -64,6 +70,7 @@ export function activityInputFromMail(
   type: ActivityType,
   mail: MailAttachmentFields,
   receivedAt: string,
+  dates: Partial<Pick<ActivityInput, "appointmentAt" | "dueDate" | "responseDeadline">> = {},
 ): ActivityInput {
   return {
     type,
@@ -74,5 +81,6 @@ export function activityInputFromMail(
     responseDeadline: null,
     notes: "",
     attachments: [attachmentFromMail(mail)],
+    ...dates,
   };
 }

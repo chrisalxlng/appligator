@@ -3,7 +3,12 @@ import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { FastifyBaseLogger } from "fastify";
 import type { LoadLanguageModel } from "../ai/storedLanguageModel.ts";
 import type { Database } from "../db/database.ts";
-import { applications, mailAssignments, mailMessages } from "../db/schema.ts";
+import {
+  applications,
+  mailAssignments,
+  mailMessages,
+  type MailActivityDates,
+} from "../db/schema.ts";
 import { assignMessage, counterpartOf } from "./assignMessage.ts";
 import { classifyMail, type ApplicationCandidate } from "./classifyMail.ts";
 
@@ -101,12 +106,22 @@ export function createMailAutoAssigner({ db, loadLanguageModel, log }: AutoAssig
       .where(and(eq(mailMessages.id, message.id), eq(mailMessages.status, "pending")));
   }
 
-  function assignAutomatically(message: MailMessageRow, applicationId: string, type: ActivityType) {
+  function assignAutomatically(
+    message: MailMessageRow,
+    applicationId: string,
+    type: ActivityType,
+    dates?: MailActivityDates,
+  ) {
     return db.transaction(async (tx) => {
       await assignMessage(tx, {
         messageWhere: and(eq(mailMessages.id, message.id), eq(mailMessages.status, "pending")),
         applicationId,
-        activity: activityInputFromMail(type, message.content, message.createdAt.toISOString()),
+        activity: activityInputFromMail(
+          type,
+          message.content,
+          message.createdAt.toISOString(),
+          dates,
+        ),
         automatic: true,
       });
       await tx
@@ -136,6 +151,7 @@ export function createMailAutoAssigner({ db, loadLanguageModel, log }: AutoAssig
       content: message.content,
       isSent: message.folder === "sent",
       candidates: known ? [known] : candidates,
+      receivedAt: message.createdAt,
     }).catch((error: unknown) => {
       // Without the model, the known application is still sure, just not what the email means.
       if (knownApplicationId) return { category: "unclear" as const };
@@ -143,16 +159,21 @@ export function createMailAutoAssigner({ db, loadLanguageModel, log }: AutoAssig
     });
 
     if (knownApplicationId) {
-      const isSure = classification.category === "application" && classification.confident;
-      const type = isSure ? classification.type : "other";
-      await assignAutomatically(message, knownApplicationId, type);
+      if (classification.category === "application" && classification.confident) {
+        const { type, dates } = classification;
+        await assignAutomatically(message, knownApplicationId, type, dates);
+      } else {
+        await assignAutomatically(message, knownApplicationId, "other");
+      }
     } else if (classification.category === "application" && classification.confident) {
-      await assignAutomatically(message, classification.application.id, classification.type);
+      const { application, type, dates } = classification;
+      await assignAutomatically(message, application.id, type, dates);
     } else if (classification.category === "application") {
       await markClassified(message, {
         suggestion: {
           applicationId: classification.application.id,
           activityType: classification.type,
+          ...classification.dates,
         },
       });
     } else if (classification.category === "irrelevant" && classification.confident) {

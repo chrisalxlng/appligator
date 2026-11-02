@@ -101,9 +101,11 @@ export function useMailMessages(status: MailMessageStatus | null = null) {
 
 export function useMailMessageStatusCounts() {
   const mailApi = useMailApi();
+  const { data: account } = useMailAccount();
   return useQuery({
     queryKey: mailMessageKeys.statusCounts,
     queryFn: mailApi.messageStatusCounts,
+    enabled: Boolean(account),
     refetchInterval: newMailCheckIntervalMs,
   });
 }

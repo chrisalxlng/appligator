@@ -529,12 +529,28 @@ test("PUT /mail/account/ai-assignment responds with 404 without an account", asy
   expect(response.statusCode).toBe(404);
 });
 
+function emptySuggestion(applicationId: string) {
+  return {
+    applicationId,
+    activityType: "other" as const,
+    appointmentAt: null,
+    dueDate: null,
+    responseDeadline: null,
+  };
+}
+
 test("GET /mail/messages/:id resolves a suggestion and marks it in the list", async () => {
   const application = await storedApplication();
   const message = await storedMessage();
-  await db
-    .update(mailMessages)
-    .set({ suggestion: { applicationId: application.id, activityType: "interviewScheduled" } });
+  await db.update(mailMessages).set({
+    suggestion: {
+      applicationId: application.id,
+      activityType: "interviewScheduled",
+      appointmentAt: "2026-11-10T13:00:00.000Z",
+      dueDate: null,
+      responseDeadline: null,
+    },
+  });
 
   const detail = (await request("GET", { url: `/mail/messages/${message.id}` })).json();
   const list = (await request("GET", { url: "/mail/messages" })).json();
@@ -542,6 +558,9 @@ test("GET /mail/messages/:id resolves a suggestion and marks it in the list", as
   expect(detail.suggestion).toEqual({
     application: { id: application.id, position: "Developer" },
     activityType: "interviewScheduled",
+    appointmentAt: "2026-11-10T13:00:00.000Z",
+    dueDate: null,
+    responseDeadline: null,
   });
   expect(list.items[0].hasSuggestion).toBe(true);
 });
@@ -549,9 +568,7 @@ test("GET /mail/messages/:id resolves a suggestion and marks it in the list", as
 test("GET /mail/messages/:id drops a suggestion for a deleted application", async () => {
   const application = await storedApplication();
   const message = await storedMessage();
-  await db
-    .update(mailMessages)
-    .set({ suggestion: { applicationId: application.id, activityType: "other" } });
+  await db.update(mailMessages).set({ suggestion: emptySuggestion(application.id) });
   await db.delete(applications).where(eq(applications.id, application.id));
 
   const detail = (await request("GET", { url: `/mail/messages/${message.id}` })).json();
@@ -562,9 +579,7 @@ test("GET /mail/messages/:id drops a suggestion for a deleted application", asyn
 test("assigning remembers the email for later replies and clears the suggestion", async () => {
   const application = await storedApplication();
   const message = await storedMessage();
-  await db
-    .update(mailMessages)
-    .set({ suggestion: { applicationId: application.id, activityType: "other" } });
+  await db.update(mailMessages).set({ suggestion: emptySuggestion(application.id) });
 
   await request("POST", {
     url: `/mail/messages/${message.id}/assignment`,

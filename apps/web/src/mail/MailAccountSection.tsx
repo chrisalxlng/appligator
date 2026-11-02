@@ -1,5 +1,5 @@
 import type { MailAccount } from "@appligator/shared";
-import { Checkbox, ConfirmDialog, IconButton, Spinner, useSuccessToast } from "@appligator/ui";
+import { ConfirmDialog, IconButton, Spinner, Switch, useSuccessToast } from "@appligator/ui";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -135,6 +135,8 @@ function MailAccountCard({ account, onEdit }: { account: MailAccount; onEdit: ()
 
 function MailAiAssignmentSetting({ account }: { account: MailAccount }) {
   const { t } = useTranslation();
+  const titleId = useId();
+  const descriptionId = useId();
   const aiSettings = useAiSettings();
   const setAiAssignment = useSetMailAiAssignment();
 
@@ -144,23 +146,30 @@ function MailAiAssignmentSetting({ account }: { account: MailAccount }) {
   }
 
   return (
-    <div className={styles.intro}>
-      <Checkbox
-        checked={account.aiAssignment}
-        onCheckedChange={(enabled) => setAiAssignment.mutate(enabled)}
-      >
-        {t("mail.aiAssignment.label")}
-      </Checkbox>
-      <p className={styles.description}>
-        {t("mail.aiAssignment.description", {
-          provider: aiProviderNames[aiSettings.data.provider],
-        })}
-      </p>
+    <>
+      <label className={`${styles.card} ${styles.languageCard} ${styles.switchCard}`}>
+        <span className={styles.cardContent}>
+          <span id={titleId} className={styles.cardTitle}>
+            {t("mail.aiAssignment.label")}
+          </span>
+          <span id={descriptionId} className={styles.cardText}>
+            {t("mail.aiAssignment.description", {
+              provider: aiProviderNames[aiSettings.data.provider],
+            })}
+          </span>
+        </span>
+        <Switch
+          checked={account.aiAssignment}
+          onCheckedChange={(enabled) => setAiAssignment.mutate(enabled)}
+          aria-labelledby={titleId}
+          aria-describedby={descriptionId}
+        />
+      </label>
       {setAiAssignment.isError && (
-        <p role="alert" className={styles.settingError}>
+        <p role="alert" className={styles.verifyError}>
           {t("mail.aiAssignment.error")}
         </p>
       )}
-    </div>
+    </>
   );
 }

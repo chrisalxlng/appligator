@@ -199,7 +199,13 @@ export interface MailContent {
   attachmentCount: number;
 }
 
-export interface MailSuggestion {
+export interface MailActivityDates {
+  appointmentAt: string | null;
+  dueDate: string | null;
+  responseDeadline: string | null;
+}
+
+export interface MailSuggestion extends MailActivityDates {
   applicationId: string;
   activityType: ActivityType;
 }

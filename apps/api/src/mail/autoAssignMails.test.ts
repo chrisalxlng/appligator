@@ -80,7 +80,9 @@ async function reloaded(id: string) {
 
 function modelAnswering(answer: object) {
   loadLanguageModel.mockResolvedValue({
-    model: respondingModel(JSON.stringify(answer)),
+    model: respondingModel(
+      JSON.stringify({ appointmentAt: "", dueDate: "", responseDeadline: "", ...answer }),
+    ),
     language: "de",
   });
 }
@@ -260,6 +262,96 @@ test("only suggests the application when the model is unsure", async () => {
     suggestion: { applicationId: application.id, activityType: "rejectionReceived" },
   });
   expect(await db.select().from(activities)).toEqual([]);
+});
+
+test("fills in the due date of a task", async () => {
+  await storedApplication();
+  modelAnswering({
+    category: "application",
+    applicationNumber: 1,
+    activityType: "taskReceived",
+    confident: true,
+    dueDate: "2026-11-07",
+  });
+  await storedMessage();
+
+  await assignNewMails({ userId, aiAssignment: true });
+
+  const [activity] = await db.select().from(activities);
+  expect(activity).toMatchObject({ type: "taskReceived", dueDate: "2026-11-07" });
+});
+
+test("converts an appointment to UTC", async () => {
+  await storedApplication();
+  modelAnswering({
+    category: "application",
+    applicationNumber: 1,
+    activityType: "interviewScheduled",
+    confident: true,
+    appointmentAt: "2026-11-10T14:00:00+01:00",
+  });
+  await storedMessage();
+
+  await assignNewMails({ userId, aiAssignment: true });
+
+  const [activity] = await db.select().from(activities);
+  expect(activity!.appointmentAt!.toISOString()).toBe("2026-11-10T13:00:00.000Z");
+});
+
+test("ignores dates that don't belong to the activity type or aren't valid", async () => {
+  await storedApplication();
+  modelAnswering({
+    category: "application",
+    applicationNumber: 1,
+    activityType: "receiptConfirmed",
+    confident: true,
+    dueDate: "2026-11-07",
+    appointmentAt: "2026-11-10T14:00:00+01:00",
+    responseDeadline: "2026-11-20",
+  });
+  const first = await storedMessage();
+  await assignNewMails({ userId, aiAssignment: true });
+
+  const [activity] = await db.select().from(activities);
+  expect(activity).toMatchObject({
+    appointmentAt: null,
+    dueDate: null,
+    responseDeadline: null,
+  });
+
+  await db.delete(activities);
+  await db.delete(mailMessages).where(eq(mailMessages.id, first.id));
+  modelAnswering({
+    category: "application",
+    applicationNumber: 1,
+    activityType: "taskReceived",
+    confident: true,
+    dueDate: "in 5 days",
+  });
+  await storedMessage();
+  await assignNewMails({ userId, aiAssignment: true });
+
+  const [invalid] = await db.select().from(activities);
+  expect(invalid).toMatchObject({ type: "taskReceived", dueDate: null });
+});
+
+test("keeps the dates in a suggestion", async () => {
+  await storedApplication();
+  modelAnswering({
+    category: "application",
+    applicationNumber: 1,
+    activityType: "offerReceived",
+    confident: false,
+    responseDeadline: "2026-11-20",
+  });
+  const message = await storedMessage();
+
+  await assignNewMails({ userId, aiAssignment: true });
+
+  expect((await reloaded(message.id)).suggestion).toMatchObject({
+    activityType: "offerReceived",
+    responseDeadline: "2026-11-20",
+  });
 });
 
 test("ignores an application number that wasn't offered", async () => {

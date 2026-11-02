@@ -13,14 +13,14 @@ interface MailSuggestionHintProps {
 
 export function MailSuggestionHint({
   message,
-  suggestion: { application, activityType },
+  suggestion: { application, activityType, ...dates },
 }: MailSuggestionHintProps) {
   const { t } = useTranslation();
   const assign = useAssignMailMessage(message.id, application.id);
   const showSuccess = useSuccessToast();
 
   function accept() {
-    assign.mutate(activityInputFromMail(activityType, message, message.createdAt), {
+    assign.mutate(activityInputFromMail(activityType, message, message.createdAt, dates), {
       onSuccess: () => showSuccess(t("activities.toast.added")),
     });
   }

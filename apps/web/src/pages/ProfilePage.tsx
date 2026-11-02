@@ -15,7 +15,7 @@ export function ProfilePage() {
   const title = t("navigation.profile");
 
   return (
-    <Page title={title}>
+    <Page title={title} className={styles.page}>
       <DocumentTitle title={title} />
       <section className={styles.account} aria-label={t("profile.account")}>
         <div className={styles.user}>

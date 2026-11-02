@@ -29,5 +29,6 @@ export { Select, type SelectItem, type SelectProps } from "./select/Select.tsx";
 export { submitKeyShortcuts } from "./shortcut/submitShortcut.ts";
 export { Spinner, type SpinnerProps } from "./spinner/Spinner.tsx";
 export { SpinnerCircle, type SpinnerCircleProps } from "./spinner/SpinnerCircle.tsx";
+export { Switch, type SwitchProps } from "./switch/Switch.tsx";
 export { ToastProvider, useInfoToast, useSuccessToast } from "./toast/Toast.tsx";
 export { Tooltip, type TooltipProps } from "./tooltip/Tooltip.tsx";

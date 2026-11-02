@@ -216,7 +216,7 @@ test("explains the AI assignment without an AI access", async () => {
   const section = await mailSection();
 
   expect(await within(section).findByText(/Add an AI access/)).toBeVisible();
-  expect(within(section).queryByRole("checkbox")).toBeNull();
+  expect(within(section).queryByRole("switch")).toBeNull();
 });
 
 test("asks for consent before sending emails to the AI provider", async () => {
@@ -225,16 +225,16 @@ test("asks for consent before sending emails to the AI provider", async () => {
   renderApp("/profile");
 
   const section = await mailSection();
-  const checkbox = await within(section).findByRole("checkbox", { name: "Assign emails with AI" });
+  const toggle = await within(section).findByRole("switch", { name: "Assign emails with AI" });
 
-  expect(checkbox).not.toBeChecked();
+  expect(toggle).not.toBeChecked();
   expect(section).toHaveTextContent(
     "subject and text of new emails as well as your applications to OpenAI",
   );
 
-  await userEvent.click(checkbox);
+  await userEvent.click(within(section).getByText("Assign emails with AI"));
 
-  await waitFor(() => expect(checkbox).toBeChecked());
+  await waitFor(() => expect(toggle).toBeChecked());
   expect(api.requestsWith("PUT")[0]).toMatchObject({
     path: "/mail/account/ai-assignment",
     body: { enabled: true },
@@ -248,9 +248,22 @@ test("shows an error when the consent can't be saved", async () => {
   renderApp("/profile");
 
   const section = await mailSection();
-  await userEvent.click(await within(section).findByRole("checkbox"));
+  await userEvent.click(await within(section).findByRole("switch"));
 
   expect(await within(section).findByRole("alert")).toHaveTextContent(
     "The setting could not be saved.",
+  );
+});
+
+test("lets password managers recognize the credentials", async () => {
+  createFakeMailApi();
+  renderApp("/profile");
+
+  const drawer = await openAddDrawer();
+
+  expect(within(drawer).getByLabelText("Username")).toHaveAttribute("autocomplete", "username");
+  expect(within(drawer).getByLabelText("Password")).toHaveAttribute(
+    "autocomplete",
+    "current-password",
   );
 });
