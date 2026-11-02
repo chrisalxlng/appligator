@@ -23,15 +23,15 @@ export function MailMessageDetail({ message }: { message: MailMessage }) {
   return (
     <DetailView
       company={message.from}
-      position={message.subject || t("inbox.noSubject")}
+      position={message.subject || t("emails.noSubject")}
       actions={<MailMessageActions message={message} />}
       properties={
         <>
-          <Property icon={IconTag} label={t("inbox.properties.status")}>
+          <Property icon={IconTag} label={t("emails.properties.status")}>
             <Badge tone={status.tone}>{status.label}</Badge>
           </Property>
           {message.application && (
-            <Property icon={IconBriefcase2} label={t("inbox.properties.application")}>
+            <Property icon={IconBriefcase2} label={t("emails.properties.application")}>
               <LinkChip
                 render={
                   <Link
@@ -53,12 +53,12 @@ export function MailMessageDetail({ message }: { message: MailMessage }) {
           <Property icon={IconCalendarEvent} label={t("attachments.email.sentAt")}>
             {message.sentAt ? formatDateTime(message.sentAt, i18n.language) : <NotSpecified />}
           </Property>
-          <Property icon={IconFolder} label={t("inbox.properties.folder")}>
-            {t(`inbox.folders.${message.folder}`)}
+          <Property icon={IconFolder} label={t("emails.properties.folder")}>
+            {t(`emails.folders.${message.folder}`)}
           </Property>
           {message.attachmentCount > 0 && (
-            <Property icon={IconPaperclip} label={t("inbox.properties.attachments")}>
-              {t("inbox.filesNotImported", { count: message.attachmentCount })}
+            <Property icon={IconPaperclip} label={t("emails.properties.attachments")}>
+              {t("emails.filesNotImported", { count: message.attachmentCount })}
             </Property>
           )}
         </>

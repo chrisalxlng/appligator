@@ -14,7 +14,7 @@ export function Sidebar() {
   const { t } = useTranslation();
   const navRef = useRef<HTMLElement>(null);
   const activeLinkRect = useActiveLinkRect(navRef);
-  const inboxCount = usePendingMailCount();
+  const pendingMailCount = usePendingMailCount();
 
   return (
     <aside className={styles.sidebar}>
@@ -27,9 +27,9 @@ export function Sidebar() {
               <>
                 <Icon size={20} stroke={2.4} aria-hidden />
                 {t(`navigation.${labelKey}`)}
-                {to === "/inbox" && !!inboxCount && (
+                {to === "/emails" && !!pendingMailCount && (
                   <span className={styles.count}>
-                    <Badge tone={isActive ? "active" : "info"}>{inboxCount}</Badge>
+                    <Badge tone={isActive ? "active" : "info"}>{pendingMailCount}</Badge>
                   </span>
                 )}
               </>

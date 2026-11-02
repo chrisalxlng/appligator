@@ -11,7 +11,7 @@ const tones: Record<MailMessageStatus, BadgeTone> = {
 export function useMailMessageStatus() {
   const { t } = useTranslation();
   return (status: MailMessageStatus) => ({
-    label: t(`inbox.status.${status}`),
+    label: t(`emails.status.${status}`),
     tone: tones[status],
   });
 }

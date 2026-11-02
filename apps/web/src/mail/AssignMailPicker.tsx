@@ -34,7 +34,7 @@ export function AssignMailPicker({ message }: { message: MailMessage }) {
   }
 
   const popupProps = {
-    title: t("inbox.assign.action"),
+    title: t("emails.assign.action"),
     closeLabel: t("common.close"),
     open,
     onOpenChange: setOpen,
@@ -48,7 +48,7 @@ export function AssignMailPicker({ message }: { message: MailMessage }) {
     <>
       <Button ref={buttonRef} onClick={() => setOpen(true)}>
         <IconLink size={20} stroke={2.4} aria-hidden />
-        {t("inbox.assign.action")}
+        {t("emails.assign.action")}
       </Button>
       {isDesktop ? <Popover anchor={buttonRef} {...popupProps} /> : <Drawer {...popupProps} />}
       <AssignActivityDrawer
@@ -89,22 +89,22 @@ function ApplicationSearch({ inputRef, onSelect }: ApplicationSearchProps) {
           </span>
         </>
       )}
-      inputLabel={t("inbox.assign.search")}
-      placeholder={t("inbox.assign.searchPlaceholder")}
-      listLabel={t("inbox.assign.action")}
+      inputLabel={t("emails.assign.search")}
+      placeholder={t("emails.assign.searchPlaceholder")}
+      listLabel={t("emails.assign.action")}
       inputRef={inputRef}
       status={searchStatus()}
     />
   );
 
   function searchStatus() {
-    if (applications.isPending) return <Spinner label={t("inbox.assign.loading")} />;
+    if (applications.isPending) return <Spinner label={t("emails.assign.loading")} />;
 
     if (applications.isError) {
       return (
         <LoadError
-          title={t("inbox.assign.loadError.title")}
-          description={t("inbox.assign.loadError.description")}
+          title={t("emails.assign.loadError.title")}
+          description={t("emails.assign.loadError.description")}
           onRetry={() => void applications.refetch()}
         />
       );
@@ -112,12 +112,12 @@ function ApplicationSearch({ inputRef, onSelect }: ApplicationSearchProps) {
 
     if (applications.data.length > 0) return null;
 
-    if (trimmedSearch) return <p>{t("inbox.assign.noMatches", { search: trimmedSearch })}</p>;
+    if (trimmedSearch) return <p>{t("emails.assign.noMatches", { search: trimmedSearch })}</p>;
 
     return (
       <>
-        <p className={pickerStyles.statusTitle}>{t("inbox.assign.noApplications.title")}</p>
-        <p>{t("inbox.assign.noApplications.description")}</p>
+        <p className={pickerStyles.statusTitle}>{t("emails.assign.noApplications.title")}</p>
+        <p>{t("emails.assign.noApplications.description")}</p>
       </>
     );
   }

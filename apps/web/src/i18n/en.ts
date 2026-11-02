@@ -8,8 +8,8 @@ export const en = {
     home: "Home",
     jobs: "Jobs",
     applications: "Applications",
-    inbox: "Inbox",
-    inboxWithCount: "Inbox, {{count}} to review",
+    emails: "Emails",
+    emailsWithCount: "Emails, {{count}} to review",
     profile: "Profile",
   },
   common: {
@@ -662,7 +662,7 @@ export const en = {
   mail: {
     title: "Email inbox",
     description:
-      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted. Appligator deletes retrieved emails from the inbox page after 30 days; they remain in your inbox and as attachments of activities.",
+      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted. Appligator deletes retrieved emails after 30 days; they remain in your inbox and as attachments of activities.",
     loading: "Loading email inbox …",
     loadError: {
       title: "Email inbox could not be loaded",
@@ -711,7 +711,7 @@ export const en = {
         action: "Delete inbox access",
         title: "Delete inbox access?",
         description:
-          "Your credentials for {{username}} will be permanently deleted and the inbox page in Appligator emptied. Your inbox and your emails there remain unchanged.",
+          "Your credentials for {{username}} will be permanently deleted and the retrieved emails removed from Appligator. Your inbox and your emails there remain unchanged.",
         confirm: "Delete",
         cancel: "Cancel",
         error: "The inbox access could not be deleted. Please try again.",
@@ -723,7 +723,7 @@ export const en = {
       deleted: "Inbox access deleted",
     },
   },
-  inbox: {
+  emails: {
     loading: "Loading emails …",
     loadingMore: "Loading more emails …",
     loadingMessage: "Loading email …",
@@ -742,7 +742,7 @@ export const en = {
     notFound: {
       title: "Email not found",
       description: "This email doesn't exist or has been deleted.",
-      back: "Go to inbox",
+      back: "Go to emails",
     },
     empty: {
       title: "No emails yet",
@@ -759,7 +759,7 @@ export const en = {
       connectionFailed: "The server can't be reached. Check your inbox access in the profile.",
       failed: "The emails could not be retrieved. Please try again.",
     },
-    sync: "Retrieve emails",
+    sync: "Retrieve",
     noSubject: "(No subject)",
     status: {
       pending: "To review",
@@ -794,7 +794,7 @@ export const en = {
       },
     },
     dismiss: {
-      action: "Dismiss email",
+      action: "Dismiss",
       title: "Dismiss email?",
       description:
         "The email then counts as done. It remains unchanged in your inbox, and you can still assign it later.",

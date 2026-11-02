@@ -10,8 +10,8 @@ export const de: Translations = {
     home: "Home",
     jobs: "Stellen",
     applications: "Bewerbungen",
-    inbox: "Eingang",
-    inboxWithCount: "Eingang, {{count}} zu prüfen",
+    emails: "E-Mails",
+    emailsWithCount: "E-Mails, {{count}} zu prüfen",
     profile: "Profil",
   },
   common: {
@@ -674,7 +674,7 @@ export const de: Translations = {
   mail: {
     title: "E-Mail-Postfach",
     description:
-      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete E-Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert. Abgerufene E-Mails löscht Appligator nach 30 Tagen aus dem Eingang; in deinem Postfach und als Anhang von Aktivitäten bleiben sie erhalten.",
+      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete E-Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert. Abgerufene E-Mails löscht Appligator nach 30 Tagen; in deinem Postfach und als Anhang von Aktivitäten bleiben sie erhalten.",
     loading: "E-Mail-Postfach wird geladen …",
     loadError: {
       title: "E-Mail-Postfach konnte nicht geladen werden",
@@ -725,7 +725,7 @@ export const de: Translations = {
         action: "Postfach-Zugang löschen",
         title: "Postfach-Zugang löschen?",
         description:
-          "Deine Zugangsdaten für {{username}} werden endgültig gelöscht und der Eingang in Appligator geleert. Dein Postfach und deine E-Mails dort bleiben unverändert.",
+          "Deine Zugangsdaten für {{username}} werden endgültig gelöscht und die abgerufenen E-Mails aus Appligator entfernt. Dein Postfach und deine E-Mails dort bleiben unverändert.",
         confirm: "Löschen",
         cancel: "Abbrechen",
         error: "Der Postfach-Zugang konnte nicht gelöscht werden. Bitte versuche es erneut.",
@@ -737,7 +737,7 @@ export const de: Translations = {
       deleted: "Postfach-Zugang gelöscht",
     },
   },
-  inbox: {
+  emails: {
     loading: "E-Mails werden geladen …",
     loadingMore: "Weitere E-Mails werden geladen …",
     loadingMessage: "E-Mail wird geladen …",
@@ -756,7 +756,7 @@ export const de: Translations = {
     notFound: {
       title: "E-Mail nicht gefunden",
       description: "Diese E-Mail gibt es nicht oder sie wurde gelöscht.",
-      back: "Zum Eingang wechseln",
+      back: "Zu den E-Mails wechseln",
     },
     empty: {
       title: "Noch keine E-Mails",
@@ -773,7 +773,7 @@ export const de: Translations = {
       connectionFailed: "Der Server ist nicht erreichbar. Prüfe deinen Postfach-Zugang im Profil.",
       failed: "Die E-Mails konnten nicht abgerufen werden. Bitte versuche es erneut.",
     },
-    sync: "E-Mails abrufen",
+    sync: "Abrufen",
     noSubject: "(Kein Betreff)",
     status: {
       pending: "Zu prüfen",
@@ -808,7 +808,7 @@ export const de: Translations = {
       },
     },
     dismiss: {
-      action: "E-Mail verwerfen",
+      action: "Verwerfen",
       title: "E-Mail verwerfen?",
       description:
         "Die E-Mail gilt dann als erledigt. In deinem Postfach bleibt sie unverändert, und du kannst sie später noch zuordnen.",

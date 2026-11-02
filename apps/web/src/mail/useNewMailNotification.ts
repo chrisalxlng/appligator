@@ -1,4 +1,5 @@
-import { useSuccessToast } from "@appligator/ui";
+import { useInfoToast } from "@appligator/ui";
+import { IconMail } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +13,7 @@ export function useNewMailNotification() {
   const { t } = useTranslation();
   const count = usePendingMailCount();
   const queryClient = useQueryClient();
-  const showSuccess = useSuccessToast();
+  const showInfo = useInfoToast();
   const previousCount = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -24,6 +25,6 @@ export function useNewMailNotification() {
 
     void invalidateMailCollections(queryClient);
     void invalidateMailAccount(queryClient);
-    showSuccess(t("inbox.toast.newMails", { count: count - previous }));
-  }, [count, queryClient, showSuccess, t]);
+    showInfo(t("emails.toast.newMails", { count: count - previous }), IconMail);
+  }, [count, queryClient, showInfo, t]);
 }

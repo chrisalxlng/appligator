@@ -10,7 +10,7 @@ import {
 import { renderApp } from "../testing/renderApp.tsx";
 
 const application = applicationFor(jobFixture);
-const messagePath = `/inbox/${mailMessageFixture.id}`;
+const messagePath = `/emails/${mailMessageFixture.id}`;
 const newMail = {
   ...mailMessageFixture,
   id: "9c1f6a44-2f0c-4c55-9a0d-3f3a3f8c7e13",
@@ -30,24 +30,24 @@ function messageCard(subject: string | RegExp = /^Einladung zum Gespräch/) {
 }
 
 function retrieveButton() {
-  return screen.findByRole("button", { name: "Retrieve emails" });
+  return screen.findByRole("button", { name: "Retrieve" });
 }
 
 test("offers to add an access when no inbox is connected", async () => {
   createFakeMailApi();
-  renderApp("/inbox");
+  renderApp("/emails");
 
   expect(await screen.findByRole("heading", { name: "No inbox connected" })).toBeVisible();
   expect(screen.getByRole("link", { name: "Add inbox access" })).toHaveAttribute(
     "href",
     "/profile",
   );
-  expect(screen.queryByRole("button", { name: "Retrieve emails" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Retrieve" })).toBeNull();
 });
 
 test("shows an empty state with the option to retrieve emails", async () => {
   createFakeMailApi(mailAccountFixture);
-  renderApp("/inbox");
+  renderApp("/emails");
 
   expect(await screen.findByRole("heading", { name: "No emails yet" })).toBeVisible();
   expect(await retrieveButton()).toBeVisible();
@@ -55,7 +55,7 @@ test("shows an empty state with the option to retrieve emails", async () => {
 
 test("explains a disrupted retrieval without emails", async () => {
   createFakeMailApi({ ...mailAccountFixture, syncError: "connectionFailed" });
-  renderApp("/inbox");
+  renderApp("/emails");
 
   expect(await screen.findByRole("heading", { name: "Retrieving is disrupted" })).toBeVisible();
   expect(screen.getByText(/The server can't be reached/)).toBeVisible();
@@ -85,6 +85,20 @@ test("lists the emails with subject, sender and status", async () => {
   expect(sent).toHaveTextContent("Dismissed");
 });
 
+test("shows the time for emails of today and the day for older ones", async () => {
+  const today = new Date();
+  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  createFakeMailApi(mailAccountFixture, [
+    { ...mailMessageFixture, sentAt: today.toISOString() },
+    { ...newMail, sentAt: yesterday.toISOString() },
+  ]);
+  renderApp(messagePath);
+
+  const time = today.toLocaleTimeString("en", { timeStyle: "short" });
+  expect(await messageCard()).toHaveTextContent(time);
+  expect(await messageCard(/^Neue Nachricht/)).toHaveTextContent("Yesterday");
+});
+
 test("filters the emails by status", async () => {
   createFakeMailApi(mailAccountFixture, [mailMessageFixture, { ...newMail, status: "dismissed" }]);
   renderApp(messagePath);
@@ -100,7 +114,7 @@ test("filters the emails by status", async () => {
 
 test("opens the first email next to the list on wide screens", async () => {
   createFakeMailApi(mailAccountFixture, [mailMessageFixture]);
-  const router = renderApp("/inbox");
+  const router = renderApp("/emails");
 
   expect(await screen.findByText("Wir laden Sie ein.")).toBeVisible();
   expect(router.state.location.pathname).toBe(messagePath);
@@ -142,7 +156,7 @@ test("dismisses an email after a confirmation and keeps showing it", async () =>
   const api = createFakeMailApi(mailAccountFixture, [mailMessageFixture]);
   renderApp(messagePath);
 
-  await userEvent.click(await screen.findByRole("button", { name: "Dismiss email" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
   const dialog = await screen.findByRole("alertdialog", { name: "Dismiss email?" });
   expect(dialog).toHaveTextContent("It remains unchanged in your inbox");
   await userEvent.click(within(dialog).getByRole("button", { name: "Dismiss" }));
@@ -150,7 +164,7 @@ test("dismisses an email after a confirmation and keeps showing it", async () =>
   await waitFor(() => expect(dialog).not.toBeInTheDocument());
   expect(api.requestsWith("DELETE")[0]!.path).toBe(`/mail/messages/${mailMessageFixture.id}`);
   expect(screen.getByText("Email dismissed")).toBeInTheDocument();
-  await waitFor(() => expect(screen.queryByRole("button", { name: "Dismiss email" })).toBeNull());
+  await waitFor(() => expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull());
   expect(screen.getByRole("button", { name: "Assign to application" })).toBeVisible();
 });
 
@@ -159,10 +173,10 @@ test("offers to dismiss an email in the menu on mobile", async () => {
   renderApp(messagePath, { viewport: "mobile" });
 
   await screen.findByRole("article");
-  expect(screen.queryByRole("button", { name: "Dismiss email" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
 
   await userEvent.click(await screen.findByRole("button", { name: "Show more actions" }));
-  await userEvent.click(await screen.findByRole("menuitem", { name: "Dismiss email" }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Dismiss" }));
 
   expect(await screen.findByRole("alertdialog", { name: "Dismiss email?" })).toBeVisible();
 });
@@ -172,7 +186,7 @@ test("keeps the email and shows an error when dismissing fails", async () => {
   api.failWith(`DELETE /mail/messages/${mailMessageFixture.id}`, 500);
   renderApp(messagePath);
 
-  await userEvent.click(await screen.findByRole("button", { name: "Dismiss email" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
   const dialog = await screen.findByRole("alertdialog", { name: "Dismiss email?" });
   await userEvent.click(within(dialog).getByRole("button", { name: "Dismiss" }));
 
@@ -214,13 +228,13 @@ test("assigns an email from a popover and attaches it to the new activity", asyn
   expect(screen.getByText("Activity added")).toBeInTheDocument();
   expect(await screen.findByRole("link", { name: "Assigned application" })).toBeVisible();
   expect(screen.queryByRole("button", { name: "Assign to application" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "Dismiss email" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
 });
 
 test("retrieves emails on request and announces the new ones", async () => {
   const api = createFakeMailApi(mailAccountFixture);
   api.prepareNewMail(newMail);
-  renderApp("/inbox");
+  renderApp("/emails");
 
   await userEvent.click(await retrieveButton());
 
@@ -231,7 +245,7 @@ test("retrieves emails on request and announces the new ones", async () => {
 
 test("says when retrieving found no new emails", async () => {
   createFakeMailApi(mailAccountFixture);
-  renderApp("/inbox");
+  renderApp("/emails");
 
   await userEvent.click(await retrieveButton());
 
@@ -251,7 +265,7 @@ test("shows an error when retrieving fails unexpectedly", async () => {
 test("shows emails retrieved in the background without a reload and announces them", async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   const api = createFakeMailApi(mailAccountFixture);
-  renderApp("/inbox");
+  renderApp("/emails");
   await screen.findByRole("heading", { name: "No emails yet" });
 
   api.receiveMail(newMail);
@@ -265,23 +279,23 @@ test("announces new emails on other pages too, but not the existing ones", async
   vi.useFakeTimers({ shouldAdvanceTime: true });
   const api = createFakeMailApi(mailAccountFixture, [mailMessageFixture]);
   renderApp("/jobs");
-  const inboxLinks = await screen.findAllByRole("link", { name: /^Inbox/ });
-  await waitFor(() => expect(inboxLinks[0]).toHaveTextContent("Inbox1"));
+  const inboxLinks = await screen.findAllByRole("link", { name: /^Emails/ });
+  await waitFor(() => expect(inboxLinks[0]).toHaveTextContent("Emails1"));
   expect(screen.queryByText(/new email/)).toBeNull();
 
   api.receiveMail(newMail);
   await vi.advanceTimersByTimeAsync(30_000);
 
   expect(await screen.findByText("1 new email")).toBeInTheDocument();
-  await waitFor(() => expect(inboxLinks[0]).toHaveTextContent("Inbox2"));
+  await waitFor(() => expect(inboxLinks[0]).toHaveTextContent("Emails2"));
 });
 
 test("shows the number of emails to review in the active color on the inbox page", async () => {
   createFakeMailApi(mailAccountFixture, [mailMessageFixture]);
   renderApp(messagePath);
 
-  const [link] = await screen.findAllByRole("link", { name: /^Inbox/ });
-  await waitFor(() => expect(link).toHaveTextContent("Inbox1"));
+  const [link] = await screen.findAllByRole("link", { name: /^Emails/ });
+  await waitFor(() => expect(link).toHaveTextContent("Emails1"));
 
   expect(within(link!).getByText("1")).toHaveAttribute("data-tone", "active");
 });
@@ -290,8 +304,8 @@ test("shows the number of emails to review in the info color on other pages", as
   createFakeMailApi(mailAccountFixture, [mailMessageFixture]);
   renderApp("/jobs");
 
-  const [link] = await screen.findAllByRole("link", { name: /^Inbox/ });
-  await waitFor(() => expect(link).toHaveTextContent("Inbox1"));
+  const [link] = await screen.findAllByRole("link", { name: /^Emails/ });
+  await waitFor(() => expect(link).toHaveTextContent("Emails1"));
 
   expect(within(link!).getByText("1")).toHaveAttribute("data-tone", "info");
 });
@@ -300,15 +314,15 @@ test("only counts the emails still to review", async () => {
   createFakeMailApi(mailAccountFixture, [{ ...mailMessageFixture, status: "assigned" }]);
   renderApp("/jobs");
 
-  const [link] = await screen.findAllByRole("link", { name: /^Inbox/ });
+  const [link] = await screen.findAllByRole("link", { name: /^Emails/ });
   await new Promise((resolve) => setTimeout(resolve, 50));
 
-  expect(link!.textContent).toBe("Inbox");
+  expect(link!.textContent).toBe("Emails");
 });
 
 test("marks new emails in the mobile navigation", async () => {
   createFakeMailApi(mailAccountFixture, [mailMessageFixture]);
   renderApp("/jobs", { viewport: "mobile" });
 
-  expect(await screen.findByRole("link", { name: "Inbox, 1 to review" })).toBeVisible();
+  expect(await screen.findByRole("link", { name: "Emails, 1 to review" })).toBeVisible();
 });

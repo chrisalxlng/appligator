@@ -4,22 +4,22 @@ import { DetailPage } from "../collection/DetailPage.tsx";
 import { MailMessageDetail } from "../mail/MailMessageDetail.tsx";
 import { useMailMessage } from "../mail/mailQueries.ts";
 
-export function InboxMessagePage() {
+export function EmailDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { messageId } = useParams({ from: "/shell/inbox/$messageId" });
+  const { messageId } = useParams({ from: "/shell/emails/$messageId" });
 
   return (
     <DetailPage
-      title={t("navigation.inbox")}
+      title={t("navigation.emails")}
       texts={{
-        loading: t("inbox.loadingMessage"),
-        notFound: t("inbox.notFound", { returnObjects: true }),
-        loadError: t("inbox.detailLoadError", { returnObjects: true }),
+        loading: t("emails.loadingMessage"),
+        notFound: t("emails.notFound", { returnObjects: true }),
+        loadError: t("emails.detailLoadError", { returnObjects: true }),
       }}
       query={useMailMessage(messageId)}
-      onClose={() => void navigate({ to: "/inbox" })}
-      backLink={<Link to="/inbox" />}
+      onClose={() => void navigate({ to: "/emails" })}
+      backLink={<Link to="/emails" />}
     >
       {(message) => <MailMessageDetail message={message} />}
     </DetailPage>

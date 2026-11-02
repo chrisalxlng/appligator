@@ -18,7 +18,7 @@ export function TabBar({ floatingActionsRef }: TabBarProps) {
   const navRef = useRef<HTMLElement>(null);
   const activeLinkRect = useActiveLinkRect(navRef);
   const isDesktop = useIsDesktop();
-  const inboxCount = usePendingMailCount();
+  const pendingMailCount = usePendingMailCount();
 
   return (
     <div className={styles.container}>
@@ -31,15 +31,17 @@ export function TabBar({ floatingActionsRef }: TabBarProps) {
             key={to}
             to={to}
             aria-label={
-              to === "/inbox" && inboxCount
-                ? t("navigation.inboxWithCount", { count: inboxCount })
+              to === "/emails" && pendingMailCount
+                ? t("navigation.emailsWithCount", { count: pendingMailCount })
                 : t(`navigation.${labelKey}`)
             }
             className={styles.tab}
             activeOptions={{ exact: to === "/" }}
           >
             <Icon size={20} stroke={2.4} aria-hidden />
-            {to === "/inbox" && !!inboxCount && <span className={styles.count} aria-hidden />}
+            {to === "/emails" && !!pendingMailCount && (
+              <span className={styles.count} aria-hidden />
+            )}
           </Link>
         ))}
       </nav>

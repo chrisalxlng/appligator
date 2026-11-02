@@ -11,13 +11,13 @@ import { createQueryClient } from "./api/queryClient.ts";
 import { ApplicationsIndex } from "./applications/ApplicationsIndex.tsx";
 import type { Auth } from "./auth/authenticate.ts";
 import { JobsIndex } from "./jobs/JobsIndex.tsx";
-import { InboxIndex } from "./mail/InboxIndex.tsx";
+import { EmailsIndex } from "./mail/EmailsIndex.tsx";
 import { ApplicationDetailPage } from "./pages/ApplicationDetailPage.tsx";
 import { ApplicationsPage } from "./pages/ApplicationsPage.tsx";
 import { ErrorPage } from "./pages/ErrorPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
-import { InboxMessagePage } from "./pages/InboxMessagePage.tsx";
-import { InboxPage } from "./pages/InboxPage.tsx";
+import { EmailDetailPage } from "./pages/EmailDetailPage.tsx";
+import { EmailsPage } from "./pages/EmailsPage.tsx";
 import { JobDetailPage } from "./pages/JobDetailPage.tsx";
 import { JobsPage } from "./pages/JobsPage.tsx";
 import { NotFoundPage } from "./pages/NotFoundPage.tsx";
@@ -83,22 +83,22 @@ const applicationDetailRoute = createRoute({
   component: ApplicationDetailPage,
 });
 
-const inboxRoute = createRoute({
+const emailsRoute = createRoute({
   getParentRoute: () => shellRoute,
-  path: "/inbox",
-  component: InboxPage,
+  path: "/emails",
+  component: EmailsPage,
 });
 
-const inboxIndexRoute = createRoute({
-  getParentRoute: () => inboxRoute,
+const emailsIndexRoute = createRoute({
+  getParentRoute: () => emailsRoute,
   path: "/",
-  component: InboxIndex,
+  component: EmailsIndex,
 });
 
-const inboxMessageRoute = createRoute({
-  getParentRoute: () => inboxRoute,
+const emailDetailRoute = createRoute({
+  getParentRoute: () => emailsRoute,
   path: "$messageId",
-  component: InboxMessagePage,
+  component: EmailDetailPage,
 });
 
 const profileRoute = createRoute({
@@ -112,7 +112,7 @@ const routeTree = rootRoute.addChildren([
     homeRoute,
     jobsRoute.addChildren([jobsIndexRoute, jobDetailRoute]),
     applicationsRoute.addChildren([applicationsIndexRoute, applicationDetailRoute]),
-    inboxRoute.addChildren([inboxIndexRoute, inboxMessageRoute]),
+    emailsRoute.addChildren([emailsIndexRoute, emailDetailRoute]),
     profileRoute,
   ]),
 ]);

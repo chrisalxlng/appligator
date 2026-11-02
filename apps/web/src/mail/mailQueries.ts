@@ -111,7 +111,7 @@ export function useMailMessage(id: string) {
     queryFn: () => mailApi.getMessage(id),
     select: (message) => ({
       ...message,
-      position: message.subject || t("inbox.noSubject"),
+      position: message.subject || t("emails.noSubject"),
       company: message.from,
     }),
   });

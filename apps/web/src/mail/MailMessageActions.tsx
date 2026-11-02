@@ -24,7 +24,7 @@ export function MailMessageActions({ message }: { message: MailMessage }) {
     dismiss.mutate(undefined, {
       onSuccess: () => {
         setIsConfirmingDismiss(false);
-        showSuccess(t("inbox.toast.dismissed"));
+        showSuccess(t("emails.toast.dismissed"));
       },
     });
   }
@@ -44,7 +44,7 @@ export function MailMessageActions({ message }: { message: MailMessage }) {
           {assignPicker}
           {canDismiss && (
             <Button variant="surface" onClick={askToDismiss}>
-              {t("inbox.dismiss.action")}
+              {t("emails.dismiss.action")}
             </Button>
           )}
         </div>
@@ -60,7 +60,7 @@ export function MailMessageActions({ message }: { message: MailMessage }) {
               }
             >
               <MenuItem icon={<IconX size={18} stroke={2} aria-hidden />} onClick={askToDismiss}>
-                {t("inbox.dismiss.action")}
+                {t("emails.dismiss.action")}
               </MenuItem>
             </Menu>
           )}
@@ -69,13 +69,13 @@ export function MailMessageActions({ message }: { message: MailMessage }) {
       <ConfirmDialog
         open={isConfirmingDismiss}
         onOpenChange={setIsConfirmingDismiss}
-        title={t("inbox.dismiss.title")}
-        description={t("inbox.dismiss.description")}
-        confirmLabel={t("inbox.dismiss.confirm")}
-        cancelLabel={t("inbox.dismiss.cancel")}
+        title={t("emails.dismiss.title")}
+        description={t("emails.dismiss.description")}
+        confirmLabel={t("emails.dismiss.confirm")}
+        cancelLabel={t("emails.dismiss.cancel")}
         onConfirm={confirmDismiss}
         pending={dismiss.isPending}
-        error={dismiss.isError ? t("inbox.dismiss.error") : undefined}
+        error={dismiss.isError ? t("emails.dismiss.error") : undefined}
         confirmShortcutHint={shortcutHints?.submit}
       />
     </>
