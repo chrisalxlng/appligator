@@ -16,6 +16,7 @@ export interface ConfirmDialogProps {
   pending?: boolean;
   error?: string;
   confirmShortcutHint?: string;
+  confirmVariant?: "destructive" | "primary";
 }
 
 export function ConfirmDialog({
@@ -29,6 +30,7 @@ export function ConfirmDialog({
   pending = false,
   error,
   confirmShortcutHint,
+  confirmVariant = "destructive",
 }: ConfirmDialogProps) {
   function confirmOnShortcut(event: KeyboardEvent) {
     if (!isSubmitShortcut(event)) return;
@@ -39,7 +41,7 @@ export function ConfirmDialog({
 
   const confirmButton = (
     <Button
-      variant="destructive"
+      variant={confirmVariant}
       onClick={onConfirm}
       pending={pending}
       aria-keyshortcuts={submitKeyShortcuts}

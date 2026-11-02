@@ -77,6 +77,7 @@ export function MailMessageActions({ message }: { message: MailMessage }) {
         pending={dismiss.isPending}
         error={dismiss.isError ? t("emails.dismiss.error") : undefined}
         confirmShortcutHint={shortcutHints?.submit}
+        confirmVariant="primary"
       />
     </>
   );
