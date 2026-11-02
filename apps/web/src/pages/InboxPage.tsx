@@ -1,86 +1,31 @@
-import type { MailMessageListItem } from "@appligator/shared";
-import { Badge, Button, EmptyState, LinkButton, useSuccessToast } from "@appligator/ui";
+import { Button, LinkButton, useSuccessToast } from "@appligator/ui";
 import { IconRefresh } from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link, useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../api/apiClient.ts";
-import emptyIllustration from "../assets/jobs-empty.svg";
-import collectionStyles from "../collection/CollectionPage.module.css";
-import { useCreatedLabel } from "../collection/useCreatedLabel.ts";
-import { LoadError } from "../loading/LoadError.tsx";
-import { PageSpinner } from "../loading/PageSpinner.tsx";
-import { useDelayedSpinner } from "../loading/useDelayedSpinner.ts";
-import { MailMessageDrawer } from "../mail/MailMessageDrawer.tsx";
-import { useMailAccount, useMailMessages, useSyncMail } from "../mail/mailQueries.ts";
-import { DocumentTitle } from "../shell/DocumentTitle.tsx";
-import { FloatingActions } from "../shell/FloatingActions.tsx";
-import { useIsDesktop } from "../shell/useMediaQuery.ts";
-import a11y from "../styles/visuallyHidden.module.css";
+import { CardList } from "../collection/CardList.tsx";
+import { CollectionPage } from "../collection/CollectionPage.tsx";
+import { StatusFilter } from "../collection/StatusFilter.tsx";
+import { useStatusFilter } from "../collection/useStatusFilter.ts";
+import {
+  useMailAccount,
+  useMailMessages,
+  useMailMessageStatusCounts,
+  useSyncMail,
+} from "../mail/mailQueries.ts";
+import { useMailMessageStatus } from "../mail/useMailMessageStatus.ts";
 import styles from "./InboxPage.module.css";
-import { Page } from "./Page.tsx";
-
-const illustration = <img src={emptyIllustration} alt="" width={210} height={281} />;
 
 export function InboxPage() {
   const { t } = useTranslation();
-  const isDesktop = useIsDesktop();
+  const { messageId } = useParams({ strict: false });
   const account = useMailAccount();
-  const messages = useMailMessages();
+  const statusCounts = useMailMessageStatusCounts();
+  const [status, setStatus] = useStatusFilter(statusCounts.data);
+  const messages = useMailMessages(status);
+  const messageStatus = useMailMessageStatus();
   const sync = useSyncMail();
   const showSuccess = useSuccessToast();
-  const isPending = account.isPending || messages.isPending;
-  const showSpinner = useDelayedSpinner(isPending);
-  const [opened, setOpened] = useState<{ message: MailMessageListItem | null; open: boolean }>({
-    message: null,
-    open: false,
-  });
-
-  const title = t("navigation.inbox");
-  const documentTitle = <DocumentTitle title={title} />;
-
-  if (isPending || showSpinner) {
-    return (
-      <Page title={title}>
-        {documentTitle}
-        {showSpinner && <PageSpinner label={t("inbox.loading")} />}
-      </Page>
-    );
-  }
-
-  if (account.isError || messages.isError) {
-    return (
-      <Page title={title} hideHeader={isDesktop}>
-        {documentTitle}
-        <LoadError
-          title={t("inbox.loadError.title")}
-          description={t("inbox.loadError.description")}
-          onRetry={() => {
-            void account.refetch();
-            void messages.refetch();
-          }}
-        />
-      </Page>
-    );
-  }
-
-  const { items, total } = messages.data;
-
-  if (!account.data && items.length === 0) {
-    return (
-      <Page title={title} hideHeader={isDesktop} className={collectionStyles.empty}>
-        {documentTitle}
-        <EmptyState
-          illustration={illustration}
-          title={t("inbox.noAccount.title")}
-          description={t("inbox.noAccount.description")}
-          action={
-            <LinkButton render={<Link to="/profile" />}>{t("inbox.noAccount.action")}</LinkButton>
-          }
-        />
-      </Page>
-    );
-  }
 
   function retrieve() {
     sync.mutate(undefined, {
@@ -90,103 +35,75 @@ export function InboxPage() {
     });
   }
 
-  const syncButton = account.data && (
-    <Button pending={sync.isPending} onClick={retrieve}>
-      <IconRefresh size={20} stroke={2.4} aria-hidden />
-      {t("inbox.sync.action")}
-    </Button>
-  );
-  const floatingSyncButton = !isDesktop && syncButton && (
-    <FloatingActions>{syncButton}</FloatingActions>
-  );
-  // The account shows why the mailbox couldn't be read, so only other failures need a message here.
+  // The account tells why the mailbox couldn't be read, so only other failures need their own text.
   const syncFailed = sync.isError && !(sync.error instanceof ApiError && sync.error.status === 422);
-  const notices = (
-    <>
-      {account.data?.syncError && (
-        <p role="alert" className={styles.syncError}>
-          {t(`inbox.syncError.${account.data.syncError}`)}{" "}
-          <Link to="/profile" className={styles.syncErrorLink}>
-            {t("inbox.syncError.action")}
-          </Link>
-        </p>
-      )}
-      {syncFailed && (
-        <p role="alert" className={styles.syncError}>
-          {t("inbox.sync.error")}
-        </p>
-      )}
-    </>
-  );
+  const syncError = account.data?.syncError
+    ? t(`inbox.syncError.${account.data.syncError}`)
+    : syncFailed && t("inbox.syncError.failed");
 
-  if (items.length === 0) {
-    return (
-      <Page title={title} hideHeader={isDesktop} className={collectionStyles.empty}>
-        {documentTitle}
-        <div className={styles.centeredNotices}>{notices}</div>
-        <EmptyState
-          illustration={illustration}
-          title={t("inbox.empty.title")}
-          description={t("inbox.empty.description")}
-          action={isDesktop && syncButton}
-        />
-        {floatingSyncButton}
-      </Page>
-    );
+  function emptyTexts() {
+    if (account.isSuccess && !account.data) return t("inbox.noAccount", { returnObjects: true });
+    if (syncError) return { title: t("inbox.syncError.title"), description: syncError };
+    return t("inbox.empty", { returnObjects: true });
   }
 
   return (
-    <Page title={title} actions={isDesktop && syncButton}>
-      {documentTitle}
-      <div className={styles.inbox}>
-        <p className={styles.description}>{t("inbox.description")}</p>
-        {notices}
-        <ul className={styles.list}>
-          {items.map((message) => (
-            <li key={message.id}>
-              <MailMessageRow message={message} onOpen={() => setOpened({ message, open: true })} />
-            </li>
-          ))}
-        </ul>
-        {total > items.length && (
-          <p className={styles.description}>{t("inbox.limited", { shown: items.length, total })}</p>
-        )}
-      </div>
-      {floatingSyncButton}
-      <MailMessageDrawer
-        message={opened.message}
-        open={opened.open}
-        onOpenChange={(open) => setOpened((current) => ({ ...current, open }))}
-      />
-    </Page>
-  );
-}
-
-function MailMessageRow({
-  message: { subject, from, to, folder, sentAt, receivedAt, attachmentCount },
-  onOpen,
-}: {
-  message: MailMessageListItem;
-  onOpen: () => void;
-}) {
-  const { t } = useTranslation();
-  const dateLabel = useCreatedLabel();
-
-  return (
-    <button type="button" className={styles.row} onClick={onOpen}>
-      <span className={styles.subject}>{subject || t("inbox.noSubject")}</span>
-      <span className={styles.meta}>
-        {folder === "sent" ? to : from} • {dateLabel(sentAt ?? receivedAt)}
-      </span>
-      {(folder === "sent" || attachmentCount > 0) && (
-        <span className={styles.badges}>
-          {folder === "sent" && <Badge>{t("inbox.sent")}</Badge>}
-          {attachmentCount > 0 && (
-            <Badge tone="info">{t("inbox.filesNotImported", { count: attachmentCount })}</Badge>
+    <CollectionPage
+      title={t("navigation.inbox")}
+      texts={{
+        loading: t("inbox.loading"),
+        loadingMore: t("inbox.loadingMore"),
+        loadError: t("inbox.loadError", { returnObjects: true }),
+        loadMoreError: t("inbox.loadMoreError", { returnObjects: true }),
+        empty: emptyTexts(),
+      }}
+      query={messages}
+      openedId={messageId}
+      action={
+        account.data ? (
+          <Button pending={sync.isPending} onClick={retrieve}>
+            <IconRefresh size={20} stroke={2.4} aria-hidden />
+            {t("inbox.sync")}
+          </Button>
+        ) : (
+          account.isSuccess && (
+            <LinkButton render={<Link to="/profile" />}>{t("inbox.noAccount.action")}</LinkButton>
+          )
+        )
+      }
+      filter={
+        <>
+          {syncError && (
+            <p role="alert" className={styles.syncError}>
+              {syncError}
+            </p>
           )}
-        </span>
+          <StatusFilter
+            counts={statusCounts.data ?? []}
+            selected={status}
+            onSelect={setStatus}
+            statusLabel={(status) => messageStatus(status).label}
+          />
+        </>
+      }
+      renderList={(items, onEndReached) => (
+        <CardList
+          items={items.map((message) => ({
+            ...message,
+            position: message.subject || t("inbox.noSubject"),
+            company: message.folder === "sent" ? message.to : message.from,
+            pinned: false,
+          }))}
+          openedId={messageId}
+          status={(message) => messageStatus(message.status)}
+          renderLink={(message, props) => (
+            <Link to="/inbox/$messageId" params={{ messageId: message.id }} {...props} />
+          )}
+          pinnedCollapsed={false}
+          onPinnedCollapsedChange={() => {}}
+          onEndReached={onEndReached}
+        />
       )}
-      <span className={a11y.visuallyHidden}>{t("common.openHint")}</span>
-    </button>
+    />
   );
 }

@@ -203,7 +203,8 @@ export const mailMessages = pgTable(
     messageIdHash: text().notNull(),
     folder: mailFolderEnum().notNull(),
     status: mailMessageStatusEnum().notNull().default("pending"),
-    content: jsonb().$type<MailContent>(),
+    content: jsonb().$type<MailContent>().notNull(),
+    applicationId: uuid().references(() => applications.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

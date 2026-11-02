@@ -14,7 +14,7 @@ const syncIntervalMs = 10 * minute;
 const maxBackoffMs = 6 * 60 * minute;
 const leaseMs = 15 * minute;
 const maxLoginFailures = 3;
-const pendingRetentionMs = 30 * day;
+const retentionMs = 30 * day;
 
 type MailAccountRow = typeof mailAccounts.$inferSelect;
 
@@ -138,12 +138,7 @@ export function createMailSync({ db, passwordCipher, readNewMail, log }: MailSyn
   function deleteExpiredMails() {
     return db
       .delete(mailMessages)
-      .where(
-        and(
-          eq(mailMessages.status, "pending"),
-          lt(mailMessages.createdAt, new Date(Date.now() - pendingRetentionMs)),
-        ),
-      );
+      .where(lt(mailMessages.createdAt, new Date(Date.now() - retentionMs)));
   }
 
   return {

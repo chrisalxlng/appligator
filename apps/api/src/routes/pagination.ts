@@ -21,7 +21,7 @@ type Cursor = z.infer<typeof cursorSchema>;
 
 interface PageColumns {
   id: PgColumn;
-  pinned: PgColumn;
+  pinned: PgColumn | SQL;
   createdAt: PgColumn;
 }
 

@@ -204,10 +204,20 @@ const content = {
   attachmentCount: 2,
 };
 
-async function storedMessage({ userId = "user-id", hash = "hash" } = {}) {
+async function storedMessage({
+  userId = "user-id",
+  hash = "hash",
+  status = "pending",
+  createdAt = new Date(),
+}: {
+  userId?: string;
+  hash?: string;
+  status?: "pending" | "assigned" | "dismissed";
+  createdAt?: Date;
+} = {}) {
   const [message] = await db
     .insert(mailMessages)
-    .values({ userId, messageIdHash: hash, folder: "inbox", content })
+    .values({ userId, messageIdHash: hash, folder: "inbox", status, content, createdAt })
     .returning();
   return message!;
 }
@@ -250,46 +260,91 @@ const activity = {
   ],
 };
 
-test("GET /mail/messages lists the pending emails of the user without their bodies", async () => {
-  const message = await storedMessage();
+test("GET /mail/messages lists the emails of the user without their bodies, newest first", async () => {
+  const older = await storedMessage({ createdAt: new Date("2026-11-01T10:00:00.000Z") });
+  const newer = await storedMessage({ hash: "newer", status: "dismissed" });
   await storedMessage({ userId: "other-user-id" });
-  const [dismissed] = await db
-    .insert(mailMessages)
-    .values({ userId: "user-id", messageIdHash: "dismissed", folder: "inbox", status: "dismissed" })
-    .returning();
 
   const response = await request("GET", { url: "/mail/messages" });
 
   expect(response.statusCode).toBe(200);
   const { body: _body, ...listed } = content;
   expect(response.json()).toEqual({
-    items: [{ ...listed, id: message.id, folder: "inbox", receivedAt: expect.any(String) }],
-    total: 1,
+    items: [
+      {
+        ...listed,
+        id: newer.id,
+        folder: "inbox",
+        status: "dismissed",
+        createdAt: expect.any(String),
+      },
+      {
+        ...listed,
+        id: older.id,
+        folder: "inbox",
+        status: "pending",
+        createdAt: expect.any(String),
+      },
+    ],
+    nextCursor: null,
   });
-  expect(response.body).not.toContain(dismissed!.id);
 });
 
-test("GET /mail/messages/count counts the pending emails of the user", async () => {
-  await storedMessage();
-  await storedMessage({ hash: "other" });
+test("GET /mail/messages filters by status", async () => {
+  const pending = await storedMessage();
+  await storedMessage({ hash: "dismissed", status: "dismissed" });
+
+  const response = await request("GET", { url: "/mail/messages?status=pending" });
+
+  expect(response.json().items.map(({ id }: { id: string }) => id)).toEqual([pending.id]);
+});
+
+test("GET /mail/messages pages through the emails with a cursor", async () => {
+  const first = await storedMessage({
+    hash: "first",
+    createdAt: new Date("2026-11-01T10:00:00.000Z"),
+  });
+  const second = await storedMessage({ hash: "second" });
+
+  const firstPage = (await request("GET", { url: "/mail/messages?limit=1" })).json();
+  const secondPage = (
+    await request("GET", { url: `/mail/messages?limit=1&cursor=${firstPage.nextCursor}` })
+  ).json();
+
+  expect(firstPage.items[0].id).toBe(second.id);
+  expect(secondPage.items[0].id).toBe(first.id);
+  expect(secondPage.nextCursor).toBeNull();
+});
+
+test("GET /mail/messages/status-counts counts the emails of the user in a fixed order", async () => {
+  await storedMessage({ hash: "dismissed", status: "dismissed" });
+  await storedMessage({ hash: "a" });
+  await storedMessage({ hash: "b" });
   await storedMessage({ userId: "other-user-id" });
 
-  const response = await request("GET", { url: "/mail/messages/count" });
+  const response = await request("GET", { url: "/mail/messages/status-counts" });
 
-  expect(response.json()).toEqual({ count: 2 });
+  expect(response.json()).toEqual([
+    { status: "pending", count: 2 },
+    { status: "dismissed", count: 1 },
+  ]);
 });
 
-test("GET /mail/messages/:id returns an own pending email with its body", async () => {
+test("GET /mail/messages/:id returns an own email with its body", async () => {
   const message = await storedMessage();
   const foreign = await storedMessage({ userId: "other-user-id" });
 
   const response = await request("GET", { url: `/mail/messages/${message.id}` });
 
-  expect(response.json()).toMatchObject({ id: message.id, body: "<p>Hello</p>" });
+  expect(response.json()).toMatchObject({
+    id: message.id,
+    body: "<p>Hello</p>",
+    application: null,
+  });
   expect((await request("GET", { url: `/mail/messages/${foreign.id}` })).statusCode).toBe(404);
 });
 
-test("POST /mail/messages/:id/assignment creates the activity and clears the email", async () => {
+test("POST /mail/messages/:id/assignment creates the activity and keeps the email", async () => {
   const message = await storedMessage();
   const application = await storedApplication();
 
@@ -303,11 +358,14 @@ test("POST /mail/messages/:id/assignment creates the activity and clears the ema
     type: "interviewScheduled",
     attachments: [{ kind: "email", subject: "Invitation" }],
   });
-  const [stored] = await db.select().from(mailMessages).where(eq(mailMessages.id, message.id));
-  expect(stored).toMatchObject({ status: "assigned", content: null });
+  const detail = (await request("GET", { url: `/mail/messages/${message.id}` })).json();
+  expect(detail).toMatchObject({
+    status: "assigned",
+    body: "<p>Hello</p>",
+    application: { id: application.id, position: "Developer" },
+  });
   const [updated] = await db.select().from(applications).where(eq(applications.id, application.id));
   expect(updated!.status).toBe("interviewing");
-  expect((await request("GET", { url: "/mail/messages/count" })).json()).toEqual({ count: 0 });
 });
 
 test("POST /mail/messages/:id/assignment rejects a foreign application", async () => {
@@ -321,7 +379,8 @@ test("POST /mail/messages/:id/assignment rejects a foreign application", async (
 
   expect(response.statusCode).toBe(404);
   expect(await db.select().from(activities)).toEqual([]);
-  expect((await request("GET", { url: "/mail/messages/count" })).json()).toEqual({ count: 1 });
+  const [stored] = await db.select().from(mailMessages).where(eq(mailMessages.id, message.id));
+  expect(stored!.status).toBe("pending");
 });
 
 test("POST /mail/messages/:id/assignment assigns an email only once and only an own one", async () => {
@@ -340,15 +399,41 @@ test("POST /mail/messages/:id/assignment assigns an email only once and only an 
   expect(await db.select().from(activities)).toHaveLength(1);
 });
 
-test("DELETE /mail/messages/:id dismisses an own email and clears its content", async () => {
+test("POST /mail/messages/:id/assignment can still assign a dismissed email", async () => {
+  const message = await storedMessage({ status: "dismissed" });
+  const application = await storedApplication();
+
+  const response = await request("POST", {
+    url: `/mail/messages/${message.id}/assignment`,
+    body: { applicationId: application.id, activity },
+  });
+
+  expect(response.statusCode).toBe(201);
+});
+
+test("an assigned email keeps working after its application was deleted", async () => {
+  const message = await storedMessage();
+  const application = await storedApplication();
+  await request("POST", {
+    url: `/mail/messages/${message.id}/assignment`,
+    body: { applicationId: application.id, activity },
+  });
+
+  await db.delete(applications).where(eq(applications.id, application.id));
+
+  const detail = (await request("GET", { url: `/mail/messages/${message.id}` })).json();
+  expect(detail).toMatchObject({ status: "assigned", application: null });
+});
+
+test("DELETE /mail/messages/:id dismisses a pending own email and keeps its content", async () => {
   const message = await storedMessage();
   const foreign = await storedMessage({ userId: "other-user-id" });
 
   expect((await request("DELETE", { url: `/mail/messages/${foreign.id}` })).statusCode).toBe(404);
   expect((await request("DELETE", { url: `/mail/messages/${message.id}` })).statusCode).toBe(204);
 
-  const [stored] = await db.select().from(mailMessages).where(eq(mailMessages.id, message.id));
-  expect(stored).toMatchObject({ status: "dismissed", content: null });
+  const detail = (await request("GET", { url: `/mail/messages/${message.id}` })).json();
+  expect(detail).toMatchObject({ status: "dismissed", body: "<p>Hello</p>" });
   expect((await request("DELETE", { url: `/mail/messages/${message.id}` })).statusCode).toBe(404);
 });
 
@@ -378,7 +463,9 @@ test("POST /mail/sync reads the mailbox of the user and reports the new emails",
   expect(response.statusCode).toBe(200);
   expect(response.json()).toEqual({ newMails: 1 });
   expect(readNewMail.mock.calls[0]![0]).toEqual(input);
-  expect((await request("GET", { url: "/mail/messages/count" })).json()).toEqual({ count: 1 });
+  expect((await request("GET", { url: "/mail/messages/status-counts" })).json()).toEqual([
+    { status: "pending", count: 1 },
+  ]);
 });
 
 test("POST /mail/sync reports a failure and stores it", async () => {

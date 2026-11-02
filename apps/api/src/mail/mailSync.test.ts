@@ -86,7 +86,7 @@ test("stores new emails and each one only once", async () => {
   await sync.syncDueAccounts();
 
   const messages = await db.select().from(mailMessages);
-  expect(messages.map(({ content }) => content!.subject).sort()).toEqual([
+  expect(messages.map(({ content }) => content.subject).sort()).toEqual([
     "a@example.com",
     "b@example.com",
   ]);
@@ -215,19 +215,26 @@ test("removes emails stored for an account deleted during the sync", async () =>
   expect(await db.select().from(mailMessages)).toEqual([]);
 });
 
-test("deletes only pending emails after the retention period", async () => {
+test("deletes emails after the retention period, whatever their status", async () => {
   const old = new Date(Date.now() - 31 * 24 * minutes(60));
   const content = { subject: "", from: "", to: "", sentAt: null, body: "", attachmentCount: 0 };
   await db.insert(mailMessages).values([
     { userId, messageIdHash: "old", folder: "inbox", content, createdAt: old },
     { userId, messageIdHash: "recent", folder: "inbox", content },
-    { userId, messageIdHash: "handled", folder: "inbox", status: "dismissed", createdAt: old },
+    {
+      userId,
+      messageIdHash: "handled",
+      folder: "inbox",
+      content,
+      status: "dismissed",
+      createdAt: old,
+    },
   ]);
 
   await sync.syncDueAccounts();
 
   const hashes = (await db.select().from(mailMessages)).map(({ messageIdHash }) => messageIdHash);
-  expect(hashes.sort()).toEqual(["handled", "recent"]);
+  expect(hashes).toEqual(["recent"]);
 });
 
 test("stops between accounts when asked to", async () => {

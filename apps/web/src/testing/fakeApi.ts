@@ -426,7 +426,7 @@ export function createFakeApi(
     const path = url.replace(import.meta.env.VITE_API_URL, "");
     const { pathname, searchParams } = new URL(path, location.origin);
     // The navigation asks for the number of emails on every page.
-    if (pathname === "/mail/messages/count") return json({ count: 0 });
+    if (pathname === "/mail/messages/status-counts") return json([]);
     const body = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
     requests.push({ method, path, body });
     await holds.get(method);

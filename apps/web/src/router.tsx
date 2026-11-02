@@ -11,10 +11,12 @@ import { createQueryClient } from "./api/queryClient.ts";
 import { ApplicationsIndex } from "./applications/ApplicationsIndex.tsx";
 import type { Auth } from "./auth/authenticate.ts";
 import { JobsIndex } from "./jobs/JobsIndex.tsx";
+import { InboxIndex } from "./mail/InboxIndex.tsx";
 import { ApplicationDetailPage } from "./pages/ApplicationDetailPage.tsx";
 import { ApplicationsPage } from "./pages/ApplicationsPage.tsx";
 import { ErrorPage } from "./pages/ErrorPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
+import { InboxMessagePage } from "./pages/InboxMessagePage.tsx";
 import { InboxPage } from "./pages/InboxPage.tsx";
 import { JobDetailPage } from "./pages/JobDetailPage.tsx";
 import { JobsPage } from "./pages/JobsPage.tsx";
@@ -87,6 +89,18 @@ const inboxRoute = createRoute({
   component: InboxPage,
 });
 
+const inboxIndexRoute = createRoute({
+  getParentRoute: () => inboxRoute,
+  path: "/",
+  component: InboxIndex,
+});
+
+const inboxMessageRoute = createRoute({
+  getParentRoute: () => inboxRoute,
+  path: "$messageId",
+  component: InboxMessagePage,
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/profile",
@@ -98,7 +112,7 @@ const routeTree = rootRoute.addChildren([
     homeRoute,
     jobsRoute.addChildren([jobsIndexRoute, jobDetailRoute]),
     applicationsRoute.addChildren([applicationsIndexRoute, applicationDetailRoute]),
-    inboxRoute,
+    inboxRoute.addChildren([inboxIndexRoute, inboxMessageRoute]),
     profileRoute,
   ]),
 ]);

@@ -1,14 +1,16 @@
 import {
   activitySchema,
   mailAccountSchema,
-  mailMessageCountSchema,
-  mailMessageListSchema,
+  mailMessageListPageSchema,
   mailMessageSchema,
+  mailMessageStatusCountsSchema,
   mailSyncResultSchema,
   type MailAccountInput,
   type MailAssignmentInput,
+  type MailMessageStatus,
 } from "@appligator/shared";
 import type { ApiClient } from "../api/apiClient.ts";
+import { listPath } from "../api/listPath.ts";
 
 const optionalAccountSchema = mailAccountSchema.nullable();
 
@@ -19,8 +21,10 @@ export function createMailApi(api: ApiClient) {
       api.request("/mail/account", mailAccountSchema, { method: "PUT", body: input }),
     deleteAccount: () => api.requestWithoutContent("/mail/account", { method: "DELETE" }),
     sync: () => api.request("/mail/sync", mailSyncResultSchema, { method: "POST" }),
-    listMessages: () => api.request("/mail/messages", mailMessageListSchema),
-    countMessages: () => api.request("/mail/messages/count", mailMessageCountSchema),
+    listMessages: (cursor: string | null, status: MailMessageStatus | null) =>
+      api.request(listPath("/mail/messages", { cursor, status }), mailMessageListPageSchema),
+    messageStatusCounts: () =>
+      api.request("/mail/messages/status-counts", mailMessageStatusCountsSchema),
     getMessage: (id: string) => api.request(`/mail/messages/${id}`, mailMessageSchema),
     assignMessage: (id: string, input: MailAssignmentInput) =>
       api.request(`/mail/messages/${id}/assignment`, activitySchema, {

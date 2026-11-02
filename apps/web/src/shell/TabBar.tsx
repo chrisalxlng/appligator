@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useRef, type Ref } from "react";
 import { useTranslation } from "react-i18next";
-import { useMailMessageCount } from "../mail/mailQueries.ts";
+import { usePendingMailCount } from "../mail/mailQueries.ts";
 import { ActiveIndicator } from "./ActiveIndicator.tsx";
 import { navigationItems } from "./navigation.ts";
 import { ScrollToTop } from "./ScrollToTop.tsx";
@@ -18,7 +18,7 @@ export function TabBar({ floatingActionsRef }: TabBarProps) {
   const navRef = useRef<HTMLElement>(null);
   const activeLinkRect = useActiveLinkRect(navRef);
   const isDesktop = useIsDesktop();
-  const { data: inboxCount } = useMailMessageCount();
+  const inboxCount = usePendingMailCount();
 
   return (
     <div className={styles.container}>

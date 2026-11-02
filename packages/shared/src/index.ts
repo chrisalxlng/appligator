@@ -105,13 +105,14 @@ export {
 export {
   mailAssignmentInputSchema,
   mailFolders,
-  mailMessageCountSchema,
-  mailMessageListSchema,
+  mailMessageListPageSchema,
   mailMessageSchema,
+  mailMessageStatusCountsSchema,
   mailMessageStatuses,
   mailSyncResultSchema,
   type MailAssignmentInput,
   type MailFolder,
   type MailMessage,
   type MailMessageListItem,
+  type MailMessageStatus,
 } from "./mailMessage.ts";

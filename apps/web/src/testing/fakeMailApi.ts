@@ -1,8 +1,9 @@
-import type {
-  MailAccount,
-  MailAccountInput,
-  MailAssignmentInput,
-  MailMessage,
+import {
+  mailMessageStatuses,
+  type MailAccount,
+  type MailAccountInput,
+  type MailAssignmentInput,
+  type MailMessage,
 } from "@appligator/shared";
 import { vi } from "vite-plus/test";
 
@@ -21,9 +22,11 @@ export const mailMessageFixture: MailMessage = {
   from: "jobs@acme.example",
   to: "bewerbung@example.com",
   sentAt: "2026-10-30T09:14:00.000Z",
+  status: "pending",
   attachmentCount: 0,
-  receivedAt: "2026-10-30T09:20:00.000Z",
+  createdAt: "2026-10-30T09:20:00.000Z",
   body: "<p>Wir laden Sie ein.</p>",
+  application: null,
 };
 
 function json(data: unknown, status = 200) {
@@ -45,33 +48,55 @@ export function createFakeMailApi(
   const failures = new Map<string, { status: number; error?: string }>();
   const otherFetch = globalThis.fetch;
 
-  function handleMessages(method: string, path: string) {
-    if (path === "/mail/sync") {
+  function statusCounts() {
+    return mailMessageStatuses
+      .map((status) => ({
+        status,
+        count: messages.filter((message) => message.status === status).length,
+      }))
+      .filter(({ count }) => count > 0);
+  }
+
+  function handleMessages(method: string, path: string, assignment?: MailAssignmentInput) {
+    const { pathname, searchParams } = new URL(path, location.origin);
+    if (pathname === "/mail/sync") {
       const newMails = incoming.length;
       messages = [...incoming, ...messages];
       incoming = [];
       return json({ newMails });
     }
-    if (path === "/mail/messages/count") return json({ count: messages.length });
-    if (path === "/mail/messages") {
+    if (pathname === "/mail/messages/status-counts") return json(statusCounts());
+    if (pathname === "/mail/messages") {
+      const status = searchParams.get("status");
       return json({
-        items: messages.map(({ body: _body, ...message }) => message),
-        total: messages.length,
+        items: messages
+          .filter((message) => !status || message.status === status)
+          .map(({ body: _body, application: _application, ...message }) => message),
+        nextCursor: null,
       });
     }
 
-    const id = path.split("/")[3]!;
+    const id = pathname.split("/")[3]!;
     const message = messages.find((other) => other.id === id);
     if (!message) return json({ error: "Not Found" }, 404);
     if (method === "GET") return json(message);
 
-    messages = messages.filter((other) => other.id !== id);
-    if (method === "DELETE") return new Response(null, { status: 204 });
+    const update = (changes: Partial<MailMessage>) => {
+      messages = messages.map((other) => (other.id === id ? { ...other, ...changes } : other));
+    };
+    if (method === "DELETE") {
+      update({ status: "dismissed" });
+      return new Response(null, { status: 204 });
+    }
+    update({
+      status: "assigned",
+      application: { id: assignment!.applicationId, position: "Assigned application" },
+    });
     return json(
       {
         id: "0d2f8f5e-8d4b-4a56-8c55-0b1f3d2e7a90",
         type: "interviewScheduled",
-        occurredAt: message.receivedAt,
+        occurredAt: message.createdAt,
         terms: null,
         detailsReviewed: false,
         appointmentAt: null,
@@ -79,8 +104,8 @@ export function createFakeMailApi(
         responseDeadline: null,
         notes: "",
         attachments: [],
-        createdAt: message.receivedAt,
-        updatedAt: message.receivedAt,
+        createdAt: message.createdAt,
+        updatedAt: message.createdAt,
       },
       201,
     );
@@ -95,7 +120,7 @@ export function createFakeMailApi(
     if (failure) return json(failure.error ? { error: failure.error } : null, failure.status);
 
     if (path.startsWith("/mail/messages") || path === "/mail/sync") {
-      return handleMessages(method, path);
+      return handleMessages(method, path, body);
     }
     if (method === "GET") return json(account);
     if (method === "PUT") {

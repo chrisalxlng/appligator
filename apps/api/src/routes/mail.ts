@@ -1,16 +1,16 @@
 import {
   activitySchema,
-  type MailFolder,
   mailAccountInputSchema,
   mailAccountSchema,
   mailAssignmentInputSchema,
   mailErrorSchema,
-  mailMessageCountSchema,
-  mailMessageListSchema,
+  mailMessageListPageSchema,
   mailMessageSchema,
+  mailMessageStatusCountsSchema,
+  mailMessageStatuses,
   mailSyncResultSchema,
 } from "@appligator/shared";
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, ne, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import type { SecretCipher } from "../crypto/secretCipher.ts";
@@ -20,6 +20,8 @@ import type { ReadNewMail } from "../mail/mailReader.ts";
 import { insertActivity, maxActivityBodyBytes, toActivity } from "./activityRows.ts";
 import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
+import { afterCursor, cursorCreatedAt, pageQuerySchema, toPage } from "./pagination.ts";
+import { sortByStatus } from "./statusCounts.ts";
 
 export interface MailOptions {
   passwordCipher: SecretCipher;
@@ -30,9 +32,6 @@ export interface MailOptions {
 // Each check opens a connection to a server of the user's choice and attempts a login there. The
 // hook runs after the authentication.
 const connectionRateLimit = { max: 10, timeWindow: "1 minute", hook: "preHandler" } as const;
-
-// Pending emails are deleted after a while, so the list stays small enough to not need pages.
-const maxListedMessages = 100;
 
 function toMailAccount({
   host,
@@ -50,19 +49,9 @@ function toMailAccount({
   };
 }
 
-function toMailMessage<Content extends Omit<MailContent, "body">>({
-  id,
-  folder,
-  content,
-  createdAt,
-}: {
-  id: string;
-  folder: MailFolder;
-  content: Content | null;
-  createdAt: Date;
-}) {
-  return { id, folder, ...content!, receivedAt: createdAt.toISOString() };
-}
+const mailMessageListQuerySchema = pageQuerySchema.extend({
+  status: z.enum(mailMessageStatuses).optional(),
+});
 
 export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
   app,
@@ -156,42 +145,66 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
     },
   );
 
-  const pendingOf = (userId: string) =>
-    and(eq(mailMessages.userId, userId), eq(mailMessages.status, "pending"));
-  const pendingMessage = (id: string, userId: string) =>
-    and(eq(mailMessages.id, id), pendingOf(userId));
+  const ownMessage = (id: string, userId: string) =>
+    and(eq(mailMessages.id, id), eq(mailMessages.userId, userId));
+
+  // Emails can't be pinned, but they share the pages with jobs and applications, which can.
+  const notPinned = sql<boolean>`false`;
+  const messagePageColumns = {
+    id: mailMessages.id,
+    pinned: notPinned,
+    createdAt: mailMessages.createdAt,
+  };
 
   app.get(
     "/mail/messages",
-    { schema: { response: { 200: mailMessageListSchema } } },
+    {
+      schema: {
+        querystring: mailMessageListQuerySchema,
+        response: { 200: mailMessageListPageSchema },
+      },
+    },
     async (request) => {
-      const [rows, [total]] = await Promise.all([
-        app.db
-          .select({
-            id: mailMessages.id,
-            folder: mailMessages.folder,
-            content: sql<Omit<MailContent, "body">>`${mailMessages.content} - 'body'`,
-            createdAt: mailMessages.createdAt,
-          })
-          .from(mailMessages)
-          .where(pendingOf(request.userId))
-          .orderBy(desc(mailMessages.createdAt), desc(mailMessages.id))
-          .limit(maxListedMessages),
-        app.db.select({ count: count() }).from(mailMessages).where(pendingOf(request.userId)),
-      ]);
-      return { items: rows.map(toMailMessage), total: total!.count };
+      const { limit, cursor, status } = request.query;
+      const rows = await app.db
+        .select({
+          id: mailMessages.id,
+          folder: mailMessages.folder,
+          status: mailMessages.status,
+          content: sql<Omit<MailContent, "body">>`${mailMessages.content} - 'body'`,
+          pinned: notPinned,
+          createdAt: mailMessages.createdAt,
+          cursorCreatedAt: cursorCreatedAt(messagePageColumns),
+        })
+        .from(mailMessages)
+        .where(
+          and(
+            eq(mailMessages.userId, request.userId),
+            status ? eq(mailMessages.status, status) : undefined,
+            afterCursor(messagePageColumns, cursor),
+          ),
+        )
+        .orderBy(desc(mailMessages.createdAt), desc(mailMessages.id))
+        .limit(limit + 1);
+
+      const { items, nextCursor } = toPage(rows, limit);
+      return {
+        items: items.map(({ pinned: _pinned, content, ...item }) => ({ ...item, ...content })),
+        nextCursor,
+      };
     },
   );
 
   app.get(
-    "/mail/messages/count",
-    { schema: { response: { 200: mailMessageCountSchema } } },
+    "/mail/messages/status-counts",
+    { schema: { response: { 200: mailMessageStatusCountsSchema } } },
     async (request) => {
-      const [total] = await app.db
-        .select({ count: count() })
+      const rows = await app.db
+        .select({ status: mailMessages.status, count: count() })
         .from(mailMessages)
-        .where(pendingOf(request.userId));
-      return total!;
+        .where(eq(mailMessages.userId, request.userId))
+        .groupBy(mailMessages.status);
+      return sortByStatus(rows, mailMessageStatuses);
     },
   );
 
@@ -202,11 +215,21 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
     },
     async (request, reply) => {
       const [row] = await app.db
-        .select()
+        .select({
+          id: mailMessages.id,
+          folder: mailMessages.folder,
+          status: mailMessages.status,
+          content: mailMessages.content,
+          createdAt: mailMessages.createdAt,
+          application: { id: applications.id, position: applications.position },
+        })
         .from(mailMessages)
-        .where(pendingMessage(request.params.id, request.userId));
+        .leftJoin(applications, eq(applications.id, mailMessages.applicationId))
+        .where(ownMessage(request.params.id, request.userId));
       if (!row) return reply.code(404).send({ error: "Not Found" });
-      return toMailMessage(row);
+
+      const { content, createdAt, ...message } = row;
+      return { ...message, ...content, createdAt: createdAt.toISOString() };
     },
   );
 
@@ -231,8 +254,10 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
       const row = await app.db.transaction(async (tx) => {
         const [message] = await tx
           .update(mailMessages)
-          .set({ status: "assigned", content: null })
-          .where(pendingMessage(request.params.id, request.userId))
+          .set({ status: "assigned", applicationId })
+          .where(
+            and(ownMessage(request.params.id, request.userId), ne(mailMessages.status, "assigned")),
+          )
           .returning({ id: mailMessages.id });
         return message ? insertActivity(tx, applicationId, activity) : undefined;
       });
@@ -247,8 +272,10 @@ export const mailRoutes: FastifyPluginAsyncZod<MailOptions> = async (
     async (request, reply) => {
       const [row] = await app.db
         .update(mailMessages)
-        .set({ status: "dismissed", content: null })
-        .where(pendingMessage(request.params.id, request.userId))
+        .set({ status: "dismissed" })
+        .where(
+          and(ownMessage(request.params.id, request.userId), eq(mailMessages.status, "pending")),
+        )
         .returning({ id: mailMessages.id });
       if (!row) return reply.code(404).send({ error: "Not Found" });
       return reply.code(204).send(null);

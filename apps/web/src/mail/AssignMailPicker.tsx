@@ -1,7 +1,7 @@
 import type { ActivityType, MailMessage } from "@appligator/shared";
-import { Drawer, SearchList, Spinner, useSuccessToast } from "@appligator/ui";
-import { IconPlus } from "@tabler/icons-react";
-import { useState } from "react";
+import { Button, Drawer, Popover, SearchList, Spinner, useSuccessToast } from "@appligator/ui";
+import { IconLink, IconPlus } from "@tabler/icons-react";
+import { useRef, useState, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityForm } from "../activities/ActivityForm.tsx";
 import { useActivities } from "../activities/activityQueries.ts";
@@ -12,79 +12,62 @@ import pickerStyles from "../applications/JobPicker.module.css";
 import { useApplicationStatus } from "../applications/useApplicationStatus.ts";
 import { useDebouncedValue } from "../collection/useDebouncedValue.ts";
 import { LoadError } from "../loading/LoadError.tsx";
+import { useIsDesktop } from "../shell/useMediaQuery.ts";
 import { useAssignMailMessage } from "./mailQueries.ts";
 
 const searchDelayMs = 200;
 
-interface AssignMailDrawerProps {
-  message: MailMessage;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAssigned: () => void;
-}
-
-export function AssignMailDrawer({
-  message,
-  open,
-  onOpenChange,
-  onAssigned,
-}: AssignMailDrawerProps) {
+export function AssignMailPicker({ message }: { message: MailMessage }) {
   const { t } = useTranslation();
-  const showSuccess = useSuccessToast();
+  const isDesktop = useIsDesktop();
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [application, setApplication] = useState<{ id: string | null; open: boolean }>({
     id: null,
     open: false,
   });
-  const [type, setType] = useState<{ value: ActivityType | null; open: boolean }>({
-    value: null,
-    open: false,
-  });
+
+  function select(applicationId: string) {
+    setOpen(false);
+    setApplication({ id: applicationId, open: true });
+  }
+
+  const popupProps = {
+    title: t("inbox.assign.action"),
+    closeLabel: t("common.close"),
+    open,
+    onOpenChange: setOpen,
+    initialFocus: inputRef,
+    // Closing must not take the focus back from the drawer that opens for the application.
+    finalFocus: application.open ? (false as const) : buttonRef,
+    children: <ApplicationSearch inputRef={inputRef} onSelect={select} />,
+  };
 
   return (
-    <Drawer
-      title={t("inbox.assign.action")}
-      closeLabel={t("common.close")}
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      <ApplicationSearch onSelect={(id) => setApplication({ id, open: true })} />
-      <Drawer
-        title={t("activities.form.addTitle")}
-        closeLabel={t("common.close")}
+    <>
+      <Button ref={buttonRef} onClick={() => setOpen(true)}>
+        <IconLink size={20} stroke={2.4} aria-hidden />
+        {t("inbox.assign.action")}
+      </Button>
+      {isDesktop ? <Popover anchor={buttonRef} {...popupProps} /> : <Drawer {...popupProps} />}
+      <AssignActivityDrawer
+        message={message}
+        applicationId={application.id}
         open={application.open}
         onOpenChange={(nextOpen) => setApplication((current) => ({ ...current, open: nextOpen }))}
-      >
-        {application.id && (
-          <RankedActivityTypePicker
-            applicationId={application.id}
-            onSelect={(value) => setType({ value, open: true })}
-          />
-        )}
-        <Drawer
-          title={type.value ? t(`activities.types.${type.value}.label`) : ""}
-          closeLabel={t("common.close")}
-          open={type.open}
-          onOpenChange={(nextOpen) => setType((current) => ({ ...current, open: nextOpen }))}
-        >
-          {application.id && type.value && (
-            <AssignForm
-              key={`${application.id}-${type.value}`}
-              message={message}
-              applicationId={application.id}
-              type={type.value}
-              onSaved={() => {
-                onAssigned();
-                showSuccess(t("activities.toast.added"));
-              }}
-            />
-          )}
-        </Drawer>
-      </Drawer>
-    </Drawer>
+        finalFocus={buttonRef}
+      />
+    </>
   );
 }
 
-function ApplicationSearch({ onSelect }: { onSelect: (applicationId: string) => void }) {
+interface ApplicationSearchProps {
+  inputRef: RefObject<HTMLInputElement | null>;
+  onSelect: (applicationId: string) => void;
+}
+
+function ApplicationSearch({ inputRef, onSelect }: ApplicationSearchProps) {
   const { t } = useTranslation();
   const applicationStatus = useApplicationStatus();
   const [search, setSearch] = useState("");
@@ -109,6 +92,7 @@ function ApplicationSearch({ onSelect }: { onSelect: (applicationId: string) => 
       inputLabel={t("inbox.assign.search")}
       placeholder={t("inbox.assign.searchPlaceholder")}
       listLabel={t("inbox.assign.action")}
+      inputRef={inputRef}
       status={searchStatus()}
     />
   );
@@ -139,6 +123,66 @@ function ApplicationSearch({ onSelect }: { onSelect: (applicationId: string) => 
   }
 }
 
+interface AssignActivityDrawerProps {
+  message: MailMessage;
+  applicationId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  finalFocus: RefObject<HTMLElement | null>;
+}
+
+function AssignActivityDrawer({
+  message,
+  applicationId,
+  open,
+  onOpenChange,
+  finalFocus,
+}: AssignActivityDrawerProps) {
+  const { t } = useTranslation();
+  const showSuccess = useSuccessToast();
+  const [type, setType] = useState<{ value: ActivityType | null; open: boolean }>({
+    value: null,
+    open: false,
+  });
+
+  return (
+    <Drawer
+      title={t("activities.form.addTitle")}
+      closeLabel={t("common.close")}
+      open={open}
+      onOpenChange={onOpenChange}
+      finalFocus={finalFocus}
+    >
+      {applicationId && (
+        <RankedActivityTypePicker
+          applicationId={applicationId}
+          onSelect={(value) => setType({ value, open: true })}
+        />
+      )}
+      <Drawer
+        title={type.value ? t(`activities.types.${type.value}.label`) : ""}
+        closeLabel={t("common.close")}
+        open={type.open}
+        onOpenChange={(nextOpen) => setType((current) => ({ ...current, open: nextOpen }))}
+      >
+        {applicationId && type.value && (
+          <AssignForm
+            key={`${applicationId}-${type.value}`}
+            message={message}
+            applicationId={applicationId}
+            type={type.value}
+            onSaved={() => {
+              setType((current) => ({ ...current, open: false }));
+              onOpenChange(false);
+              showSuccess(t("activities.toast.added"));
+            }}
+          />
+        )}
+      </Drawer>
+    </Drawer>
+  );
+}
+
 function RankedActivityTypePicker({
   applicationId,
   onSelect,
@@ -166,13 +210,13 @@ interface AssignFormProps {
 function AssignForm({ message, applicationId, type, onSaved }: AssignFormProps) {
   const { t } = useTranslation();
   const assign = useAssignMailMessage(message.id, applicationId);
-  const { subject, from, to, sentAt, body, receivedAt } = message;
+  const { subject, from, to, sentAt, body, createdAt } = message;
 
   return (
     <ActivityForm
       type={type}
       prefill={{
-        occurredAt: sentAt ?? receivedAt,
+        occurredAt: sentAt ?? createdAt,
         attachments: [{ kind: "email", subject, from, to, sentAt, body }],
       }}
       save={assign}

@@ -662,7 +662,7 @@ export const en = {
   mail: {
     title: "Email inbox",
     description:
-      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted.",
+      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted. Appligator deletes retrieved emails from the inbox page after 30 days; they remain in your inbox and as attachments of activities.",
     loading: "Loading email inbox …",
     loadError: {
       title: "Email inbox could not be loaded",
@@ -711,7 +711,7 @@ export const en = {
         action: "Delete inbox access",
         title: "Delete inbox access?",
         description:
-          "Your credentials for {{username}} will be permanently deleted. Your inbox and your emails remain unchanged.",
+          "Your credentials for {{username}} will be permanently deleted and the inbox page in Appligator emptied. Your inbox and your emails there remain unchanged.",
         confirm: "Delete",
         cancel: "Cancel",
         error: "The inbox access could not be deleted. Please try again.",
@@ -724,15 +724,28 @@ export const en = {
     },
   },
   inbox: {
-    description:
-      "Retrieved emails that aren't assigned to an application yet end up here. Appligator deletes unassigned emails after 30 days; they remain in your inbox.",
     loading: "Loading emails …",
+    loadingMore: "Loading more emails …",
+    loadingMessage: "Loading email …",
     loadError: {
       title: "Emails could not be loaded",
       description: "Check your connection and try again.",
     },
+    loadMoreError: {
+      title: "More emails could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    detailLoadError: {
+      title: "Email could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    notFound: {
+      title: "Email not found",
+      description: "This email doesn't exist or has been deleted.",
+      back: "Go to inbox",
+    },
     empty: {
-      title: "No emails to review",
+      title: "No emails yet",
       description: "New emails appear here as soon as Appligator has retrieved them.",
     },
     noAccount: {
@@ -741,26 +754,30 @@ export const en = {
       action: "Add inbox access",
     },
     syncError: {
-      loginRejected: "Retrieving emails is disrupted: The server rejects the login.",
-      connectionFailed: "Retrieving emails is disrupted: The server can't be reached.",
-      action: "Check inbox access",
+      title: "Retrieving is disrupted",
+      loginRejected: "The server rejects the login. Check your inbox access in the profile.",
+      connectionFailed: "The server can't be reached. Check your inbox access in the profile.",
+      failed: "The emails could not be retrieved. Please try again.",
     },
-    sync: {
-      action: "Retrieve emails",
-      error: "The emails could not be retrieved. Please try again.",
-    },
-    limited: "Showing the newest {{shown}} of {{total}} emails.",
+    sync: "Retrieve emails",
     noSubject: "(No subject)",
-    sent: "Sent",
+    status: {
+      pending: "To review",
+      assigned: "Assigned",
+      dismissed: "Dismissed",
+    },
+    properties: {
+      status: "Status",
+      application: "Application",
+      folder: "Folder",
+      attachments: "Attachments",
+    },
+    folders: {
+      inbox: "Inbox",
+      sent: "Sent",
+    },
     filesNotImported_one: "{{count}} file not imported",
     filesNotImported_other: "{{count}} files not imported",
-    message: {
-      loadError: {
-        title: "Email could not be loaded",
-        description: "Check your connection and try again.",
-      },
-      loading: "Loading email …",
-    },
     assign: {
       action: "Assign to application",
       search: "Search applications",
@@ -779,7 +796,8 @@ export const en = {
     dismiss: {
       action: "Dismiss email",
       title: "Dismiss email?",
-      description: "The email disappears from this list. It remains unchanged in your inbox.",
+      description:
+        "The email then counts as done. It remains unchanged in your inbox, and you can still assign it later.",
       confirm: "Dismiss",
       cancel: "Cancel",
       error: "The email could not be dismissed. Please try again.",
