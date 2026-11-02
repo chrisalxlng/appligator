@@ -3,6 +3,7 @@ import { IconLogout } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { AiSettingsSection } from "../ai/AiSettingsSection.tsx";
 import { useAuth } from "../auth/useAuth.ts";
+import { MailAccountSection } from "../mail/MailAccountSection.tsx";
 import { DocumentTitle } from "../shell/DocumentTitle.tsx";
 import { Page } from "./Page.tsx";
 import styles from "./ProfilePage.module.css";
@@ -26,6 +27,7 @@ export function ProfilePage() {
         </IconButton>
       </section>
       <AiSettingsSection />
+      <MailAccountSection />
     </Page>
   );
 }

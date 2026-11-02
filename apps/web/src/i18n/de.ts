@@ -669,6 +669,65 @@ export const de: Translations = {
       languageUpdated: "KI-Sprache aktualisiert",
     },
   },
+  mail: {
+    title: "E-Mail-Postfach",
+    description:
+      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete E-Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert.",
+    loading: "E-Mail-Postfach wird geladen …",
+    loadError: {
+      title: "E-Mail-Postfach konnte nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    account: {
+      add: "Hinzufügen",
+      addTitle: "Postfach-Zugang hinzufügen",
+      editTitle: "Postfach-Zugang bearbeiten",
+      privacyHint:
+        "Appligator kann alle E-Mails in diesem Postfach lesen, ändert darin aber nichts. Nutze daher am besten ein eigenes Postfach nur für Bewerbungen.",
+      setupHint: {
+        preset:
+          "Aktiviere dafür IMAP in den Einstellungen von {{provider}} unter „POP3/IMAP Abruf“. Mit Zwei-Faktor-Authentifizierung brauchst du ein anwendungsspezifisches Passwort.",
+        other:
+          "Den IMAP-Server findest du in der Hilfe deines Anbieters. Er muss über Port 993 mit TLS erreichbar sein.",
+      },
+      provider: "Anbieter",
+      otherProvider: "Anderer Anbieter",
+      host: "IMAP-Server",
+      username: "Benutzername",
+      usernamePlaceholder: "bewerbung@meine-domain.de",
+      password: "Passwort",
+      updated: "{{time}} aktualisiert",
+      submitAdd: "Hinzufügen",
+      submitUpdate: "Aktualisieren",
+      errors: {
+        providerRequired: "Bitte wähle einen Anbieter.",
+        hostRequired: "Bitte gib den IMAP-Server an.",
+        hostInvalid: "Bitte gib einen gültigen Servernamen an, z. B. imap.example.com.",
+        usernameRequired: "Bitte gib den Benutzernamen an.",
+        passwordRequired: "Bitte gib das Passwort an.",
+        loginRejected:
+          "Der Server hat die Anmeldung abgelehnt. Prüfe Benutzername und Passwort und ob IMAP aktiviert ist.",
+        connectionFailed:
+          "Die Verbindung zum Server ist fehlgeschlagen. Prüfe den IMAP-Server und versuche es erneut.",
+        saveFailed:
+          "Der Postfach-Zugang konnte nicht gespeichert werden. Bitte versuche es erneut.",
+      },
+      delete: {
+        action: "Postfach-Zugang löschen",
+        title: "Postfach-Zugang löschen?",
+        description:
+          "Deine Zugangsdaten für {{username}} werden endgültig gelöscht. Dein Postfach und deine E-Mails bleiben unverändert.",
+        confirm: "Löschen",
+        cancel: "Abbrechen",
+        error: "Der Postfach-Zugang konnte nicht gelöscht werden. Bitte versuche es erneut.",
+      },
+    },
+    toast: {
+      added: "Postfach-Zugang hinzugefügt",
+      updated: "Postfach-Zugang aktualisiert",
+      deleted: "Postfach-Zugang gelöscht",
+    },
+  },
   loadError: {
     retry: "Erneut versuchen",
   },

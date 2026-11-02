@@ -657,6 +657,64 @@ export const en = {
       languageUpdated: "AI language updated",
     },
   },
+  mail: {
+    title: "Email inbox",
+    description:
+      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted.",
+    loading: "Loading email inbox …",
+    loadError: {
+      title: "Email inbox could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    account: {
+      add: "Add",
+      addTitle: "Add inbox access",
+      editTitle: "Edit inbox access",
+      privacyHint:
+        "Appligator can read all emails in this inbox but doesn't change anything in it. It's best to use a separate inbox just for applications.",
+      setupHint: {
+        preset:
+          "Enable IMAP in the {{provider}} settings under “POP3/IMAP”. With two-factor authentication, you need an application-specific password.",
+        other:
+          "You can find the IMAP server in your provider's help pages. It must be reachable on port 993 with TLS.",
+      },
+      provider: "Provider",
+      otherProvider: "Other provider",
+      host: "IMAP server",
+      username: "Username",
+      usernamePlaceholder: "applications@my-domain.com",
+      password: "Password",
+      updated: "Updated {{time}}",
+      submitAdd: "Add",
+      submitUpdate: "Update",
+      errors: {
+        providerRequired: "Please select a provider.",
+        hostRequired: "Please enter the IMAP server.",
+        hostInvalid: "Please enter a valid server name, e.g. imap.example.com.",
+        usernameRequired: "Please enter the username.",
+        passwordRequired: "Please enter the password.",
+        loginRejected:
+          "The server rejected the login. Check the username and password and whether IMAP is enabled.",
+        connectionFailed:
+          "The connection to the server failed. Check the IMAP server and try again.",
+        saveFailed: "The inbox access could not be saved. Please try again.",
+      },
+      delete: {
+        action: "Delete inbox access",
+        title: "Delete inbox access?",
+        description:
+          "Your credentials for {{username}} will be permanently deleted. Your inbox and your emails remain unchanged.",
+        confirm: "Delete",
+        cancel: "Cancel",
+        error: "The inbox access could not be deleted. Please try again.",
+      },
+    },
+    toast: {
+      added: "Inbox access added",
+      updated: "Inbox access updated",
+      deleted: "Inbox access deleted",
+    },
+  },
   loadError: {
     retry: "Try again",
   },

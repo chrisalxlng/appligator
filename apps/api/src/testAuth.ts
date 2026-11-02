@@ -1,9 +1,10 @@
 import { randomBytes } from "node:crypto";
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWTPayload } from "jose";
-import { createApiKeyCipher } from "./ai/apiKeyCipher.ts";
 import { buildApp } from "./app.ts";
+import { createSecretCipher } from "./crypto/secretCipher.ts";
 import type { Database } from "./db/database.ts";
 import type { AiOptions } from "./routes/ai.ts";
+import type { MailOptions } from "./routes/mail.ts";
 import { createTestDatabase } from "./testDatabase.ts";
 import { respondingModel } from "./testLanguageModel.ts";
 
@@ -14,7 +15,14 @@ const { privateKey, publicKey } = await generateKeyPair("RS256");
 const keys = createLocalJWKSet({ keys: [{ ...(await exportJWK(publicKey)), alg: "RS256" }] });
 const testDatabase = await createTestDatabase();
 
-export const testApiKeyCipher = createApiKeyCipher(randomBytes(32).toString("base64"));
+export const testApiKeyCipher = createSecretCipher(
+  randomBytes(32).toString("base64"),
+  "test-api-keys",
+);
+export const testMailPasswordCipher = createSecretCipher(
+  randomBytes(32).toString("base64"),
+  "test-mail-passwords",
+);
 
 const testAi: AiOptions = {
   apiKeyCipher: testApiKeyCipher,
@@ -22,15 +30,27 @@ const testAi: AiOptions = {
   createLanguageModel: () => respondingModel(),
 };
 
+const testMail: MailOptions = {
+  passwordCipher: testMailPasswordCipher,
+  verifyMailAccess: async () => undefined,
+};
+
 export function buildTestApp({
   db = testDatabase,
   ai = {},
+  mail = {},
   apiDocs = false,
-}: { db?: Database; ai?: Partial<AiOptions>; apiDocs?: boolean } = {}) {
+}: {
+  db?: Database;
+  ai?: Partial<AiOptions>;
+  mail?: Partial<MailOptions>;
+  apiDocs?: boolean;
+} = {}) {
   return buildApp({
     auth: { issuer, clientId, keys },
     db,
     ai: { ...testAi, ...ai },
+    mail: { ...testMail, ...mail },
     webAppOrigin: testWebAppOrigin,
     apiDocs,
   });
