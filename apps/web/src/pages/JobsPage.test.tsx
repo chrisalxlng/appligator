@@ -987,7 +987,7 @@ test("applies for a job from its detail view with the time and notes of the subm
   await userEvent.type(time, "2026-10-17T08:30");
   await userEvent.click(within(drawer).getByRole("button", { name: "Apply" }));
 
-  expect(await screen.findByText("Application created")).toBeInTheDocument();
+  expect(await screen.findByText("Application added")).toBeInTheDocument();
   expect(api.requestsWith("POST")[0]?.body).toEqual({
     jobId: jobFixture.id,
     activity: {

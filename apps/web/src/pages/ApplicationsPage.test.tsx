@@ -108,7 +108,7 @@ test("applies for the highlighted job with Enter and opens the application", asy
   );
   await submitApplication();
 
-  expect(await screen.findByText("Application created")).toBeInTheDocument();
+  expect(await screen.findByText("Application added")).toBeInTheDocument();
   expect(api.requestsWith("POST")[0]?.body).toMatchObject({ jobId: olderJob.id });
   await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/applications\/[\w-]+$/));
   expect(
