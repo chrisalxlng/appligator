@@ -672,7 +672,7 @@ export const de: Translations = {
   mail: {
     title: "E-Mail-Postfach",
     description:
-      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert.",
+      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete E-Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert.",
     loading: "E-Mail-Postfach wird geladen …",
     loadError: {
       title: "E-Mail-Postfach konnte nicht geladen werden",
@@ -680,10 +680,10 @@ export const de: Translations = {
     },
     account: {
       add: "Hinzufügen",
-      addTitle: "Postfach hinzufügen",
-      editTitle: "Postfach bearbeiten",
+      addTitle: "Postfach-Zugang hinzufügen",
+      editTitle: "Postfach-Zugang bearbeiten",
       privacyHint:
-        "Appligator kann alle Mails in diesem Postfach lesen, ändert darin aber nichts. Nutze daher am besten ein eigenes Postfach nur für Bewerbungen.",
+        "Appligator kann alle E-Mails in diesem Postfach lesen, ändert darin aber nichts. Nutze daher am besten ein eigenes Postfach nur für Bewerbungen.",
       setupHint: {
         preset:
           "Aktiviere dafür IMAP in den Einstellungen von {{provider}} unter „POP3/IMAP Abruf“. Mit Zwei-Faktor-Authentifizierung brauchst du ein anwendungsspezifisches Passwort.",
@@ -709,22 +709,23 @@ export const de: Translations = {
           "Der Server hat die Anmeldung abgelehnt. Prüfe Benutzername und Passwort und ob IMAP aktiviert ist.",
         connectionFailed:
           "Die Verbindung zum Server ist fehlgeschlagen. Prüfe den IMAP-Server und versuche es erneut.",
-        saveFailed: "Das Postfach konnte nicht gespeichert werden. Bitte versuche es erneut.",
+        saveFailed:
+          "Der Postfach-Zugang konnte nicht gespeichert werden. Bitte versuche es erneut.",
       },
       delete: {
-        action: "Postfach entfernen",
-        title: "Postfach entfernen?",
+        action: "Postfach-Zugang löschen",
+        title: "Postfach-Zugang löschen?",
         description:
-          "Appligator löscht die Zugangsdaten für {{username}} und ruft keine neuen Mails mehr ab.",
-        confirm: "Entfernen",
+          "Deine Zugangsdaten für {{username}} werden endgültig gelöscht. Dein Postfach und deine E-Mails bleiben unverändert.",
+        confirm: "Löschen",
         cancel: "Abbrechen",
-        error: "Das Postfach konnte nicht entfernt werden. Bitte versuche es erneut.",
+        error: "Der Postfach-Zugang konnte nicht gelöscht werden. Bitte versuche es erneut.",
       },
     },
     toast: {
-      added: "Postfach hinzugefügt",
-      updated: "Postfach aktualisiert",
-      deleted: "Postfach entfernt",
+      added: "Postfach-Zugang hinzugefügt",
+      updated: "Postfach-Zugang aktualisiert",
+      deleted: "Postfach-Zugang gelöscht",
     },
   },
   loadError: {

@@ -668,8 +668,8 @@ export const en = {
     },
     account: {
       add: "Add",
-      addTitle: "Add inbox",
-      editTitle: "Edit inbox",
+      addTitle: "Add inbox access",
+      editTitle: "Edit inbox access",
       privacyHint:
         "Appligator can read all emails in this inbox but doesn't change anything in it. It's best to use a separate inbox just for applications.",
       setupHint: {
@@ -697,22 +697,22 @@ export const en = {
           "The server rejected the login. Check the username and password and whether IMAP is enabled.",
         connectionFailed:
           "The connection to the server failed. Check the IMAP server and try again.",
-        saveFailed: "The inbox could not be saved. Please try again.",
+        saveFailed: "The inbox access could not be saved. Please try again.",
       },
       delete: {
-        action: "Remove inbox",
-        title: "Remove inbox?",
+        action: "Delete inbox access",
+        title: "Delete inbox access?",
         description:
-          "Appligator deletes the credentials for {{username}} and stops retrieving new emails.",
-        confirm: "Remove",
+          "Your credentials for {{username}} will be permanently deleted. Your inbox and your emails remain unchanged.",
+        confirm: "Delete",
         cancel: "Cancel",
-        error: "The inbox could not be removed. Please try again.",
+        error: "The inbox access could not be deleted. Please try again.",
       },
     },
     toast: {
-      added: "Inbox added",
-      updated: "Inbox updated",
-      deleted: "Inbox removed",
+      added: "Inbox access added",
+      updated: "Inbox access updated",
+      deleted: "Inbox access deleted",
     },
   },
   loadError: {
