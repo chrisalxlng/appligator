@@ -1,10 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "../button/Button.tsx";
-import { ToastProvider, useSuccessToast } from "./Toast.tsx";
+import { IconMail } from "@tabler/icons-react";
+import { ToastProvider, useInfoToast, useSuccessToast } from "./Toast.tsx";
 
 function ToastDemo() {
   const showSuccess = useSuccessToast();
-  return <Button onClick={() => showSuccess("Job added")}>Show toast</Button>;
+  const showInfo = useInfoToast();
+  return (
+    <>
+      <Button onClick={() => showSuccess("Job added")}>Show toast</Button>
+      <Button onClick={() => showInfo("1 new email", IconMail)}>Show info toast</Button>
+    </>
+  );
 }
 
 const meta = {

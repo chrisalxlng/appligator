@@ -74,6 +74,7 @@ interface CardListProps<Item extends CardItem> {
   pinnedCollapsed: boolean;
   onPinnedCollapsedChange: (collapsed: boolean) => void;
   onEndReached?: () => void;
+  dateLabel?: (isoDateTime: string) => string;
 }
 
 export function CardList<Item extends CardItem>({
@@ -84,6 +85,7 @@ export function CardList<Item extends CardItem>({
   pinnedCollapsed,
   onPinnedCollapsedChange,
   onEndReached,
+  dateLabel,
 }: CardListProps<Item>) {
   const { t } = useTranslation();
   const createdLabel = useCreatedLabel();
@@ -120,7 +122,9 @@ export function CardList<Item extends CardItem>({
                     </span>
                     <span className={styles.company}>{item.company}</span>
                     <span className={styles.footer}>
-                      <span className={styles.created}>{createdLabel(item.createdAt)}</span>
+                      <span className={styles.created}>
+                        {(dateLabel ?? createdLabel)(item.createdAt)}
+                      </span>
                       <Badge tone={item.id === openedId ? "active" : tone}>{label}</Badge>
                     </span>
                   </>

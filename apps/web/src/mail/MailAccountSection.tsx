@@ -77,42 +77,53 @@ function MailAccountCard({ account, onEdit }: { account: MailAccount; onEdit: ()
   }
 
   return (
-    <div className={`${styles.card} ${styles.accessCard}`}>
-      <button type="button" className={styles.cardButton} onClick={onEdit}>
-        <span className={styles.cardTitle}>{account.username}</span>
-        <span className={styles.cardText}>{account.host}</span>
-        <span className={styles.cardCaption}>
-          {capitalize(
-            t("mail.account.updated", {
-              time: formatRelativeTime(account.accessUpdatedAt, i18n.language),
-            }),
-          )}
-        </span>
-        <span className={a11y.visuallyHidden}>{t("common.editHint")}</span>
-      </button>
-      <IconButton
-        variant="surface"
-        className={styles.cardAction}
-        label={t("mail.account.delete.action")}
-        onClick={() => {
-          deleteAccount.reset();
-          setIsConfirmingDelete(true);
-        }}
-      >
-        <IconTrash size={20} stroke={2} aria-hidden />
-      </IconButton>
-      <ConfirmDialog
-        open={isConfirmingDelete}
-        onOpenChange={setIsConfirmingDelete}
-        title={t("mail.account.delete.title")}
-        description={t("mail.account.delete.description", { username: account.username })}
-        confirmLabel={t("mail.account.delete.confirm")}
-        cancelLabel={t("mail.account.delete.cancel")}
-        onConfirm={confirmDelete}
-        pending={deleteAccount.isPending}
-        error={deleteAccount.isError ? t("mail.account.delete.error") : undefined}
-        confirmShortcutHint={shortcutHints?.submit}
-      />
-    </div>
+    <>
+      <div className={`${styles.card} ${styles.accessCard}`}>
+        <button type="button" className={styles.cardButton} onClick={onEdit}>
+          <span className={styles.cardTitle}>{account.username}</span>
+          <span className={styles.cardText}>{account.host}</span>
+          <span className={styles.cardCaption}>
+            {capitalize(
+              account.lastSyncedAt
+                ? t("mail.account.synced", {
+                    time: formatRelativeTime(account.lastSyncedAt, i18n.language),
+                  })
+                : t("mail.account.updated", {
+                    time: formatRelativeTime(account.accessUpdatedAt, i18n.language),
+                  }),
+            )}
+          </span>
+          <span className={a11y.visuallyHidden}>{t("common.editHint")}</span>
+        </button>
+        <IconButton
+          variant="surface"
+          className={styles.cardAction}
+          label={t("mail.account.delete.action")}
+          onClick={() => {
+            deleteAccount.reset();
+            setIsConfirmingDelete(true);
+          }}
+        >
+          <IconTrash size={20} stroke={2} aria-hidden />
+        </IconButton>
+        <ConfirmDialog
+          open={isConfirmingDelete}
+          onOpenChange={setIsConfirmingDelete}
+          title={t("mail.account.delete.title")}
+          description={t("mail.account.delete.description", { username: account.username })}
+          confirmLabel={t("mail.account.delete.confirm")}
+          cancelLabel={t("mail.account.delete.cancel")}
+          onConfirm={confirmDelete}
+          pending={deleteAccount.isPending}
+          error={deleteAccount.isError ? t("mail.account.delete.error") : undefined}
+          confirmShortcutHint={shortcutHints?.submit}
+        />
+      </div>
+      {account.syncError && (
+        <p role="alert" className={styles.verifyError}>
+          {t(`mail.account.syncErrors.${account.syncError}`)}
+        </p>
+      )}
+    </>
   );
 }

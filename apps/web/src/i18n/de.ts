@@ -10,6 +10,8 @@ export const de: Translations = {
     home: "Home",
     jobs: "Stellen",
     applications: "Bewerbungen",
+    emails: "E-Mails",
+    emailsWithCount: "E-Mails, {{count}} zu prüfen",
     profile: "Profil",
   },
   common: {
@@ -672,7 +674,7 @@ export const de: Translations = {
   mail: {
     title: "E-Mail-Postfach",
     description:
-      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete E-Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert.",
+      "Verbinde ein Postfach per IMAP, damit Appligator eingehende und gesendete E-Mails deinen Bewerbungen zuordnen kann. Dein Passwort wird sicher verschlüsselt gespeichert. Abgerufene E-Mails löscht Appligator nach 30 Tagen; in deinem Postfach und als Anhang von Aktivitäten bleiben sie erhalten.",
     loading: "E-Mail-Postfach wird geladen …",
     loadError: {
       title: "E-Mail-Postfach konnte nicht geladen werden",
@@ -697,6 +699,13 @@ export const de: Translations = {
       usernamePlaceholder: "bewerbung@meine-domain.de",
       password: "Passwort",
       updated: "{{time}} aktualisiert",
+      synced: "{{time}} abgerufen",
+      syncErrors: {
+        loginRejected:
+          "Der Server lehnt die Anmeldung ab. Aktualisiere deine Zugangsdaten, damit der Abruf weiterläuft.",
+        connectionFailed:
+          "Der Server ist nicht erreichbar. Appligator versucht es automatisch erneut.",
+      },
       submitAdd: "Hinzufügen",
       submitUpdate: "Aktualisieren",
       errors: {
@@ -716,7 +725,7 @@ export const de: Translations = {
         action: "Postfach-Zugang löschen",
         title: "Postfach-Zugang löschen?",
         description:
-          "Deine Zugangsdaten für {{username}} werden endgültig gelöscht. Dein Postfach und deine E-Mails bleiben unverändert.",
+          "Deine Zugangsdaten für {{username}} werden endgültig gelöscht und die abgerufenen E-Mails aus Appligator entfernt. Dein Postfach und deine E-Mails dort bleiben unverändert.",
         confirm: "Löschen",
         cancel: "Abbrechen",
         error: "Der Postfach-Zugang konnte nicht gelöscht werden. Bitte versuche es erneut.",
@@ -726,6 +735,92 @@ export const de: Translations = {
       added: "Postfach-Zugang hinzugefügt",
       updated: "Postfach-Zugang aktualisiert",
       deleted: "Postfach-Zugang gelöscht",
+    },
+  },
+  emails: {
+    loading: "E-Mails werden geladen …",
+    loadingMore: "Weitere E-Mails werden geladen …",
+    loadingMessage: "E-Mail wird geladen …",
+    loadError: {
+      title: "E-Mails konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    loadMoreError: {
+      title: "Weitere E-Mails konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    detailLoadError: {
+      title: "E-Mail konnte nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    notFound: {
+      title: "E-Mail nicht gefunden",
+      description: "Diese E-Mail gibt es nicht oder sie wurde gelöscht.",
+      back: "Zu den E-Mails wechseln",
+    },
+    empty: {
+      title: "Noch keine E-Mails",
+      description: "Neue E-Mails erscheinen hier, sobald Appligator sie abgerufen hat.",
+    },
+    noAccount: {
+      title: "Kein Postfach verbunden",
+      description: "Füge einen Postfach-Zugang hinzu, damit Appligator deine E-Mails abrufen kann.",
+      action: "Postfach-Zugang hinzufügen",
+    },
+    syncError: {
+      title: "Abruf gestört",
+      loginRejected: "Der Server lehnt die Anmeldung ab. Prüfe deinen Postfach-Zugang im Profil.",
+      connectionFailed: "Der Server ist nicht erreichbar. Prüfe deinen Postfach-Zugang im Profil.",
+      failed: "Die E-Mails konnten nicht abgerufen werden. Bitte versuche es erneut.",
+    },
+    sync: "Abrufen",
+    noSubject: "(Kein Betreff)",
+    status: {
+      pending: "Zu prüfen",
+      assigned: "Zugeordnet",
+      dismissed: "Verworfen",
+    },
+    properties: {
+      status: "Status",
+      application: "Bewerbung",
+      folder: "Ordner",
+      attachments: "Anhänge",
+    },
+    folders: {
+      inbox: "Eingang",
+      sent: "Gesendet",
+    },
+    filesNotImported_one: "{{count}} Datei nicht übernommen",
+    filesNotImported_other: "{{count}} Dateien nicht übernommen",
+    assign: {
+      action: "Bewerbung zuordnen",
+      search: "Bewerbungen durchsuchen",
+      searchPlaceholder: "Unternehmen oder Position",
+      loading: "Bewerbungen werden geladen …",
+      loadError: {
+        title: "Bewerbungen konnten nicht geladen werden",
+        description: "Prüfe deine Verbindung und versuche es erneut.",
+      },
+      noMatches: "Keine Bewerbung passt zu „{{search}}“.",
+      noApplications: {
+        title: "Keine Bewerbungen",
+        description: "Erstelle zuerst eine Bewerbung, um ihr E-Mails zuzuordnen.",
+      },
+    },
+    dismiss: {
+      action: "Verwerfen",
+      title: "E-Mail verwerfen?",
+      description:
+        "Die E-Mail gilt dann als erledigt. In deinem Postfach bleibt sie unverändert, und du kannst sie später noch zuordnen.",
+      confirm: "Verwerfen",
+      cancel: "Abbrechen",
+      error: "Die E-Mail konnte nicht verworfen werden. Bitte versuche es erneut.",
+    },
+    toast: {
+      newMails_one: "{{count}} neue E-Mail",
+      newMails_other: "{{count}} neue E-Mails",
+      noNewMails: "Keine neuen E-Mails",
+      dismissed: "E-Mail verworfen",
     },
   },
   loadError: {

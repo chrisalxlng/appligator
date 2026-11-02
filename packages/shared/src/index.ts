@@ -37,7 +37,7 @@ export {
   type ApplicationCreate,
   type ApplicationInput,
 } from "./application.ts";
-export { escapeHtml, hostname } from "./text.ts";
+export { emailAddressesOf, escapeHtml, hostname, textToHtml, toIsoDateTime } from "./text.ts";
 export { detectLanguage } from "./language.ts";
 export { healthResponseSchema, type HealthResponse } from "./health.ts";
 export {
@@ -95,9 +95,24 @@ export { jobImportInputSchema, maxJobPageLength, type JobImportInput } from "./j
 export {
   mailAccountInputSchema,
   mailAccountSchema,
+  mailErrorCodes,
   mailErrorSchema,
   mailHostSchema,
   type MailAccount,
   type MailAccountInput,
   type MailErrorCode,
 } from "./mailAccount.ts";
+export {
+  mailAssignmentInputSchema,
+  mailFolders,
+  mailMessageListPageSchema,
+  mailMessageSchema,
+  mailMessageStatusCountsSchema,
+  mailMessageStatuses,
+  mailSyncResultSchema,
+  type MailAssignmentInput,
+  type MailFolder,
+  type MailMessage,
+  type MailMessageListItem,
+  type MailMessageStatus,
+} from "./mailMessage.ts";

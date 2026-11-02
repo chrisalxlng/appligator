@@ -6,11 +6,15 @@ import {
   companyTypes,
   currencies,
   employmentTypes,
+  mailErrorCodes,
+  mailFolders,
+  mailMessageStatuses,
   salaryPeriods,
   workModels,
   type ActivityTerms,
   type Attachment,
   type ContractTerm,
+  type MailFolder,
   type NoticePeriod,
   type WorkingHours,
 } from "@appligator/shared";
@@ -26,6 +30,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -38,6 +43,9 @@ export const applicationStatusEnum = pgEnum("application_status", applicationSta
 export const activityTypeEnum = pgEnum("activity_type", activityTypes);
 export const aiProviderEnum = pgEnum("ai_provider", aiProviders);
 export const aiLanguageEnum = pgEnum("ai_language", aiLanguages);
+export const mailErrorEnum = pgEnum("mail_error", mailErrorCodes);
+export const mailFolderEnum = pgEnum("mail_folder", mailFolders);
+export const mailMessageStatusEnum = pgEnum("mail_message_status", mailMessageStatuses);
 
 function jobDetailColumns() {
   return {
@@ -153,11 +161,54 @@ export const aiSettings = pgTable("ai_settings", {
   accessUpdatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
 
-export const mailAccounts = pgTable("mail_accounts", {
-  userId: text().primaryKey(),
-  host: text().notNull(),
-  username: text().notNull(),
-  encryptedPassword: text().notNull(),
-  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  accessUpdatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-});
+export interface MailFolderCursor {
+  uidValidity: string;
+  lastUid: number;
+}
+
+export type MailCursors = Partial<Record<MailFolder, MailFolderCursor>>;
+
+export const mailAccounts = pgTable(
+  "mail_accounts",
+  {
+    userId: text().primaryKey(),
+    host: text().notNull(),
+    username: text().notNull(),
+    encryptedPassword: text().notNull(),
+    cursors: jsonb().$type<MailCursors>().notNull().default({}),
+    nextSyncAt: timestamp({ withTimezone: true }).defaultNow(),
+    lastSyncedAt: timestamp({ withTimezone: true }),
+    syncError: mailErrorEnum(),
+    syncFailures: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    accessUpdatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index().on(table.nextSyncAt)],
+);
+
+export interface MailContent {
+  subject: string;
+  from: string;
+  to: string;
+  sentAt: string | null;
+  body: string;
+  attachmentCount: number;
+}
+
+export const mailMessages = pgTable(
+  "mail_messages",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text().notNull(),
+    messageIdHash: text().notNull(),
+    folder: mailFolderEnum().notNull(),
+    status: mailMessageStatusEnum().notNull().default("pending"),
+    content: jsonb().$type<MailContent>().notNull(),
+    applicationId: uuid().references(() => applications.id, { onDelete: "set null" }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique().on(table.userId, table.messageIdHash),
+    index().on(table.userId, table.status, table.createdAt.desc()),
+  ],
+);

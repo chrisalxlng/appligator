@@ -19,12 +19,14 @@ import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
 import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
+import { matchesSearch } from "./search.ts";
 import { sortByStatus } from "./statusCounts.ts";
 
 type ApplicationRow = typeof applications.$inferSelect;
 
 const applicationListQuerySchema = pageQuerySchema.extend({
   status: z.enum(applicationStatuses).optional(),
+  search: z.string().trim().max(200).optional(),
 });
 
 const alreadyAppliedSchema = z.object({ error: z.literal("alreadyApplied") });
@@ -80,7 +82,7 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request) => {
-      const { limit, cursor, status } = request.query;
+      const { limit, cursor, status, search } = request.query;
       const rows = await app.db
         .select({
           id: applications.id,
@@ -96,6 +98,9 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
           and(
             eq(applications.userId, request.userId),
             status ? eq(applications.status, status) : undefined,
+            search
+              ? matchesSearch(search, [applications.company, applications.position])
+              : undefined,
             afterCursor(applications, cursor),
           ),
         )

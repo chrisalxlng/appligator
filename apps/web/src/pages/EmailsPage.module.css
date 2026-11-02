@@ -1,0 +1,4 @@
+.syncError {
+  color: var(--destructive-text);
+  font: var(--font-body-s);
+}

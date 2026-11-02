@@ -8,6 +8,8 @@ export const en = {
     home: "Home",
     jobs: "Jobs",
     applications: "Applications",
+    emails: "Emails",
+    emailsWithCount: "Emails, {{count}} to review",
     profile: "Profile",
   },
   common: {
@@ -660,7 +662,7 @@ export const en = {
   mail: {
     title: "Email inbox",
     description:
-      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted.",
+      "Connect an inbox via IMAP so that Appligator can assign incoming and sent emails to your applications. Your password is stored securely encrypted. Appligator deletes retrieved emails after 30 days; they remain in your inbox and as attachments of activities.",
     loading: "Loading email inbox …",
     loadError: {
       title: "Email inbox could not be loaded",
@@ -685,6 +687,12 @@ export const en = {
       usernamePlaceholder: "applications@my-domain.com",
       password: "Password",
       updated: "Updated {{time}}",
+      synced: "Retrieved {{time}}",
+      syncErrors: {
+        loginRejected:
+          "The server rejects the login. Update your credentials so that retrieving can continue.",
+        connectionFailed: "The server can't be reached. Appligator tries again automatically.",
+      },
       submitAdd: "Add",
       submitUpdate: "Update",
       errors: {
@@ -703,7 +711,7 @@ export const en = {
         action: "Delete inbox access",
         title: "Delete inbox access?",
         description:
-          "Your credentials for {{username}} will be permanently deleted. Your inbox and your emails remain unchanged.",
+          "Your credentials for {{username}} will be permanently deleted and the retrieved emails removed from Appligator. Your inbox and your emails there remain unchanged.",
         confirm: "Delete",
         cancel: "Cancel",
         error: "The inbox access could not be deleted. Please try again.",
@@ -713,6 +721,92 @@ export const en = {
       added: "Inbox access added",
       updated: "Inbox access updated",
       deleted: "Inbox access deleted",
+    },
+  },
+  emails: {
+    loading: "Loading emails …",
+    loadingMore: "Loading more emails …",
+    loadingMessage: "Loading email …",
+    loadError: {
+      title: "Emails could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    loadMoreError: {
+      title: "More emails could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    detailLoadError: {
+      title: "Email could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    notFound: {
+      title: "Email not found",
+      description: "This email doesn't exist or has been deleted.",
+      back: "Go to emails",
+    },
+    empty: {
+      title: "No emails yet",
+      description: "New emails appear here as soon as Appligator has retrieved them.",
+    },
+    noAccount: {
+      title: "No inbox connected",
+      description: "Add an inbox access so that Appligator can retrieve your emails.",
+      action: "Add inbox access",
+    },
+    syncError: {
+      title: "Retrieving is disrupted",
+      loginRejected: "The server rejects the login. Check your inbox access in the profile.",
+      connectionFailed: "The server can't be reached. Check your inbox access in the profile.",
+      failed: "The emails could not be retrieved. Please try again.",
+    },
+    sync: "Retrieve",
+    noSubject: "(No subject)",
+    status: {
+      pending: "To review",
+      assigned: "Assigned",
+      dismissed: "Dismissed",
+    },
+    properties: {
+      status: "Status",
+      application: "Application",
+      folder: "Folder",
+      attachments: "Attachments",
+    },
+    folders: {
+      inbox: "Inbox",
+      sent: "Sent",
+    },
+    filesNotImported_one: "{{count}} file not imported",
+    filesNotImported_other: "{{count}} files not imported",
+    assign: {
+      action: "Assign to application",
+      search: "Search applications",
+      searchPlaceholder: "Company or position",
+      loading: "Loading applications …",
+      loadError: {
+        title: "Applications could not be loaded",
+        description: "Check your connection and try again.",
+      },
+      noMatches: "No application matches “{{search}}”.",
+      noApplications: {
+        title: "No applications",
+        description: "Create an application first to assign emails to it.",
+      },
+    },
+    dismiss: {
+      action: "Dismiss",
+      title: "Dismiss email?",
+      description:
+        "The email then counts as done. It remains unchanged in your inbox, and you can still assign it later.",
+      confirm: "Dismiss",
+      cancel: "Cancel",
+      error: "The email could not be dismissed. Please try again.",
+    },
+    toast: {
+      newMails_one: "{{count}} new email",
+      newMails_other: "{{count}} new emails",
+      noNewMails: "No new emails",
+      dismissed: "Email dismissed",
     },
   },
   loadError: {

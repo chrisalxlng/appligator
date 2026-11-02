@@ -23,6 +23,10 @@ export function formatDateTime(isoDateTime: string, locale: string) {
   return new Date(isoDateTime).toLocaleString(locale, { dateStyle: "long", timeStyle: "short" });
 }
 
+export function formatTime(isoDateTime: string, locale: string) {
+  return new Date(isoDateTime).toLocaleTimeString(locale, { timeStyle: "short" });
+}
+
 export function formatIsoDate(isoDate: string, locale: string) {
   const [year, month, day] = isoDate.split("-").map(Number);
   return new Date(year!, month! - 1, day).toLocaleDateString(locale, { dateStyle: "long" });

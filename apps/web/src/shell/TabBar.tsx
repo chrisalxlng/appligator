@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useRef, type Ref } from "react";
 import { useTranslation } from "react-i18next";
+import { usePendingMailCount } from "../mail/mailQueries.ts";
 import { ActiveIndicator } from "./ActiveIndicator.tsx";
 import { navigationItems } from "./navigation.ts";
 import { ScrollToTop } from "./ScrollToTop.tsx";
@@ -17,6 +18,7 @@ export function TabBar({ floatingActionsRef }: TabBarProps) {
   const navRef = useRef<HTMLElement>(null);
   const activeLinkRect = useActiveLinkRect(navRef);
   const isDesktop = useIsDesktop();
+  const pendingMailCount = usePendingMailCount();
 
   return (
     <div className={styles.container}>
@@ -28,11 +30,18 @@ export function TabBar({ floatingActionsRef }: TabBarProps) {
           <Link
             key={to}
             to={to}
-            aria-label={t(`navigation.${labelKey}`)}
+            aria-label={
+              to === "/emails" && pendingMailCount
+                ? t("navigation.emailsWithCount", { count: pendingMailCount })
+                : t(`navigation.${labelKey}`)
+            }
             className={styles.tab}
             activeOptions={{ exact: to === "/" }}
           >
             <Icon size={20} stroke={2.4} aria-hidden />
+            {to === "/emails" && !!pendingMailCount && (
+              <span className={styles.count} aria-hidden />
+            )}
           </Link>
         ))}
       </nav>

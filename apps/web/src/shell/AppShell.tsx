@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNewMailNotification } from "../mail/useNewMailNotification.ts";
 import styles from "./AppShell.module.css";
 import { FloatingActionsSlotContext } from "./FloatingActions.tsx";
 import { Footer } from "./Footer.tsx";
@@ -19,6 +20,7 @@ export function AppShell() {
   const shellRef = useRef<HTMLDivElement>(null);
   const isDesktop = useIsDesktop();
   useHideBarsOnScroll(shellRef, !isDesktop);
+  useNewMailNotification();
 
   // Only for keyboard use, because the skip link must stay the first tab stop after loading a page.
   const usesKeyboard = useRef(false);

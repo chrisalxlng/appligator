@@ -11,10 +11,13 @@ import { createQueryClient } from "./api/queryClient.ts";
 import { ApplicationsIndex } from "./applications/ApplicationsIndex.tsx";
 import type { Auth } from "./auth/authenticate.ts";
 import { JobsIndex } from "./jobs/JobsIndex.tsx";
+import { EmailsIndex } from "./mail/EmailsIndex.tsx";
 import { ApplicationDetailPage } from "./pages/ApplicationDetailPage.tsx";
 import { ApplicationsPage } from "./pages/ApplicationsPage.tsx";
 import { ErrorPage } from "./pages/ErrorPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
+import { EmailDetailPage } from "./pages/EmailDetailPage.tsx";
+import { EmailsPage } from "./pages/EmailsPage.tsx";
 import { JobDetailPage } from "./pages/JobDetailPage.tsx";
 import { JobsPage } from "./pages/JobsPage.tsx";
 import { NotFoundPage } from "./pages/NotFoundPage.tsx";
@@ -80,6 +83,24 @@ const applicationDetailRoute = createRoute({
   component: ApplicationDetailPage,
 });
 
+const emailsRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/emails",
+  component: EmailsPage,
+});
+
+const emailsIndexRoute = createRoute({
+  getParentRoute: () => emailsRoute,
+  path: "/",
+  component: EmailsIndex,
+});
+
+const emailDetailRoute = createRoute({
+  getParentRoute: () => emailsRoute,
+  path: "$messageId",
+  component: EmailDetailPage,
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/profile",
@@ -91,6 +112,7 @@ const routeTree = rootRoute.addChildren([
     homeRoute,
     jobsRoute.addChildren([jobsIndexRoute, jobDetailRoute]),
     applicationsRoute.addChildren([applicationsIndexRoute, applicationDetailRoute]),
+    emailsRoute.addChildren([emailsIndexRoute, emailDetailRoute]),
     profileRoute,
   ]),
 ]);

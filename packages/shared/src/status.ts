@@ -12,7 +12,7 @@ export const applicationStatuses = [
   "paused",
 ] as const;
 
-function statusCountsSchema<const Statuses extends readonly [string, ...string[]]>(
+export function statusCountsSchema<const Statuses extends readonly [string, ...string[]]>(
   statuses: Statuses,
 ) {
   return z.array(z.object({ status: z.enum(statuses), count: z.int().min(1) }));

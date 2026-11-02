@@ -8,12 +8,13 @@ import {
   type Job,
   type JobStatus,
 } from "@appligator/shared";
-import { and, count, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, count, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { applications, jobs } from "../db/schema.ts";
 import { idParamsSchema } from "./idParams.ts";
 import { notFoundSchema } from "./notFound.ts";
+import { matchesSearch } from "./search.ts";
 import { afterCursor, cursorCreatedAt, pageOrder, pageQuerySchema, toPage } from "./pagination.ts";
 import { fromSalaryColumns, toSalaryColumns } from "./salaryColumns.ts";
 import { sortByStatus } from "./statusCounts.ts";
@@ -32,11 +33,6 @@ const jobStatus = sql<JobStatus>`case when ${applications.id} is null then 'open
 
 function hasStatus(status: JobStatus) {
   return status === "applied" ? isNotNull(applications.id) : isNull(applications.id);
-}
-
-function matchesSearch(search: string) {
-  const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
-  return or(ilike(jobs.company, pattern), ilike(jobs.position, pattern));
 }
 
 export function toJob(
@@ -94,7 +90,7 @@ export const jobRoutes: FastifyPluginAsyncZod = async (app) => {
           and(
             eq(jobs.userId, request.userId),
             status && hasStatus(status),
-            search ? matchesSearch(search) : undefined,
+            search ? matchesSearch(search, [jobs.company, jobs.position]) : undefined,
             afterCursor(jobs, cursor),
           ),
         )

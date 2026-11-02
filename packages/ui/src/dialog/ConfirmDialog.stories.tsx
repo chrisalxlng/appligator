@@ -34,6 +34,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Undoable: Story = {
+  args: { confirmVariant: "primary" },
+};
+
 export const Pending: Story = {
   args: { pending: true },
 };

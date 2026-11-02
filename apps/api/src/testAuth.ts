@@ -33,6 +33,7 @@ const testAi: AiOptions = {
 const testMail: MailOptions = {
   passwordCipher: testMailPasswordCipher,
   verifyMailAccess: async () => undefined,
+  readNewMail: async (_access, cursors) => ({ cursors, hasMore: false }),
 };
 
 export function buildTestApp({

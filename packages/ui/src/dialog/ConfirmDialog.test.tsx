@@ -88,3 +88,17 @@ test("shows the confirm shortcut as a tooltip", async () => {
 
   expect(await screen.findByText("⌘ ↵")).toBeInTheDocument();
 });
+
+test("marks the confirmation as destructive unless told otherwise", () => {
+  renderDialog();
+
+  expect(screen.getByRole("button", { name: "Delete" }).className).toMatch(/destructive/);
+});
+
+test("can confirm an action that can be undone with the primary color", () => {
+  renderDialog({ confirmVariant: "primary" });
+
+  const button = screen.getByRole("button", { name: "Delete" });
+  expect(button.className).toMatch(/primary/);
+  expect(button.className).not.toMatch(/destructive/);
+});

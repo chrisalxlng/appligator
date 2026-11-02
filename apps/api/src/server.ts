@@ -9,7 +9,9 @@ import { buildApp } from "./app.ts";
 import { createSecretCipher } from "./crypto/secretCipher.ts";
 import * as schema from "./db/schema.ts";
 import { requireEnv } from "./env.ts";
-import { createMailAccessVerifier } from "./mail/mailAccess.ts";
+import { createMailAccessVerifier, createMailboxOpener } from "./mail/mailAccess.ts";
+import { createMailReader } from "./mail/mailReader.ts";
+import { startMailSync } from "./mail/mailSync.ts";
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? "localhost";
@@ -31,6 +33,10 @@ const pool = new Pool({
 
 const db = drizzle({ client: pool, schema, casing: "snake_case" });
 
+const openMailbox = createMailboxOpener({
+  localDevPort: Number(process.env.MAIL_LOCAL_DEV_PORT) || undefined,
+});
+
 const app = buildApp({
   auth: {
     issuer: keycloakIssuer,
@@ -41,9 +47,8 @@ const app = buildApp({
   ai: { apiKeyCipher, modelCatalog: createModelCatalog(), createLanguageModel },
   mail: {
     passwordCipher: mailPasswordCipher,
-    verifyMailAccess: createMailAccessVerifier({
-      localDevPort: Number(process.env.MAIL_LOCAL_DEV_PORT) || undefined,
-    }),
+    verifyMailAccess: createMailAccessVerifier(openMailbox),
+    readNewMail: createMailReader(openMailbox),
   },
   webAppOrigin,
   apiDocs: process.env.API_DOCS === "true",
@@ -58,6 +63,8 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 try {
   await migrate(db, { migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url)) });
+  const stopMailSync = startMailSync(app.mailSync, app.log);
+  app.addHook("onClose", stopMailSync);
   await app.listen({ port, host });
 } catch (error) {
   app.log.error(error);

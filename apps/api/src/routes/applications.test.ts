@@ -198,6 +198,24 @@ test("GET /applications lists only the user's applications, newest first", async
   });
 });
 
+test("GET /applications searches company and position of the user's applications", async () => {
+  const match = await createApplication();
+  await app.inject({
+    method: "PUT",
+    url: `/applications/${match.id}`,
+    headers: { authorization: `Bearer ${await signToken({ sub: "user-id" })}` },
+    payload: { ...changedInput, company: "Initech 100%" },
+  });
+  await createApplication();
+  await createApplication("other-user");
+
+  const byCompany = await request("GET", "/applications?search=initech%20100%25");
+  const withWildcard = await request("GET", "/applications?search=%25");
+
+  expect(byCompany.json().items.map(({ id }: { id: string }) => id)).toEqual([match.id]);
+  expect(withWildcard.json().items.map(({ id }: { id: string }) => id)).toEqual([match.id]);
+});
+
 test("GET /applications pages through the applications with a cursor", async () => {
   const [oldest, middle, newest] = [
     await createApplication(),

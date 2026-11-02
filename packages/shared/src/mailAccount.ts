@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const mailErrorCodes = ["loginRejected", "connectionFailed"] as const;
+export const mailErrorCodes = ["loginRejected", "connectionFailed"] as const;
 
 // The last label starts with a letter, which rules out IP addresses: the server's certificate is
 // verified against this name.
@@ -16,6 +16,8 @@ export const mailAccountInputSchema = z.object({
 
 export const mailAccountSchema = mailAccountInputSchema.omit({ password: true }).extend({
   accessUpdatedAt: z.iso.datetime(),
+  lastSyncedAt: z.iso.datetime().nullable(),
+  syncError: z.enum(mailErrorCodes).nullable(),
 });
 
 export const mailErrorSchema = z.object({ error: z.enum(mailErrorCodes) });

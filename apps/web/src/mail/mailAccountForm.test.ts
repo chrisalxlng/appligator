@@ -12,6 +12,8 @@ const account: MailAccount = {
   host: "imap.gmx.net",
   username: "bewerbung@gmx.de",
   accessUpdatedAt: "2026-10-01T12:00:00.000Z",
+  lastSyncedAt: null,
+  syncError: null,
 };
 
 const values: MailAccountFormValues = {

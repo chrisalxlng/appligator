@@ -34,20 +34,24 @@ type ValidationResult =
   | { input: ActivityInput; errors?: never }
   | { input?: never; errors: ActivityFormErrors };
 
-export type ActivityPrefill = Pick<ActivityInput, "terms" | "notes">;
+export type ActivityPrefill = Partial<
+  Pick<ActivityInput, "occurredAt" | "terms" | "notes" | "attachments">
+>;
 
 export function toActivityFormValues(
   activity?: Activity,
   prefill?: ActivityPrefill,
 ): ActivityFormValues {
   return {
-    occurredAt: toLocalDateTime(activity?.occurredAt ?? new Date().toISOString()),
+    occurredAt: toLocalDateTime(
+      activity?.occurredAt ?? prefill?.occurredAt ?? new Date().toISOString(),
+    ),
     appointmentAt: activity?.appointmentAt ? toLocalDateTime(activity.appointmentAt) : "",
     dueDate: activity?.dueDate ?? "",
     responseDeadline: activity?.responseDeadline ?? "",
     terms: (activity ?? prefill)?.terms ?? null,
     notes: (activity ?? prefill)?.notes ?? "",
-    attachments: activity?.attachments ?? [],
+    attachments: (activity ?? prefill)?.attachments ?? [],
   };
 }
 

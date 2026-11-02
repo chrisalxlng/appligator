@@ -78,6 +78,20 @@
       "when": 1793626642824,
       "tag": "0010_create_mail_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793632862382,
+      "tag": "0011_add_mail_sync",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793642782796,
+      "tag": "0012_keep_handled_mails",
+      "breakpoints": true
     }
   ]
 }
