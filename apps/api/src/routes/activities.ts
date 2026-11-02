@@ -3,7 +3,12 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { activities, applications } from "../db/schema.ts";
-import { maxActivityBodyBytes, toActivity, toActivityColumns } from "./activityRows.ts";
+import {
+  insertActivity,
+  maxActivityBodyBytes,
+  toActivity,
+  toActivityColumns,
+} from "./activityRows.ts";
 import { updateApplicationStatus } from "./applicationStatus.ts";
 import { fillEmptyDetails } from "./detailFills.ts";
 import { idParamsSchema } from "./idParams.ts";
@@ -54,15 +59,7 @@ export const activityRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       const { id } = request.params;
-      const row = await app.db.transaction(async (tx) => {
-        const [inserted] = await tx
-          .insert(activities)
-          .values({ ...toActivityColumns(request.body), applicationId: id })
-          .returning();
-        if (request.body.terms) await fillEmptyDetails(tx, id, request.body.terms);
-        await updateApplicationStatus(tx, id);
-        return inserted!;
-      });
+      const row = await app.db.transaction((tx) => insertActivity(tx, id, request.body));
       return reply.code(201).send(toActivity(row));
     },
   );

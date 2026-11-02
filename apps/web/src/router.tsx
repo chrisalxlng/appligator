@@ -15,6 +15,7 @@ import { ApplicationDetailPage } from "./pages/ApplicationDetailPage.tsx";
 import { ApplicationsPage } from "./pages/ApplicationsPage.tsx";
 import { ErrorPage } from "./pages/ErrorPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
+import { InboxPage } from "./pages/InboxPage.tsx";
 import { JobDetailPage } from "./pages/JobDetailPage.tsx";
 import { JobsPage } from "./pages/JobsPage.tsx";
 import { NotFoundPage } from "./pages/NotFoundPage.tsx";
@@ -80,6 +81,12 @@ const applicationDetailRoute = createRoute({
   component: ApplicationDetailPage,
 });
 
+const inboxRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/inbox",
+  component: InboxPage,
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => shellRoute,
   path: "/profile",
@@ -91,6 +98,7 @@ const routeTree = rootRoute.addChildren([
     homeRoute,
     jobsRoute.addChildren([jobsIndexRoute, jobDetailRoute]),
     applicationsRoute.addChildren([applicationsIndexRoute, applicationDetailRoute]),
+    inboxRoute,
     profileRoute,
   ]),
 ]);

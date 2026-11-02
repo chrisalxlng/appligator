@@ -110,7 +110,7 @@ test.each([
   [undefined, "The inbox access could not be saved."],
 ])("explains the failed save %s and keeps the drawer open", async (error, message) => {
   const api = createFakeMailApi();
-  api.failWith("PUT", error ? 422 : 500, error);
+  api.failWith("PUT /mail/account", error ? 422 : 500, error);
   renderApp("/profile");
 
   const drawer = await openAddDrawer();
@@ -161,7 +161,7 @@ test("deletes the inbox access after a confirmation", async () => {
 
 test("keeps the inbox access and shows an error when deleting it fails", async () => {
   const api = createFakeMailApi(mailAccountFixture);
-  api.failWith("DELETE", 500);
+  api.failWith("DELETE /mail/account", 500);
   renderApp("/profile");
 
   await userEvent.click(await screen.findByRole("button", { name: "Delete inbox access" }));
@@ -175,7 +175,7 @@ test("keeps the inbox access and shows an error when deleting it fails", async (
 
 test("shows a load error with a retry", async () => {
   const api = createFakeMailApi(mailAccountFixture);
-  api.failWith("GET", 500);
+  api.failWith("GET /mail/account", 500);
   renderApp("/profile");
 
   const section = await mailSection();
@@ -186,4 +186,25 @@ test("shows a load error with a retry", async () => {
   expect(
     await within(section).findByRole("button", { name: /^bewerbung@example.com/ }),
   ).toBeVisible();
+});
+
+test("shows when the emails were last retrieved", async () => {
+  createFakeMailApi({
+    ...mailAccountFixture,
+    lastSyncedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+  });
+  renderApp("/profile");
+
+  expect(await screen.findByRole("button", { name: /^bewerbung@example.com/ })).toHaveTextContent(
+    "Retrieved 5 minutes ago",
+  );
+});
+
+test("explains a disrupted retrieval", async () => {
+  createFakeMailApi({ ...mailAccountFixture, syncError: "loginRejected" });
+  renderApp("/profile");
+
+  expect(await within(await mailSection()).findByRole("alert")).toHaveTextContent(
+    "The server rejects the login.",
+  );
 });

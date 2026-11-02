@@ -8,6 +8,8 @@ export const en = {
     home: "Home",
     jobs: "Jobs",
     applications: "Applications",
+    inbox: "Inbox",
+    inboxWithCount: "Inbox, {{count}} to review",
     profile: "Profile",
   },
   common: {
@@ -685,6 +687,12 @@ export const en = {
       usernamePlaceholder: "applications@my-domain.com",
       password: "Password",
       updated: "Updated {{time}}",
+      synced: "Retrieved {{time}}",
+      syncErrors: {
+        loginRejected:
+          "The server rejects the login. Update your credentials so that retrieving can continue.",
+        connectionFailed: "The server can't be reached. Appligator tries again automatically.",
+      },
       submitAdd: "Add",
       submitUpdate: "Update",
       errors: {
@@ -713,6 +721,67 @@ export const en = {
       added: "Inbox access added",
       updated: "Inbox access updated",
       deleted: "Inbox access deleted",
+    },
+  },
+  inbox: {
+    description:
+      "Retrieved emails that aren't assigned to an application yet end up here. Appligator deletes unassigned emails after 30 days; they remain in your inbox.",
+    loading: "Loading emails …",
+    loadError: {
+      title: "Emails could not be loaded",
+      description: "Check your connection and try again.",
+    },
+    empty: {
+      title: "No emails to review",
+      description: "New emails appear here as soon as Appligator has retrieved them.",
+    },
+    noAccount: {
+      title: "No inbox connected",
+      description: "Add an inbox access so that Appligator can retrieve your emails.",
+      action: "Add inbox access",
+    },
+    syncError: {
+      loginRejected: "Retrieving emails is disrupted: The server rejects the login.",
+      connectionFailed: "Retrieving emails is disrupted: The server can't be reached.",
+      action: "Check inbox access",
+    },
+    limited: "Showing the newest {{shown}} of {{total}} emails.",
+    noSubject: "(No subject)",
+    sent: "Sent",
+    filesNotImported_one: "{{count}} file not imported",
+    filesNotImported_other: "{{count}} files not imported",
+    message: {
+      loadError: {
+        title: "Email could not be loaded",
+        description: "Check your connection and try again.",
+      },
+      loading: "Loading email …",
+    },
+    assign: {
+      action: "Assign to application",
+      search: "Search applications",
+      searchPlaceholder: "Company or position",
+      loading: "Loading applications …",
+      loadError: {
+        title: "Applications could not be loaded",
+        description: "Check your connection and try again.",
+      },
+      noMatches: "No application matches “{{search}}”.",
+      noApplications: {
+        title: "No applications",
+        description: "Create an application first to assign emails to it.",
+      },
+    },
+    dismiss: {
+      action: "Dismiss email",
+      title: "Dismiss email?",
+      description: "The email disappears from this list. It remains unchanged in your inbox.",
+      confirm: "Dismiss",
+      cancel: "Cancel",
+      error: "The email could not be dismissed. Please try again.",
+    },
+    toast: {
+      dismissed: "Email dismissed",
     },
   },
   loadError: {

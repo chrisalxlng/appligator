@@ -10,6 +10,8 @@ export const de: Translations = {
     home: "Home",
     jobs: "Stellen",
     applications: "Bewerbungen",
+    inbox: "Eingang",
+    inboxWithCount: "Eingang, {{count}} zu prüfen",
     profile: "Profil",
   },
   common: {
@@ -697,6 +699,13 @@ export const de: Translations = {
       usernamePlaceholder: "bewerbung@meine-domain.de",
       password: "Passwort",
       updated: "{{time}} aktualisiert",
+      synced: "{{time}} abgerufen",
+      syncErrors: {
+        loginRejected:
+          "Der Server lehnt die Anmeldung ab. Aktualisiere deine Zugangsdaten, damit der Abruf weiterläuft.",
+        connectionFailed:
+          "Der Server ist nicht erreichbar. Appligator versucht es automatisch erneut.",
+      },
       submitAdd: "Hinzufügen",
       submitUpdate: "Aktualisieren",
       errors: {
@@ -726,6 +735,68 @@ export const de: Translations = {
       added: "Postfach-Zugang hinzugefügt",
       updated: "Postfach-Zugang aktualisiert",
       deleted: "Postfach-Zugang gelöscht",
+    },
+  },
+  inbox: {
+    description:
+      "Hier landen abgerufene E-Mails, die noch keiner Bewerbung zugeordnet sind. Nicht zugeordnete E-Mails löscht Appligator nach 30 Tagen, in deinem Postfach bleiben sie erhalten.",
+    loading: "E-Mails werden geladen …",
+    loadError: {
+      title: "E-Mails konnten nicht geladen werden",
+      description: "Prüfe deine Verbindung und versuche es erneut.",
+    },
+    empty: {
+      title: "Keine E-Mails zu prüfen",
+      description: "Neue E-Mails erscheinen hier, sobald Appligator sie abgerufen hat.",
+    },
+    noAccount: {
+      title: "Kein Postfach verbunden",
+      description: "Füge einen Postfach-Zugang hinzu, damit Appligator deine E-Mails abrufen kann.",
+      action: "Postfach-Zugang hinzufügen",
+    },
+    syncError: {
+      loginRejected: "Der Abruf ist gestört: Der Server lehnt die Anmeldung ab.",
+      connectionFailed: "Der Abruf ist gestört: Der Server ist nicht erreichbar.",
+      action: "Postfach-Zugang prüfen",
+    },
+    limited: "Die neuesten {{shown}} von {{total}} E-Mails werden angezeigt.",
+    noSubject: "(Kein Betreff)",
+    sent: "Gesendet",
+    filesNotImported_one: "{{count}} Datei nicht übernommen",
+    filesNotImported_other: "{{count}} Dateien nicht übernommen",
+    message: {
+      loadError: {
+        title: "E-Mail konnte nicht geladen werden",
+        description: "Prüfe deine Verbindung und versuche es erneut.",
+      },
+      loading: "E-Mail wird geladen …",
+    },
+    assign: {
+      action: "Bewerbung zuordnen",
+      search: "Bewerbungen durchsuchen",
+      searchPlaceholder: "Unternehmen oder Position",
+      loading: "Bewerbungen werden geladen …",
+      loadError: {
+        title: "Bewerbungen konnten nicht geladen werden",
+        description: "Prüfe deine Verbindung und versuche es erneut.",
+      },
+      noMatches: "Keine Bewerbung passt zu „{{search}}“.",
+      noApplications: {
+        title: "Keine Bewerbungen",
+        description: "Erstelle zuerst eine Bewerbung, um ihr E-Mails zuzuordnen.",
+      },
+    },
+    dismiss: {
+      action: "E-Mail verwerfen",
+      title: "E-Mail verwerfen?",
+      description:
+        "Die E-Mail verschwindet aus dem Eingang. In deinem Postfach bleibt sie unverändert.",
+      confirm: "Verwerfen",
+      cancel: "Abbrechen",
+      error: "Die E-Mail konnte nicht verworfen werden. Bitte versuche es erneut.",
+    },
+    toast: {
+      dismissed: "E-Mail verworfen",
     },
   },
   loadError: {

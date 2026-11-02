@@ -1,6 +1,8 @@
+import { Badge } from "@appligator/ui";
 import { Link } from "@tanstack/react-router";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useMailMessageCount } from "../mail/mailQueries.ts";
 import { ActiveIndicator } from "./ActiveIndicator.tsx";
 import { Brand } from "./Brand.tsx";
 import { Footer } from "./Footer.tsx";
@@ -12,6 +14,7 @@ export function Sidebar() {
   const { t } = useTranslation();
   const navRef = useRef<HTMLElement>(null);
   const activeLinkRect = useActiveLinkRect(navRef);
+  const { data: inboxCount } = useMailMessageCount();
 
   return (
     <aside className={styles.sidebar}>
@@ -22,6 +25,11 @@ export function Sidebar() {
           <Link key={to} to={to} className={styles.link} activeOptions={{ exact: to === "/" }}>
             <Icon size={20} stroke={2.4} aria-hidden />
             {t(`navigation.${labelKey}`)}
+            {to === "/inbox" && !!inboxCount && (
+              <span className={styles.count}>
+                <Badge tone="info">{inboxCount}</Badge>
+              </span>
+            )}
           </Link>
         ))}
       </nav>

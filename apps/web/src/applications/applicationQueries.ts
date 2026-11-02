@@ -5,6 +5,7 @@ import type {
   ApplicationStatus,
 } from "@appligator/shared";
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -19,6 +20,7 @@ import { createApplicationsApi } from "./applicationsApi.ts";
 
 export const applicationKeys = {
   list: (status: ApplicationStatus | null) => ["applications", "list", status] as const,
+  search: (search: string) => ["applications", "search", search] as const,
   statusCounts: ["applications", "status-counts"] as const,
   detail: (id: string) => ["applications", "detail", id] as const,
   activities: (id: string) => ["applications", "detail", id, "activities"] as const,
@@ -27,9 +29,12 @@ export const applicationKeys = {
 function invalidateCollections(queryClient: QueryClient) {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: ["applications", "list"] }),
+    queryClient.invalidateQueries({ queryKey: ["applications", "search"] }),
     queryClient.invalidateQueries({ queryKey: applicationKeys.statusCounts }),
   ]);
 }
+
+const searchLimit = 20;
 
 export function invalidateApplicationStatus(queryClient: QueryClient) {
   return Promise.all([
@@ -47,6 +52,16 @@ function invalidateJob(queryClient: QueryClient, jobId: string) {
 
 function useApplicationsApi() {
   return createApplicationsApi(useApiClient());
+}
+
+export function useApplicationSearch(search: string) {
+  const applicationsApi = useApplicationsApi();
+  return useQuery({
+    queryKey: applicationKeys.search(search),
+    queryFn: () => applicationsApi.search(search, searchLimit),
+    select: (page) => page.items,
+    placeholderData: keepPreviousData,
+  });
 }
 
 export function useApplications(status: ApplicationStatus | null = null) {

@@ -80,13 +80,17 @@ export function AttachmentCards({ attachments }: { attachments: Attachment[] }) 
         open={openedEmail.open}
         onOpenChange={(open) => setOpenedEmail((current) => ({ ...current, open }))}
       >
-        {openedEmail.email && <Email email={openedEmail.email} />}
+        {openedEmail.email && <EmailContent email={openedEmail.email} />}
       </Drawer>
     </>
   );
 }
 
-function Email({ email }: { email: EmailAttachment }) {
+export function EmailContent({
+  email,
+}: {
+  email: Pick<EmailAttachment, "from" | "to" | "sentAt" | "body">;
+}) {
   const { t, i18n } = useTranslation();
 
   return (

@@ -95,3 +95,13 @@
     color: var(--active-text-primary);
   }
 }
+
+.count {
+  position: absolute;
+  top: var(--spacing-2);
+  left: calc(50% + var(--spacing-1));
+  width: var(--spacing-2);
+  height: var(--spacing-2);
+  border-radius: var(--radius-full);
+  background: var(--info-text-primary);
+}

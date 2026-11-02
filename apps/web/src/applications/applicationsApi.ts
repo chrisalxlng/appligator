@@ -13,6 +13,8 @@ export function createApplicationsApi(api: ApiClient) {
   return {
     list: (cursor: string | null, status: ApplicationStatus | null) =>
       api.request(listPath("/applications", { cursor, status }), applicationListPageSchema),
+    search: (search: string, limit: number) =>
+      api.request(listPath("/applications", { search, limit }), applicationListPageSchema),
     statusCounts: () => api.request("/applications/status-counts", applicationStatusCountsSchema),
     get: (id: string) => api.request(`/applications/${id}`, applicationSchema),
     create: (input: ApplicationCreate) =>

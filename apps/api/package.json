@@ -27,6 +27,7 @@
     "jose": "catalog:",
     "node-html-parser": "catalog:",
     "pg": "catalog:",
+    "postal-mime": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

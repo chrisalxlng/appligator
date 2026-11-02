@@ -1,21 +1,13 @@
-import { activityLimits, escapeHtml, jobLimits } from "@appligator/shared";
+import {
+  activityLimits,
+  emailAddressesOf,
+  jobLimits,
+  textToHtml,
+  toIsoDateTime,
+} from "@appligator/shared";
 import { toRichText } from "@appligator/ui";
-import PostalMime, { type Address } from "postal-mime";
+import PostalMime from "postal-mime";
 import type { EmailAttachment, LinkAttachment } from "./attachments.ts";
-
-function textToHtml(text: string) {
-  return text
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br>")}</p>`)
-    .join("");
-}
-
-function toIsoDateTime(date: string | undefined) {
-  const parsed = date ? new Date(date) : null;
-  return parsed && !Number.isNaN(parsed.getTime()) ? parsed.toISOString() : null;
-}
 
 function isWebLink(url: string) {
   try {
@@ -48,14 +40,6 @@ function findLinks(html: string | undefined, text: string | undefined): LinkAtta
   return [...unique.values()];
 }
 
-function addressesOf(addresses: Address[]) {
-  return addresses
-    .flatMap((address) => address.group ?? [address])
-    .map(({ address, name }) => address || name)
-    .join(", ")
-    .toLowerCase();
-}
-
 export function exceedsEmailLimits({
   subject,
   from,
@@ -79,8 +63,8 @@ export async function importEmail(file: File) {
     email: {
       kind: "email" as const,
       subject: subject?.trim() ?? "",
-      from: addressesOf(from ? [from] : []),
-      to: addressesOf(to ?? []),
+      from: emailAddressesOf(from ? [from] : []),
+      to: emailAddressesOf(to ?? []),
       sentAt: toIsoDateTime(date),
       body: html ? toRichText(html) : textToHtml(text ?? ""),
     },

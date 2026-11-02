@@ -6,6 +6,7 @@ const imapsPort = 993;
 const localDevHost = "localhost";
 
 export type VerifyMailAccess = (access: MailAccountInput) => Promise<MailErrorCode | undefined>;
+export type OpenMailbox = (access: MailAccountInput) => Promise<ImapFlow>;
 
 interface ImapTarget {
   address: string;
@@ -14,8 +15,10 @@ interface ImapTarget {
   verifyCertificate: boolean;
 }
 
-function isAuthenticationFailure(error: unknown) {
-  return error instanceof Error && "authenticationFailed" in error && !!error.authenticationFailed;
+export function toMailErrorCode(error: unknown): MailErrorCode {
+  const rejected =
+    error instanceof Error && "authenticationFailed" in error && !!error.authenticationFailed;
+  return rejected ? "loginRejected" : "connectionFailed";
 }
 
 async function loginToImap(
@@ -33,22 +36,22 @@ async function loginToImap(
     disableAutoIdle: true,
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
-    socketTimeout: 15_000,
+    socketTimeout: 60_000,
   });
   // ImapFlow also emits connection failures as events, which would crash the process unhandled.
   client.on("error", () => {});
 
   try {
     await client.connect();
-  } finally {
+    return client;
+  } catch (error) {
     client.close();
+    throw error;
   }
 }
 
-export function createMailAccessVerifier({
-  localDevPort,
-}: { localDevPort?: number } = {}): VerifyMailAccess {
-  async function targetFor(host: string): Promise<ImapTarget | undefined> {
+export function createMailboxOpener({ localDevPort }: { localDevPort?: number } = {}): OpenMailbox {
+  async function targetFor(host: string): Promise<ImapTarget> {
     if (localDevPort && host === localDevHost) {
       return {
         address: localDevHost,
@@ -59,20 +62,23 @@ export function createMailAccessVerifier({
     }
 
     const address = await resolvePublicAddress(host);
-    if (!address) return undefined;
+    if (!address) throw new Error("The mail host has no public address");
 
     return { address, servername: host, port: imapsPort, verifyCertificate: true };
   }
 
-  return async ({ host, username, password }) => {
-    try {
-      const target = await targetFor(host);
-      if (!target) return "connectionFailed";
+  return async ({ host, username, password }) =>
+    loginToImap(await targetFor(host), { username, password });
+}
 
-      await loginToImap(target, { username, password });
+export function createMailAccessVerifier(openMailbox: OpenMailbox): VerifyMailAccess {
+  return async (access) => {
+    try {
+      const client = await openMailbox(access);
+      client.close();
       return undefined;
     } catch (error) {
-      return isAuthenticationFailure(error) ? "loginRejected" : "connectionFailed";
+      return toMailErrorCode(error);
     }
   };
 }
